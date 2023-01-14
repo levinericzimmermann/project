@@ -1,0 +1,26 @@
+{
+    "mutwo-midi": {
+        "branch": "main",
+        "description": "Midi extension for event based library mutwo",
+        "homepage": "",
+        "owner": "mutwo-org",
+        "repo": "mutwo.midi",
+        "rev": "89ee6895a332a4504bd9fbeb10b25b2dd04f40dd",
+        "sha256": "0lxp425hggb1qcmmbidicncr4xq30yl9y27m0sfqpc535hr1s71n",
+        "type": "tarball",
+        "url": "https://github.com/mutwo-org/mutwo.midi/archive/89ee6895a332a4504bd9fbeb10b25b2dd04f40dd.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "nixpkgs": {
+        "branch": "release-22.05",
+        "description": "Nix Packages collection",
+        "homepage": "",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "d3beb2b1c9247bba6caf547c7b8c1de54e7969f7",
+        "sha256": "03pn6cvvnpxmfndvpvk2rllylg1rp896r3pp2pzab99s4w7cb0km",
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixpkgs/archive/d3beb2b1c9247bba6caf547c7b8c1de54e7969f7.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    }
+}
