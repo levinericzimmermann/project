@@ -5,34 +5,12 @@ from mutwo import music_parameters
 
 def is_supported(context, scale, dyad, **kwargs):
     try:
-        orchestration = context.orchestration
-        instrument = orchestration[0]
-        assert isinstance(instrument, music_parameters.CelticHarp)
+        assert isinstance(context_to_instrument(context), music_parameters.CelticHarp)
     except AssertionError:
         return False
     return scale.is_supported(context, **kwargs) and dyad.is_supported(
         context, **kwargs
     )
-
-
-def add_dyad(
-    context,
-    pitch_list_list,
-    index,
-    dyad,
-    distance_range=ranges.Range(4, 7),
-    prohibited_pitch_list=[],
-):
-    pitch_list_list[index] = dyad(
-        context,
-        pitch=pitch_list_list[index][0],
-        direction=False,
-        distance_range=distance_range,
-        prohibited_pitch_list=prohibited_pitch_list,
-    )
-
-
-DISTANCE_RANGE_TUPLE = (ranges.Range(3, 5), ranges.Range(6, 9))
 
 
 def main(
@@ -65,6 +43,17 @@ def main(
             distance_range=distance_range0,
         )
     if activity_level(7):
+        # We want to add an inversion of our ending dyad in
+        # case the last step is a second, because otherwise it
+        # sounds too much like a cadenca / the end of a part.
+        inversion = (
+            abs(
+                pitch_list_list[-1][0]
+                .get_pitch_interval(pitch_list_list[-2][0])
+                .interval
+            )
+            < 250
+        )
         add_dyad(
             context,
             pitch_list_list,
@@ -73,7 +62,45 @@ def main(
             distance_range=distance_range1,
             prohibited_pitch_list=pitch_list_list[0],
         )
+        if inversion:
+            add_inversion(context, pitch_list_list)
+
     # TODO: Consider to remove some pitches in order
-    # to gain an easier fingering. Or some of them optional?
+    # to gain an easier fingering. Or to make some of them
+    # optional?
     ...
     return tuple(tuple(pl) for pl in pitch_list_list)
+
+
+def add_dyad(
+    context,
+    pitch_list_list,
+    index,
+    dyad,
+    distance_range=ranges.Range(4, 7),
+    prohibited_pitch_list=[],
+):
+    pitch_list_list[index] = dyad(
+        context,
+        pitch=pitch_list_list[index][0],
+        direction=False,
+        distance_range=distance_range,
+        prohibited_pitch_list=prohibited_pitch_list,
+    )
+
+
+DISTANCE_RANGE_TUPLE = (ranges.Range(3, 5), ranges.Range(6, 9))
+
+
+def add_inversion(context, pitch_list_list):
+    dyad = pitch_list_list[-1]
+    oct0, oct1 = (p.octave for p in dyad)
+    inversion = list(p.register(o, mutate=False) for o, p in zip((oct1, oct0), dyad))
+    instrument = context_to_instrument(context)
+    if all(p in instrument for p in inversion):
+        pitch_list_list.append(inversion)
+
+
+def context_to_instrument(context):
+    orchestration = context.orchestration
+    return orchestration[0]

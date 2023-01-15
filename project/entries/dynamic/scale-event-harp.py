@@ -18,6 +18,8 @@ def main(
     instrument = context.orchestration[0]
     tag = instrument.name
 
+    last_duration = 4
+
     melody = core_events.SequentialEvent(
         [
             music_events.NoteLike(
@@ -28,7 +30,11 @@ def main(
             for pitch_tuple in pitch_tuple_tuple
         ]
     )
-    melody[-1].duration = 4
+    if len(melody[-2].pitch_list) > 1:
+        melody[-1].duration = last_duration / 2
+        melody[-2].duration = last_duration / 2
+    else:
+        melody[-1].duration = last_duration
 
     add_optional(melody)
     add_arpeggio(melody, activity_level)
