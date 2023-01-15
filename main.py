@@ -17,7 +17,6 @@ import project
 def make_clock(
     scale_position_tuple,
     before_rest_duration=0,
-    after_rest_duration=0,
 ) -> clock_interfaces.Clock:
     scale = project.constants.SCALE
 
@@ -44,7 +43,7 @@ def make_clock(
 
     project.clocks.apply_clock_events(modal_sequential_event)
 
-    clock_line = clock_converters.Modal0SequentialEventToClockLine(
+    main_clock_line = clock_converters.Modal0SequentialEventToClockLine(
         (
             diary_converters.Modal0SequentialEventToEventPlacementTuple(
                 project.constants.ORCHESTRATION.get_subset("HARP")
@@ -58,10 +57,8 @@ def make_clock(
     start_clock_line = (
         _clock_rest(before_rest_duration) if before_rest_duration > 0 else None
     )
-    end_clock_line = (
-        _clock_rest(after_rest_duration) if after_rest_duration > 0 else None
-    )
-    clock = clock_interfaces.Clock(clock_line, start_clock_line, end_clock_line)
+    end_clock_line = _clock_end(scale)
+    clock = clock_interfaces.Clock(main_clock_line, start_clock_line, end_clock_line)
 
     return clock
 
@@ -71,6 +68,20 @@ def _clock_rest(rest_duration):
         clock_events.ClockEvent(
             [core_events.SequentialEvent([core_events.SimpleEvent(rest_duration)])]
         )
+    )
+
+
+def _clock_end(scale):
+    modal_sequential_event = core_events.SequentialEvent(
+        [
+            clock_events.ModalEvent0(
+                scale.scale_index_to_pitch(0), scale.scale_index_to_pitch(0), scale
+            ).set("is_end", True)
+        ]
+    )
+    project.clocks.apply_clock_events(modal_sequential_event)
+    return clock_converters.Modal0SequentialEventToClockLine([]).convert(
+        modal_sequential_event
     )
 
 
