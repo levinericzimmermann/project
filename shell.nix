@@ -45,5 +45,7 @@ in
       buildInputs = with pkgs; [
           python94
           lilypond-with-fonts
+          # For generating books
+          texlive.combined.scheme-full
       ];
   }
