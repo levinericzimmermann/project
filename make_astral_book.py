@@ -160,6 +160,6 @@ J2ENVIRONMENT = jinja2.Environment(loader=jinja2.FileSystemLoader("etc/templates
 
 
 if __name__ == "__main__":
-    # notate_book_of_moon_cycle()
-    # notate_book_of_sun()
+    notate_book_of_moon_cycle()
+    notate_book_of_sun()
     notate_book_of_moon()
