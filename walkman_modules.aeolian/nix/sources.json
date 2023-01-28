@@ -1,0 +1,26 @@
+{
+    "nixpkgs": {
+        "branch": "release-21.05",
+        "description": "Nix Packages collection",
+        "homepage": "",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "5f244caea76105b63d826911b2a1563d33ff1cdc",
+        "sha256": "1xlgynfw9svy7nvh9nkxsxdzncv9hg99gbvbwv3gmrhmzc3sar75",
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixpkgs/archive/5f244caea76105b63d826911b2a1563d33ff1cdc.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "walkman": {
+        "branch": "main",
+        "description": "Fire audio cues in performance contexts",
+        "homepage": "",
+        "owner": "audiowalkman",
+        "repo": "walkman",
+        "rev": "e69a0deca96186dc59e68ef588e865221860f672",
+        "sha256": "1c2nz6sgl5jjc5lz26hy2bxvbxl370gdiiyrnf4f469dpw71xr1f",
+        "type": "tarball",
+        "url": "https://github.com/audiowalkman/walkman/archive/e69a0deca96186dc59e68ef588e865221860f672.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    }
+}

@@ -5,6 +5,8 @@ let
   mutwo-midi = import (sources.mutwo-midi.outPath + "/default.nix");
   mutwo-diary = import "/home/levinericzimmermann/Programming/mutwo.diary/default_local.nix";
 
+  walkman-aeolian = import ./walkman_modules.aeolian { };
+
   astral = pkgs.python310Packages.buildPythonPackage rec {
     pname = "astral";
     version = "3.2";
@@ -29,24 +31,6 @@ let
     '';
   };
 
-  telemetrix = pkgs.python310Packages.buildPythonPackage rec {
-    pname = "telemetrix";
-    version = "1.10";
-
-    src = pkgs.python310Packages.fetchPypi {
-      inherit pname version;
-      sha256 = "sha256-S9hJqk+jLzhf+ZU+I/b1NGb4V+RDC24N3rUxABoVrxo=";
-    };
-
-    propagatedBuildInputs = with pkgs.python310Packages; [
-      pyserial
-    ];
-
-    checkInputs = with pkgs.python310Packages; [
-      pytest
-    ];
-  };
-
   python94 = pkgs.python310.buildEnv.override {
     extraLibs = with pkgs; [
       astral
@@ -54,8 +38,8 @@ let
       python310Packages.ortools
       mutwo-midi
       mutwo-diary
-      # controlling diy ebow
-      telemetrix
+      # diy ebow live
+      walkman-aeolian
     ];
   };
 

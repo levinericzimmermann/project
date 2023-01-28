@@ -1,0 +1,58 @@
+[configure]
+name                    = "10.1"
+logging_level           = "info"
+
+[configure.audio]
+audio                   = "jack"
+midi                    = "jack"
+sampling_rate           = 44100
+buffer_size             = 512
+channel_count           = 2
+
+[configure.module.string.0]
+send_to_physical_output = true
+input_channel_index     = 0
+com_port                = "/dev/ttyACM0"
+arduino_instance_id     = 1
+pin                     = 3
+frequency               = "parameter.string_0_frequency"
+
+[configure.module.value.string_0_child_decibel]
+# We have a very quiet signal
+value                   = 40
+
+[configure.module.parameter.string_0_frequency]
+fade_in_duration        = 1
+fade_out_duration       = 1
+
+[configure.module.mixer.master]
+# send_to_physical_output = true
+audio_input_0 = "string.0"
+
+
+
+[cue.240.string.0]
+
+[cue.240.parameter.string_0_frequency]
+value = 240
+
+
+
+[cue.120.string.0]
+
+[cue.120.parameter.string_0_frequency]
+value = 120
+
+
+
+[cue.60.string.0]
+
+[cue.60.parameter.string_0_frequency]
+value = 60
+
+
+
+[cue.30.string.0]
+
+[cue.30.parameter.string_0_frequency]
+value = 30
