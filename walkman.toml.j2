@@ -29,9 +29,24 @@ value                   = 40
 fade_in_duration        = {{ fade_in }}
 fade_out_duration       = {{ fade_out }}
 
+[configure.module.mixer.strings]
+audio_input_0           = "string.0"
+
+[configure.module.butterworth_highpass_filter.strings]
+audio_input             = "mixer.strings"
+
+[configure.module.value.butterworth_highpass_filter_strings_child_frequency]
+value                   = 90
+
+[configure.module.butterworth_lowpass_filter.strings]
+audio_input             = "butterworth_highpass_filter.strings"
+
+[configure.module.value.butterworth_lowpass_filter_strings_child_frequency]
+value                   = 15000
+
 [configure.module.mixer.master]
 send_to_physical_output = true
-audio_input_0 = "string.0"
+audio_input_0           = "butterworth_lowpass_filter.strings"
 
 
 
