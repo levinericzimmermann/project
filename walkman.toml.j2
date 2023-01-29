@@ -9,8 +9,8 @@ sampling_rate           = 44100
 buffer_size             = 512
 channel_count           = 2
 
-{% set fade_in          = 4 %}
-{% set fade_out         = 4 %}
+{% set fade_in          = 15 %}
+{% set fade_out         = 15 %}
 
 [configure.module.string.0]
 input_channel_index     = 0
@@ -29,6 +29,16 @@ value                   = 40
 fade_in_duration        = {{ fade_in }}
 fade_out_duration       = {{ fade_out }}
 
+[configure.module.sine.0]
+frequency               = "parameter.string_0_sine_frequency"
+fade_in_duration        = {{ fade_in }}
+fade_out_duration       = {{ fade_out }}
+
+[configure.module.parameter.string_0_sine_frequency]
+
+[configure.module.value.sine_0_child_decibel]
+value                   = -24
+
 [configure.module.mixer.strings]
 audio_input_0           = "string.0"
 
@@ -44,10 +54,54 @@ audio_input             = "butterworth_highpass_filter.strings"
 [configure.module.value.butterworth_lowpass_filter_strings_child_frequency]
 value                   = 15000
 
+[configure.module.mixer.pre_master]
+audio_input_0           = "butterworth_lowpass_filter.strings"
+audio_input_1           = "sine.0"
+
+[configure.module.mixer.pre_master.default_dict.audio_input_0_channel_mapping]
+0                       = [0, 1]
+
+[configure.module.convolution_reverb.master]
+audio_input             = "mixer.pre_master"
+impulse_path            = "etc/samples/impulse_responses/Clothworkers-Leeds-Wide-Stereo.wav"
+sample_size             = 1024
+
+# Define ratio between dry signal and wet signal.
+# DRY SIGNAL
+[configure.module.value.mixer_pre_master_child_decibel]
+value                   = -3
+
+# WET SIGNAL
+[configure.module.value.convolution_reverb_master_child_decibel]
+value                   = 15
+
 [configure.module.mixer.master]
 send_to_physical_output = true
-audio_input_0           = "butterworth_lowpass_filter.strings"
+audio_input_0           = "mixer.pre_master"
+audio_input_1           = "convolution_reverb.master"
 
+[configure.module.value.mixer_master_child_decibel]
+value                   = 14
+
+
+# Computer breaks :)
+# [cue.960.string.0]
+# 
+# [cue.960.parameter.string_0_frequency]
+# value = 960
+
+
+
+[cue.480.string.0]
+
+[cue.480.parameter.string_0_frequency]
+value = 480
+
+
+[cue.300.string.0]
+
+[cue.300.parameter.string_0_frequency]
+value = 300
 
 
 [cue.240.string.0]
@@ -60,7 +114,7 @@ value = 240
 [cue.120.string.0]
 
 [cue.120.parameter.string_0_frequency]
-value = 120
+value = 124
 
 
 
@@ -75,3 +129,52 @@ value = 60
 
 [cue.30.parameter.string_0_frequency]
 value = 30
+
+
+[cue.15.string.0]
+
+[cue.15.parameter.string_0_frequency]
+value = 15
+
+
+[cue.7.string.0]
+
+[cue.7.parameter.string_0_frequency]
+value = 7.5
+
+
+[cue.3.string.0]
+
+[cue.3.parameter.string_0_frequency]
+value = 3.75
+
+
+[cue.1.string.0]
+
+[cue.1.parameter.string_0_frequency]
+value = 1.875
+
+
+
+
+# String is tuned to correct freq and there is an
+# additional sine tone.
+[cue.tuned.string.0]
+
+[cue.tuned.sine.0]
+
+[cue.tuned.parameter.string_0_frequency]
+value = 124
+
+[cue.tuned.parameter.string_0_sine_frequency]
+value = 124
+
+
+
+[cue.gliss.string.0]
+
+[cue.gliss.parameter.string_0_frequency]
+value = [[0, 1.875], [20, 300], [30, 0.5], [35, 1]]
+envelope_type = "exponential"
+
+
