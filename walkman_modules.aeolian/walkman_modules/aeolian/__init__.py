@@ -1,4 +1,5 @@
 import itertools
+import typing
 
 import numpy as np
 from mutwo import music_parameters
@@ -14,11 +15,27 @@ class String(
     walkman.AudioInput,
     frequency=walkman.AutoSetup(walkman.Value, module_kwargs={"value": 75}),
 ):
-    def __init__(self, com_port: str, arduino_instance_id: int, pin: int, **kwargs):
+    ComPort: typing.TypeAlias = str
+    ArduinoInstanceId: typing.TypeAlias = int
+    board_id_to_board: dict[
+        tuple[ComPort, ArduinoInstanceId], telemetrix.Telemetrix
+    ] = {}
+
+    def __init__(
+        self,
+        com_port: ComPort,
+        arduino_instance_id: ArduinoInstanceId,
+        pin: int,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
-        self.board = telemetrix.Telemetrix(
-            com_port, arduino_instance_id=arduino_instance_id
-        )
+        board_id = (com_port, arduino_instance_id)
+        try:
+            self.board = self.board_id_to_board[board_id]
+        except KeyError:
+            self.board = self.board_id_to_board[board_id] = telemetrix.Telemetrix(
+                com_port, arduino_instance_id=arduino_instance_id
+            )
         self.pin = pin
 
         self.board.set_pin_mode_analog_output(self.pin)
