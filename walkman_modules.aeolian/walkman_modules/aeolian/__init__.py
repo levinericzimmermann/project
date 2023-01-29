@@ -42,9 +42,12 @@ class String(
 
         self._control_point_cycle = iter([0])
         self.envelope_tuple = (
-            (0, 150, 200, 255, 200, 150, 0),
-            (0, 150, 200, 255, 200, 150, 0),
-            (0, 50, 100, 155, 100, 50, 0),
+            # (0, 150, 200, 255, 200, 150, 0),
+            # (0, 150, 200, 255, 200, 150, 0),
+            # (0, 50, 100, 155, 100, 50, 0),
+            # (100, 125, 150, 180, 150, 125, 100),
+            # (220, 230, 240, 255, 240, 230, 220),
+            (240, 245, 250, 255, 250, 245, 240),
         )
         self.envelope_repetition_count_range = (5, 20)
         self.envelope_cycle = itertools.cycle(self.envelope_tuple)
