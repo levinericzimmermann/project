@@ -9,6 +9,9 @@ sampling_rate           = 44100
 buffer_size             = 512
 channel_count           = 2
 
+{% set fade_in          = 4 %}
+{% set fade_out         = 4 %}
+
 [configure.module.string.0]
 send_to_physical_output = true
 input_channel_index     = 0
@@ -16,14 +19,16 @@ com_port                = "/dev/ttyACM0"
 arduino_instance_id     = 1
 pin                     = 3
 frequency               = "parameter.string_0_frequency"
+fade_in_duration        = {{ fade_in }}
+fade_out_duration       = {{ fade_out }}
 
 [configure.module.value.string_0_child_decibel]
 # We have a very quiet signal
 value                   = 40
 
 [configure.module.parameter.string_0_frequency]
-fade_in_duration        = 1
-fade_out_duration       = 1
+fade_in_duration        = {{ fade_in }}
+fade_out_duration       = {{ fade_out }}
 
 [configure.module.mixer.master]
 # send_to_physical_output = true
