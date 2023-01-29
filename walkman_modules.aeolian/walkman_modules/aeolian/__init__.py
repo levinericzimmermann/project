@@ -69,7 +69,8 @@ class String(
             f"Frequency obj: {self.frequency}, {self.frequency.replication_key}."
         )
 
-        self.p = pyo.Print(self._pyo_object).play()
+        # debug
+        # self.p = pyo.Print(self._pyo_object).play()
 
     def _next_control_point(self) -> float:
         try:
