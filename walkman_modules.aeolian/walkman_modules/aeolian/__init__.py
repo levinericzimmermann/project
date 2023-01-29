@@ -1,8 +1,8 @@
 import itertools
+import random
 import typing
 
 import numpy as np
-from mutwo import music_parameters
 from telemetrix import telemetrix
 import pyo
 import walkman
@@ -41,7 +41,12 @@ class String(
         self.board.set_pin_mode_analog_output(self.pin)
 
         self._control_point_cycle = iter([0])
-        self.envelope_tuple = ((0, 150, 200, 255, 200, 150, 0),)
+        self.envelope_tuple = (
+            (0, 150, 200, 255, 200, 150, 0),
+            (0, 150, 200, 255, 200, 150, 0),
+            (0, 50, 100, 155, 100, 50, 0),
+        )
+        self.envelope_repetition_count_range = (5, 20)
         self.envelope_cycle = itertools.cycle(self.envelope_tuple)
         walkman.constants.LOGGER.info(
             f"Finished setup for String with com_port = {com_port} and pin = {pin}."
@@ -72,7 +77,10 @@ class String(
         except StopIteration:
             envelope = next(self.envelope_cycle)
             assert envelope
-            self._control_point_cycle = itertools.cycle(envelope)
+            repetition_count = random.choice(
+                range(*self.envelope_repetition_count_range)
+            )
+            self._control_point_cycle = iter(envelope * repetition_count)
             self.control_value_count.setValue(len(envelope))
             return self._next_control_point()
 
