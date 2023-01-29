@@ -68,7 +68,7 @@ class String(
 
     def _next_control_point(self) -> float:
         try:
-            return next(self._control_point_cycle)
+            return next(self._control_point_cycle) * self.fader.get()
         except StopIteration:
             envelope = next(self.envelope_cycle)
             assert envelope
@@ -77,7 +77,7 @@ class String(
             return self._next_control_point()
 
     def _set_magnetic_field(self):
-        self.board.analog_write(self.pin, self._next_control_point())
+        self.board.analog_write(self.pin, int(self._next_control_point()))
 
     def close(self):
         super().close()
