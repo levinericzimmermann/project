@@ -9,8 +9,8 @@ sampling_rate           = 44100
 buffer_size             = 512
 channel_count           = 2
 
-{% set fade_in          = 15 %}
-{% set fade_out         = 15 %}
+{% set fade_in          = 5 %}
+{% set fade_out         = 5 %}
 
 [configure.module.string.0]
 input_channel_index     = 0
@@ -46,7 +46,7 @@ audio_input_0           = "string.0"
 audio_input             = "mixer.strings"
 
 [configure.module.value.butterworth_highpass_filter_strings_child_frequency]
-value                   = 90
+value                   = 105
 
 [configure.module.butterworth_lowpass_filter.strings]
 audio_input             = "butterworth_highpass_filter.strings"
@@ -54,8 +54,15 @@ audio_input             = "butterworth_highpass_filter.strings"
 [configure.module.value.butterworth_lowpass_filter_strings_child_frequency]
 value                   = 15000
 
+[configure.module.average.strings]
+audio_input             = "butterworth_lowpass_filter.strings"
+
+[configure.module.value.average_strings_child_size]
+# Higher value -> less noise, but also less clear signal
+value                   = 20
+
 [configure.module.mixer.pre_master]
-audio_input_0           = "butterworth_lowpass_filter.strings"
+audio_input_0           = "average.strings"
 audio_input_1           = "sine.0"
 
 [configure.module.mixer.pre_master.default_dict.audio_input_0_channel_mapping]
