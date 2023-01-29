@@ -1,7 +1,11 @@
 <!DOCTYPE patchbay>
 <patchbay version="0.9.7" name="walkman-test-1">
  <output-sockets>
-  <socket exclusive="off" type="jack-audio" client="Komplete\ Audio\ 6\ Analog\ Stereo\ Input\ 1\/2" name="Komplete Audio 6 Analog Stereo Input 1/2">
+  <socket type="jack-audio" client="Built\-in\ Audio\ Analog\ Stereo" name="Built-in Audio Analog Stereo" exclusive="off">
+   <plug>capture_FL</plug>
+   <plug>capture_FR</plug>
+  </socket>
+  <socket type="jack-audio" client="Komplete\ Audio\ 6\ Analog\ Stereo\ Input\ 1\/2" name="Komplete Audio 6 Analog Stereo Input 1/2" exclusive="off">
    <plug>capture_FL</plug>
    <plug>capture_FR</plug>
    <plug>capture_AUX0</plug>
@@ -9,15 +13,19 @@
    <plug>capture_AUX2</plug>
    <plug>capture_AUX3</plug>
   </socket>
-  <socket exclusive="off" type="jack-audio" client="Built\-in\ Audio\ Analog\ Stereo" name="Built-in Audio Analog Stereo">
-   <plug>capture_FL</plug>
-   <plug>capture_FR</plug>
-  </socket>
-  <socket exclusive="off" type="jack-audio" client="walkman_2" name="walkman_2">
+  <socket type="jack-audio" client="walkman_2" name="walkman_2" exclusive="off">
    <plug>output_1</plug>
    <plug>output_2</plug>
   </socket>
-  <socket exclusive="off" type="jack-audio" client="Komplete\ Audio\ 6\ Analog\ Stereo\ 1\/2\ Monitor" name="Komplete Audio 6 Analog Stereo 1/2 Monitor">
+  <socket type="jack-audio" client="REAPER" name="REAPER" exclusive="off">
+   <plug>out1</plug>
+   <plug>out2</plug>
+  </socket>
+  <socket type="jack-audio" client="Built\-in\ Audio\ Analog\ Stereo\ Monitor" name="Built-in Audio Analog Stereo Monitor" exclusive="off">
+   <plug>monitor_FL</plug>
+   <plug>monitor_FR</plug>
+  </socket>
+  <socket type="jack-audio" client="Komplete\ Audio\ 6\ Analog\ Stereo\ 1\/2\ Monitor" name="Komplete Audio 6 Analog Stereo 1/2 Monitor" exclusive="off">
    <plug>monitor_FL</plug>
    <plug>monitor_FR</plug>
    <plug>monitor_AUX0</plug>
@@ -25,30 +33,26 @@
    <plug>monitor_AUX2</plug>
    <plug>monitor_AUX3</plug>
   </socket>
-  <socket exclusive="off" type="jack-audio" client="Built\-in\ Audio\ Analog\ Stereo\ Monitor" name="Built-in Audio Analog Stereo Monitor">
-   <plug>monitor_FL</plug>
-   <plug>monitor_FR</plug>
+  <socket type="jack-midi" client="Midi\-Bridge" name="Midi-Bridge" exclusive="off">
+   <plug>Midi\ Through\:\(capture_0\)\ Midi\ Through\ Port\-0</plug>
+   <plug>Komplete\ Audio\ 6\ 1\:\(capture_0\)\ Komplete\ Audio\ 6\ MIDI\ 1</plug>
   </socket>
-  <socket exclusive="off" type="jack-audio" client="walkman_2" name="walkman_2 2">
-   <plug>output_1</plug>
-   <plug>output_1</plug>
-  </socket>
-  <socket exclusive="off" type="jack-midi" client="walkman_2" name="walkman_2">
+  <socket type="jack-midi" client="walkman_2" name="walkman_2" exclusive="off">
    <plug>output</plug>
   </socket>
-  <socket exclusive="off" type="jack-midi" client="Midi\-Bridge" name="Midi-Bridge">
-   <plug>Midi\ Through\:\(capture_0\)\ Midi\ Through\ Port\-0</plug>
-   <plug>Native\ Instruments\ Komplete\ Audio\ 6\ at\ usb\-[0-9]+\:00\:14\-0\-2\-\ high\ speed\:\(capture_0\)\ Komplete\ Audio\ 6\ MIDI\ 1</plug>
-  </socket>
-  <socket exclusive="off" type="alsa-midi" client="Midi\ Through" name="Midi Through">
+  <socket type="alsa-midi" client="Midi\ Through" name="Midi Through" exclusive="off">
    <plug>Midi\ Through\ Port\-0</plug>
   </socket>
-  <socket exclusive="off" type="alsa-midi" client="Komplete\ Audio\ 6" name="Komplete Audio 6">
+  <socket type="alsa-midi" client="Komplete\ Audio\ 6" name="Komplete Audio 6" exclusive="off">
    <plug>Komplete\ Audio\ 6\ MIDI\ 1</plug>
   </socket>
  </output-sockets>
  <input-sockets>
-  <socket exclusive="off" type="jack-audio" client="Komplete\ Audio\ 6\ Analog\ Stereo\ 1\/2" name="Komplete Audio 6 Analog Stereo 1/2">
+  <socket type="jack-audio" client="Built\-in\ Audio\ Analog\ Stereo" name="Built-in Audio Analog Stereo" exclusive="off">
+   <plug>playback_FL</plug>
+   <plug>playback_FR</plug>
+  </socket>
+  <socket type="jack-audio" client="Komplete\ Audio\ 6\ Analog\ Stereo\ 1\/2" name="Komplete Audio 6 Analog Stereo 1/2" exclusive="off">
    <plug>playback_FL</plug>
    <plug>playback_FR</plug>
    <plug>playback_AUX0</plug>
@@ -56,32 +60,34 @@
    <plug>playback_AUX2</plug>
    <plug>playback_AUX3</plug>
   </socket>
-  <socket exclusive="off" type="jack-audio" client="Built\-in\ Audio\ Analog\ Stereo" name="Built-in Audio Analog Stereo">
-   <plug>playback_FL</plug>
-   <plug>playback_FR</plug>
-  </socket>
-  <socket exclusive="off" type="jack-audio" client="walkman_2" name="walkman_2">
+  <socket type="jack-audio" client="walkman_2" name="walkman_2" exclusive="off">
    <plug>input_1</plug>
    <plug>input_2</plug>
   </socket>
-  <socket exclusive="off" type="jack-midi" client="walkman_2" name="walkman_2">
+  <socket type="jack-audio" client="REAPER" name="REAPER" exclusive="off">
+   <plug>in1</plug>
+   <plug>in2</plug>
+  </socket>
+  <socket type="jack-midi" client="Midi\-Bridge" name="Midi-Bridge" exclusive="off">
+   <plug>Midi\ Through\:\(playback_0\)\ Midi\ Through\ Port\-0</plug>
+   <plug>Komplete\ Audio\ 6\ 1\:\(playback_0\)\ Komplete\ Audio\ 6\ MIDI\ 1</plug>
+  </socket>
+  <socket type="jack-midi" client="walkman_2" name="walkman_2" exclusive="off">
    <plug>input</plug>
   </socket>
-  <socket exclusive="off" type="jack-midi" client="Midi\-Bridge" name="Midi-Bridge">
-   <plug>Midi\ Through\:\(playback_0\)\ Midi\ Through\ Port\-0</plug>
-   <plug>Native\ Instruments\ Komplete\ Audio\ 6\ at\ usb\-[0-9]+\:00\:14\-0\-2\-\ high\ speed\:\(playback_0\)\ Komplete\ Audio\ 6\ MIDI\ 1</plug>
-  </socket>
-  <socket exclusive="off" type="alsa-midi" client="Midi\ Through" name="Midi Through">
+  <socket type="alsa-midi" client="Midi\ Through" name="Midi Through" exclusive="off">
    <plug>Midi\ Through\ Port\-0</plug>
   </socket>
-  <socket exclusive="off" type="alsa-midi" client="Komplete\ Audio\ 6" name="Komplete Audio 6">
+  <socket type="alsa-midi" client="Komplete\ Audio\ 6" name="Komplete Audio 6" exclusive="off">
    <plug>Komplete\ Audio\ 6\ MIDI\ 1</plug>
   </socket>
  </input-sockets>
  <slots/>
  <cables>
-  <cable output="Komplete Audio 6 Analog Stereo Input 1/2" type="jack-audio" input="walkman_2"/>
-  <cable output="walkman_2 2" type="jack-audio" input="Built-in Audio Analog Stereo"/>
+  <cable type="jack-audio" input="walkman_2" output="Komplete Audio 6 Analog Stereo Input 1/2"/>
+  <cable type="jack-audio" input="Built-in Audio Analog Stereo" output="walkman_2"/>
+  <cable type="jack-audio" input="REAPER" output="walkman_2"/>
+  <cable type="jack-audio" input="Built-in Audio Analog Stereo" output="REAPER"/>
  </cables>
 </patchbay>
 
