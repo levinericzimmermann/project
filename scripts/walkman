@@ -1,0 +1,2 @@
+#! /usr/bin/env bash
+python -c "import walkman; walkman.start_loop_from_jinja2_file_path('walkman.toml.j2')"
