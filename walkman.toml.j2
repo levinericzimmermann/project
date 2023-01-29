@@ -13,7 +13,6 @@ channel_count           = 2
 {% set fade_out         = 4 %}
 
 [configure.module.string.0]
-send_to_physical_output = true
 input_channel_index     = 0
 com_port                = "/dev/ttyACM0"
 arduino_instance_id     = 1
@@ -31,7 +30,7 @@ fade_in_duration        = {{ fade_in }}
 fade_out_duration       = {{ fade_out }}
 
 [configure.module.mixer.master]
-# send_to_physical_output = true
+send_to_physical_output = true
 audio_input_0 = "string.0"
 
 
