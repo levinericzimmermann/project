@@ -12,7 +12,7 @@ __all__ = ("String",)
 
 
 class String(
-    walkman.AudioInput,
+    walkman.ModuleWithFader,
     frequency=walkman.AutoSetup(walkman.Value, module_kwargs={"value": 75}),
 ):
     ComPort: typing.TypeAlias = str
@@ -43,7 +43,6 @@ class String(
         self._control_point_cycle = iter([0])
         self.envelope_tuple = (
             # (0, 150, 200, 255, 200, 150, 0),
-            # (0, 150, 200, 255, 200, 150, 0),
             # (0, 50, 100, 155, 100, 50, 0),
             # (100, 125, 150, 180, 150, 125, 100),
             # (220, 230, 240, 255, 240, 230, 220),
@@ -51,9 +50,9 @@ class String(
             #
             # sehr laut, und direkt, vielleicht sogar lauter
             # als das erste
-            (0, 255, 255, 255, 255, 255, 0),
+            # (0, 255, 255, 255, 255, 255, 0),
             # Only plucking, no static pitch
-            # (255, 254, 253),
+            (255, 254, 253),
             # rather static pitch
             # (99, 99, 99, 100, 100, 100, 100, 101, 101, 102, 102, 102, 102, 103, 103, 103, 103, 102, 101, 100, 99, 98, 99),
         )

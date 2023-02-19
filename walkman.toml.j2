@@ -12,22 +12,27 @@ channel_count           = 2
 {% set fade_in          = 5 %}
 {% set fade_out         = 5 %}
 
-[configure.module.string.0]
-input_channel_index     = 0
+{% for pin in [3, 5, 6] %}
+
+{% set string_index = loop.index - 1 %}
+
+[configure.module.string.{{ string_index }}]
 com_port                = "/dev/ttyACM0"
 arduino_instance_id     = 1
-pin                     = 3
-frequency               = "parameter.string_0_frequency"
+pin                     = {{ pin }}
+frequency               = "parameter.string_{{ string_index }}_frequency"
 fade_in_duration        = {{ fade_in }}
 fade_out_duration       = {{ fade_out }}
 
-[configure.module.value.string_0_child_decibel]
+[configure.module.value.string_{{ string_index }}_child_decibel]
 # We have a very quiet signal
 value                   = 40
 
-[configure.module.parameter.string_0_frequency]
+[configure.module.parameter.string_{{ string_index }}_frequency]
 fade_in_duration        = {{ fade_in }}
 fade_out_duration       = {{ fade_out }}
+
+{% endfor %}
 
 [configure.module.sine.0]
 frequency               = "parameter.string_0_sine_frequency"
@@ -39,8 +44,14 @@ fade_out_duration       = {{ fade_out }}
 [configure.module.value.sine_0_child_decibel]
 value                   = -24
 
+# Pickup 1
+[configure.module.audio_input.0]
+input_channel_index = 0
+fade_in_duration        = {{ fade_in }}
+fade_out_duration       = {{ fade_out }}
+
 [configure.module.mixer.strings]
-audio_input_0           = "string.0"
+audio_input_0           = "audio_input.0"
 
 [configure.module.butterworth_highpass_filter.strings]
 audio_input             = "mixer.strings"
@@ -59,7 +70,7 @@ audio_input             = "butterworth_lowpass_filter.strings"
 
 [configure.module.value.average_strings_child_size]
 # Higher value -> less noise, but also less clear signal
-value                   = 20
+value                   = 40
 
 [configure.module.mixer.pre_master]
 audio_input_0           = "average.strings"
@@ -117,11 +128,15 @@ value = 300
 value = 240
 
 
+[cue.240.audio_input.0]
+
 
 [cue.120.string.0]
 
 [cue.120.parameter.string_0_frequency]
 value = 124
+
+[cue.120.audio_input.0]
 
 
 
@@ -130,6 +145,7 @@ value = 124
 [cue.60.parameter.string_0_frequency]
 value = 60
 
+[cue.60.audio_input.0]
 
 
 [cue.30.string.0]
@@ -185,3 +201,29 @@ value = [[0, 1.875], [20, 300], [30, 0.5], [35, 1]]
 envelope_type = "exponential"
 
 
+{% set tf = 200 %}
+
+
+[cue.only-one.string.0]
+[cue.only-one.parameter.string_0_frequency]
+value = {{ tf }}
+
+[cue.only-two.string.1]
+[cue.only-two.parameter.string_1_frequency]
+value = {{ tf }}
+
+[cue.only-three.string.2]
+[cue.only-three.parameter.string_2_frequency]
+value = {{ tf }}
+
+
+
+[cue.three-magnets.string.0]
+[cue.three-magnets.parameter.string_0_frequency]
+value = {{ tf }}
+[cue.three-magnets.string.1]
+[cue.three-magnets.parameter.string_1_frequency]
+value = {{ tf }}
+[cue.three-magnets.string.2]
+[cue.three-magnets.parameter.string_2_frequency]
+value = {{ tf }}
