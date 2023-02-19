@@ -1,0 +1,102 @@
+[configure]
+name                    = "10.1"
+logging_level           = "info"
+
+[configure.audio]
+audio                   = "jack"
+midi                    = "jack"
+sampling_rate           = 44100
+buffer_size             = 512
+channel_count           = 2
+
+{% set fade_in          = 5 %}
+{% set fade_out         = 5 %}
+
+{% for pin in [3, 5, 6] %}
+
+{% set string_index = loop.index - 1 %}
+
+[configure.module.string.{{ string_index }}]
+com_port                = "/dev/ttyACM0"
+arduino_instance_id     = 1
+pin                     = {{ pin }}
+frequency               = "parameter.string_{{ string_index }}_frequency"
+fade_in_duration        = {{ fade_in }}
+fade_out_duration       = {{ fade_out }}
+
+[configure.module.value.string_{{ string_index }}_child_decibel]
+# We have a very quiet signal
+value                   = 40
+
+[configure.module.parameter.string_{{ string_index }}_frequency]
+fade_in_duration        = {{ fade_in }}
+fade_out_duration       = {{ fade_out }}
+
+{% endfor %}
+
+[configure.module.sine.0]
+frequency               = "parameter.string_0_sine_frequency"
+fade_in_duration        = {{ fade_in }}
+fade_out_duration       = {{ fade_out }}
+
+[configure.module.parameter.string_0_sine_frequency]
+
+[configure.module.value.sine_0_child_decibel]
+value                   = -24
+
+# Pickup 1
+[configure.module.audio_input.0]
+input_channel_index = 0
+fade_in_duration        = {{ fade_in }}
+fade_out_duration       = {{ fade_out }}
+
+[configure.module.mixer.strings]
+audio_input_0           = "audio_input.0"
+
+[configure.module.butterworth_highpass_filter.strings]
+audio_input             = "mixer.strings"
+
+[configure.module.value.butterworth_highpass_filter_strings_child_frequency]
+value                   = 105
+
+[configure.module.butterworth_lowpass_filter.strings]
+audio_input             = "butterworth_highpass_filter.strings"
+
+[configure.module.value.butterworth_lowpass_filter_strings_child_frequency]
+value                   = 15000
+
+[configure.module.average.strings]
+audio_input             = "butterworth_lowpass_filter.strings"
+
+[configure.module.value.average_strings_child_size]
+# Higher value -> less noise, but also less clear signal
+value                   = 40
+
+[configure.module.mixer.pre_master]
+audio_input_0           = "average.strings"
+audio_input_1           = "sine.0"
+
+[configure.module.mixer.pre_master.default_dict.audio_input_0_channel_mapping]
+0                       = [0, 1]
+
+[configure.module.convolution_reverb.master]
+audio_input             = "mixer.pre_master"
+impulse_path            = "etc/samples/impulse_responses/Clothworkers-Leeds-Wide-Stereo.wav"
+sample_size             = 1024
+
+# Define ratio between dry signal and wet signal.
+# DRY SIGNAL
+[configure.module.value.mixer_pre_master_child_decibel]
+value                   = -3
+
+# WET SIGNAL
+[configure.module.value.convolution_reverb_master_child_decibel]
+value                   = 15
+
+[configure.module.mixer.master]
+send_to_physical_output = true
+audio_input_0           = "mixer.pre_master"
+audio_input_1           = "convolution_reverb.master"
+
+[configure.module.value.mixer_master_child_decibel]
+value                   = 14
