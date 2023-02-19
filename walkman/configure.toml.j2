@@ -34,16 +34,6 @@ fade_out_duration       = {{ fade_out }}
 
 {% endfor %}
 
-[configure.module.sine.0]
-frequency               = "parameter.string_0_sine_frequency"
-fade_in_duration        = {{ fade_in }}
-fade_out_duration       = {{ fade_out }}
-
-[configure.module.parameter.string_0_sine_frequency]
-
-[configure.module.value.sine_0_child_decibel]
-value                   = -24
-
 # Pickup 1
 [configure.module.audio_input.0]
 input_channel_index = 0
