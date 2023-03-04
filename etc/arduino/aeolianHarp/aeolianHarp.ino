@@ -14,28 +14,35 @@ const int loopChoiceArray[][10] = {
   { 0, 90, 140, 180, 200, 204, 180, 150, 100, 50 },
   // loud :)
   { 0, 255, 255, 255, 255, 255, 255, 255, 255 },
+  // basic 2
+  { 0, 100, 150, 200, 255, 200, 150, 100, 0 },
+  // plucking
+  { 255, 255, 255, 254, 254, 254, 253, 253, 253, 253 },
+  { 100, 100, 100, 99, 99, 99, 98, 98, 98, 100 },
 };
 
 // Set which pins use electromagnets
-const int   pinArray[3]             = { 3, 5, 6 };
+const int         pinArray[3]             = { 3, 5, 6 };
 // This array sets the frequency of each magnet. periodTime is calculated: (1 / frequency * 1000000)
-int         periodTimeArray[3]      = { 1500, 1500, 1500 };
+unsigned long     periodTimeArray[3]      = { 8333, 8333, 8333 };
 // The last time when the magnet was triggered
-int         lastTimeArray[3]        = { 0, 0, 0 };
-bool        isPlayingArray[3]       = { false, false, false };
+unsigned long     lastTimeArray[3]        = { 0, 0, 0 };
+bool              isPlayingArray[3]       = { false, false, false };
 // Array of waveforms
-int         loopArray[3][10]        = {
+int               loopArray[3][10]        = {
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 // How many magnets exist? 
-int         magnetCount             = sizeof(pinArray) / sizeof(*pinArray);
+const int         magnetCount             = sizeof(pinArray) / sizeof(*pinArray);
 
 // Protocoll string
-char        msg[256];
-int         msgIndex;
-int         msgCount = 256;
+char              msg[256];
+int               msgIndex;
+const int         msgCount                = 256;
+
+unsigned long     currentTime;
 
 
 void setup() {
@@ -52,26 +59,31 @@ void setup() {
 void loop() {
       // /////////////////////////////////
       // START STRING EXECUTION PART
-      int currentTime = micros();
+      currentTime = micros();
+
       int i;
       for (i = 0; i < magnetCount; i++)
       {
         bool  isPlaying   = isPlayingArray[i];
         if (isPlaying) {
-          int   lastTime    = lastTimeArray[i];
-          int   periodTime  = periodTimeArray[i];
+          unsigned long   lastTime    = lastTimeArray[i];
+          unsigned long   periodTime  = periodTimeArray[i];
           // "micros" resets itself after 70 minutes
           // (see https://www.arduino.cc/reference/en/language/functions/time/micros/)
           // So it could happen that the lastTime looks bigger than the currentTime:
           // in this case set lastTime to 0
-          int difference;
+          unsigned long   difference;
           if (lastTime > currentTime) {
             difference  = currentTime;
           } else {
             difference  = currentTime - lastTime;
           }
+
           if (difference > periodTime) {
             int value = loopArray[i][0];
+            // debug
+            // Serial.println(difference);
+            // Serial.println(value);
             digitalWrite(pinArray[i], value);
             lastTimeArray[i] = currentTime;
             auxiliary_rotation(loopArray[i], 1, 9);
@@ -80,7 +92,6 @@ void loop() {
       }
       // END STRING EXECUTION PART
       // /////////////////////////////////
-
 
       // /////////////////////////////////
       // START PROTOCOL TRANSMISSION PART
@@ -113,10 +124,10 @@ void loop() {
 void decodeMsg(char str[]) {
     char* token;
     char* rest = str;
-    int tokenArray[3];
+    unsigned long tokenArray[3];
     int tokenIndex = 0;
     while ((token = strtok_r(rest, " ", &rest))) {
-      tokenArray[tokenIndex] = atoi(token);
+      tokenArray[tokenIndex] = strtoul(token, NULL, 10);
       tokenIndex += 1;
     }
     if (tokenIndex != 3) {

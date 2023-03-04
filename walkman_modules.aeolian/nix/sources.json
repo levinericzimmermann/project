@@ -17,10 +17,10 @@
         "homepage": "",
         "owner": "audiowalkman",
         "repo": "walkman",
-        "rev": "35c673199543a0f37d0a1058eff3f3b34974fb2d",
-        "sha256": "1qcqr3rzpyh9vwlbvniqn45bg49qj9x99pnzy3j4xfcp4wlw7b01",
+        "rev": "cb2209c66f021380f2837a172212f73511a729a8",
+        "sha256": "1mb6nf485hga5zmfl7024f8p6y1zknh0g2gi9m03595ipy0f6yc3",
         "type": "tarball",
-        "url": "https://github.com/audiowalkman/walkman/archive/35c673199543a0f37d0a1058eff3f3b34974fb2d.tar.gz",
+        "url": "https://github.com/audiowalkman/walkman/archive/cb2209c66f021380f2837a172212f73511a729a8.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

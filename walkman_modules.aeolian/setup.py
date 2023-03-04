@@ -22,7 +22,7 @@ setuptools.setup(
     setup_requires=[],
     install_requires=[
         # core package
-        "audiowalkman>=0.20.2, <1.0.0",
+        "audiowalkman>=0.21.1, <1.0.0",
         # for audio
         "pyo==1.0.4",
         # for linear interpolation of decibel values
