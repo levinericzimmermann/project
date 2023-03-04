@@ -1,113 +1,43 @@
 # Some adhoc written test cues
 
 
-# Computer breaks :)
-# [cue.960.string.0]
-# 
-# [cue.960.parameter.string_0_frequency]
-# value = 960
+{% set frequency_list = [960, 480, 300, 240, 120, 60, 30, 15, 7, 3, 1] %}
+
+{% for i in [0, 1, 2] %}
+    {% for f in frequency_list %}
+
+        [cue.{{ i }}_{{ f }}.string.{{ i }}]
+        frequency = {{ f }}
+
+        [cue.{{ i }}_{{ f }}.audio_input.0]
+
+    {% endfor %}
+{% endfor %}
 
 
-
-[cue.480.string.0]
-
-[cue.480.parameter.string_0_frequency]
-value = 480
-
-
-[cue.300.string.0]
-
-[cue.300.parameter.string_0_frequency]
-value = 300
-
-
-[cue.240.string.0]
-
-[cue.240.parameter.string_0_frequency]
-value = 240
-
-
-[cue.240.audio_input.0]
-
-
-[cue.120.string.0]
-
-[cue.120.parameter.string_0_frequency]
-value = 124
-
-[cue.120.audio_input.0]
-
-
-
-[cue.60.string.0]
-
-[cue.60.parameter.string_0_frequency]
-value = 60
-
-[cue.60.audio_input.0]
-
-
-[cue.30.string.0]
-
-[cue.30.parameter.string_0_frequency]
-value = 30
-
-
-[cue.15.string.0]
-
-[cue.15.parameter.string_0_frequency]
-value = 15
-
-
-[cue.7.string.0]
-
-[cue.7.parameter.string_0_frequency]
-value = 7.5
-
-
-[cue.3.string.0]
-
-[cue.3.parameter.string_0_frequency]
-value = 3.75
-
-
-[cue.1.string.0]
-
-[cue.1.parameter.string_0_frequency]
-value = 1.875
-
-
-
-[cue.gliss.string.0]
-
-[cue.gliss.parameter.string_0_frequency]
-value = [[0, 1.875], [20, 300], [30, 0.5], [35, 1]]
-envelope_type = "exponential"
-
-
-{% set tf = 200 %}
+{% set tf = 240 %}
 
 
 [cue.only-one.string.0]
-[cue.only-one.parameter.string_0_frequency]
-value = {{ tf }}
+frequency = {{ tf }}
 
 [cue.only-two.string.1]
-[cue.only-two.parameter.string_1_frequency]
-value = {{ tf }}
+frequency = {{ tf }}
+
+[cue.only-two.audio_input.0]
 
 [cue.only-three.string.2]
-[cue.only-three.parameter.string_2_frequency]
-value = {{ tf }}
+frequency = {{ tf }}
+
+[cue.only-three.audio_input.0]
 
 
 
 [cue.three-magnets.string.0]
-[cue.three-magnets.parameter.string_0_frequency]
-value = {{ tf }}
+frequency = {{ tf }}
 [cue.three-magnets.string.1]
-[cue.three-magnets.parameter.string_1_frequency]
-value = {{ tf }}
+frequency = {{ tf }}
 [cue.three-magnets.string.2]
-[cue.three-magnets.parameter.string_2_frequency]
-value = {{ tf }}
+frequency = {{ tf }}
+
+[cue.three-magnets.audio_input.0]

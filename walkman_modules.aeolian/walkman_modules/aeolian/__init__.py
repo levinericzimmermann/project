@@ -1,126 +1,150 @@
-import itertools
-import random
+import enum
+import time
 import typing
 
-import numpy as np
-from telemetrix import telemetrix
 import pyo
+import serial
 import walkman
 
 
-__all__ = ("String",)
+__all__ = ("String", "AeolianHarp")
+
+BAUDRATE = 230400
+READ_TIMEOUT = 0.1
+MAX_FREQUENCY = 450
+
+walkman.constants.LOGGER.handlers = walkman.constants.LOGGER.handlers[1:]
 
 
-class String(
-    walkman.ModuleWithFader,
-    frequency=walkman.AutoSetup(walkman.Value, module_kwargs={"value": 75}),
-):
+class Envelope(enum.IntEnum):
+    SILENCE = 0
+    BASIC = 1
+    BASIC_QUIET = 2
+    BASIC_LOUD = 3
+    PLUCK_0 = 4
+    PLUCK_1 = 5
+
+
+class ReadingSerial(serial.Serial):
+    """Adjusted Serial which prints received data (aka "Serial Monitor") to walkman log"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._pyo_metro = pyo.Metro(1).play()
+        self._pyo_reader = pyo.TrigFunc(self._pyo_metro, self._read).play()
+        self.is_closed = False
+
+    def _read(self):
+        if not self.is_closed:
+            if self.in_waiting:
+                serial_reply = self.read(self.in_waiting).decode("Ascii")
+                for line in serial_reply.splitlines():
+                    walkman.constants.LOGGER.debug(f"{self.name} => C: {line}")
+
+    def close(self, *args, **kwargs):
+        if not self.is_closed:
+            walkman.constants.LOGGER.info(f"Shut down board '{self}'.")
+            self._pyo_metro.stop()
+            self._pyo_reader.stop()
+            time.sleep(READ_TIMEOUT + 0.01)
+            self.is_closed = True
+            return super().close()
+
+
+class Protocol(object):
+    """Communication between arduino and computer"""
+
+    item_delimiter: str = " "
+    msg_delimiter: str = "\n"
+    Data: typing.TypeAlias = tuple[int, int, int]
+    frequency_factor: int = 10**6  # mikro (seconds)
+    mode_frequency: int = 0
+    mode_envelope: int = 1
+
+    def __init__(self, board: ReadingSerial, pin_index: int):
+        self.board = board
+        self.pin_index = pin_index
+
+    def send(self, data: Data):
+        msg = "{}{}".format(
+            self.item_delimiter.join(map(str, data)), self.msg_delimiter
+        )
+        try:
+            walkman.constants.LOGGER.debug(f"C => {self.board.name}: {msg}")
+            self.board.write(msg.encode("utf-8"))
+        except AttributeError:
+            walkman.constants.LOGGER.warning(f"Can't write to board: {self.board}")
+
+    def set_frequency(self, frequency: float):
+        period = int((1 / frequency) * self.frequency_factor)
+        self.send((self.pin_index, self.mode_frequency, period))
+
+    def set_envelope(self, envelope: Envelope):
+        self.send((self.pin_index, self.mode_envelope, envelope.value))
+
+    def stop(self):
+        self.set_envelope(Envelope.SILENCE)
+
+
+class String(walkman.ModuleWithFader):
     ComPort: typing.TypeAlias = str
     ArduinoInstanceId: typing.TypeAlias = int
-    board_id_to_board: dict[
-        tuple[ComPort, ArduinoInstanceId], telemetrix.Telemetrix
-    ] = {}
+    com_port_to_board: dict[ComPort, ReadingSerial] = {}
 
     def __init__(
         self,
         com_port: ComPort,
-        arduino_instance_id: ArduinoInstanceId,
-        pin: int,
+        pin_index: int,
         **kwargs,
     ):
         super().__init__(**kwargs)
-        board_id = (com_port, arduino_instance_id)
+
         try:
-            self.board = self.board_id_to_board[board_id]
+            board = self.com_port_to_board[com_port]
         except KeyError:
-            self.board = self.board_id_to_board[board_id] = telemetrix.Telemetrix(
-                com_port, arduino_instance_id=arduino_instance_id
-            )
-        self.pin = pin
+            try:
+                board = self.com_port_to_board[com_port] = ReadingSerial(
+                    com_port, timeout=READ_TIMEOUT, baudrate=BAUDRATE
+                )
+            except serial.serialutil.SerialException as e:
+                walkman.constants.LOGGER.warning(f"Unusable board: {e}")
+                board = None
 
-        self.board.set_pin_mode_analog_output(self.pin)
-
-        self._control_point_cycle = iter([0])
-        self.envelope_tuple = (
-            # (0, 150, 200, 255, 200, 150, 0),
-            # (0, 50, 100, 155, 100, 50, 0),
-            # (100, 125, 150, 180, 150, 125, 100),
-            # (220, 230, 240, 255, 240, 230, 220),
-            # (240, 245, 250, 255, 250, 245, 240),
-            #
-            # sehr laut, und direkt, vielleicht sogar lauter
-            # als das erste
-            # (0, 255, 255, 255, 255, 255, 0),
-            # Only plucking, no static pitch
-            (255, 254, 253),
-            # rather static pitch
-            # (99, 99, 99, 100, 100, 100, 100, 101, 101, 102, 102, 102, 102, 103, 103, 103, 103, 102, 101, 100, 99, 98, 99),
-        )
-        self.envelope_repetition_count_range = (5, 20)
-        self.envelope_cycle = itertools.cycle(self.envelope_tuple)
+        self.protocol = Protocol(board, pin_index)
+        self.board = board
+        self.pin_index = pin_index
         walkman.constants.LOGGER.info(
-            f"Finished setup for String with com_port = {com_port} and pin = {pin}."
+            f"Finished setup for String with com_port = {com_port} and pin_index = {pin_index}."
         )
 
-    def _setup_pyo_object(self):
-        super()._setup_pyo_object()
-        self.control_value_count = pyo.Sig(1)
-        self.period_duration = 1 / self.frequency.pyo_object_or_float
-        self.sleep_time = self.period_duration / self.control_value_count
-        self.mod = pyo.LFO(6, add=1, mul=0.25) + 0.75
-        self.metro = pyo.Metro(self.sleep_time * self.mod)
-        self.trig_func = pyo.TrigFunc(self.metro, self._set_magnetic_field)
-
-        # We want to be very sure that once the sound ends the magnet is turned
-        # off (control value = 0). Because the frequency of the magnetic field
-        # doesn't necessarily fall onto the fadeout time, the last send control
-        # value is very likely not 0. So we add an extra trigger which waits
-        # until the whole fadeout process is finished and then finally sends a
-        # 0 to the magnet.
-
-        def deactivate_magnet():
-            walkman.constants.LOGGER.debug(f"Deactivate magnet on pin = {self.pin}.")
-            self._set_magnetic_field(0)
-
-        self.stop_trigger = pyo.Trig()
-        self.stop_trigger_function = pyo.TrigFunc(self.stop_trigger, deactivate_magnet)
-
-        self.internal_pyo_object_list.extend(
-            [self.metro, self.trig_func, self.control_value_count, self.mod]
-        )
-        if not isinstance(self.period_duration, float):
-            self.internal_pyo_object_list.append(self.period_duration)
-        walkman.constants.LOGGER.info(
-            f"Frequency obj: {self.frequency}, {self.frequency.replication_key}."
-        )
-
-        # debug
-        # self.p = pyo.Print(self._pyo_object).play()
-
-    def _next_control_point(self) -> float:
-        try:
-            return next(self._control_point_cycle) * self.fader.get()
-        except StopIteration:
-            envelope = next(self.envelope_cycle)
-            assert envelope
-            repetition_count = random.choice(
-                range(*self.envelope_repetition_count_range)
+    def _initialise(self, frequency: float = 200, *args, **kwargs):
+        super()._initialise(*args, **kwargs)
+        if frequency > MAX_FREQUENCY:
+            walkman.constants.LOGGER.warning(
+                f"Catched too high frequency {frequency}. Set to {MAX_FREQUENCY}."
             )
-            self._control_point_cycle = iter(envelope * repetition_count)
-            self.control_value_count.setValue(len(envelope))
-            return self._next_control_point()
+            frequency = MAX_FREQUENCY
+        self.frequency = frequency
+        # For cue switch during playing
+        if self.is_playing:
+            self.protocol.set_frequency(self.frequency)
 
-    def _set_magnetic_field(self, value=None):
-        if value is None:
-            value = int(self._next_control_point())
-        walkman.constants.LOGGER.debug(f"Send value {value} on pin = {self.pin}.")
-        self.board.analog_write(self.pin, value)
+    def _play(self, *args, **kwargs):
+        super()._play(*args, **kwargs)
+        self.protocol.set_frequency(self.frequency)
+        self.protocol.set_envelope(Envelope.BASIC)
 
     def _stop_without_fader(self, wait: float = 0):
         super()._stop_without_fader(wait=wait)
-        self.stop_trigger.play(delay=wait + 0.1)
+        self.protocol.stop()
 
     def close(self):
         super().close()
-        self.board.analog_write(self.pin, 0)
-        self.board.shutdown()
+        try:
+            self.board.close()
+        except AttributeError:
+            pass
+
+
+class AeolianHarp(walkman.Hub):
+    pass
