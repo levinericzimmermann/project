@@ -50,9 +50,9 @@ class String(
             #
             # sehr laut, und direkt, vielleicht sogar lauter
             # als das erste
-            # (0, 255, 255, 255, 255, 255, 0),
+            (0, 255, 255, 255, 255, 255, 0),
             # Only plucking, no static pitch
-            (255, 254, 253),
+            # (255, 254, 253),
             # rather static pitch
             # (99, 99, 99, 100, 100, 100, 100, 101, 101, 102, 102, 102, 102, 103, 103, 103, 103, 102, 101, 100, 99, 98, 99),
         )

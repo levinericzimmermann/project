@@ -18,11 +18,11 @@ channel_count           = 2
 
 [configure.module.string.{{ string_index }}]
 com_port                = "/dev/ttyACM0"
-arduino_instance_id     = 1
 pin                     = {{ pin }}
 frequency               = "parameter.string_{{ string_index }}_frequency"
 fade_in_duration        = {{ fade_in }}
 fade_out_duration       = {{ fade_out }}
+arduino_instance_id     = 1
 
 [configure.module.value.string_{{ string_index }}_child_decibel]
 # We have a very quiet signal
@@ -36,12 +36,25 @@ fade_out_duration       = {{ fade_out }}
 
 # Pickup 1
 [configure.module.audio_input.0]
-input_channel_index = 0
+input_channel_index     = 0
 fade_in_duration        = {{ fade_in }}
 fade_out_duration       = {{ fade_out }}
 
-[configure.module.mixer.strings]
+[configure.module.value.audio_input_0_child_decibel]
+# We have a very quiet signal
+value                   = 40
+
+[configure.module.hub.0]
 audio_input_0           = "audio_input.0"
+audio_input_1           = "string.0"
+audio_input_2           = "string.1"
+audio_input_3           = "string.2"
+
+    [configure.module.hub.0.audio_input_index_to_pyo_object_index]
+    0 = 0
+
+[configure.module.mixer.strings]
+audio_input_0           = "hub.0.0"
 
 [configure.module.butterworth_highpass_filter.strings]
 audio_input             = "mixer.strings"
@@ -64,7 +77,6 @@ value                   = 40
 
 [configure.module.mixer.pre_master]
 audio_input_0           = "average.strings"
-audio_input_1           = "sine.0"
 
 [configure.module.mixer.pre_master.default_dict.audio_input_0_channel_mapping]
 0                       = [0, 1]
@@ -86,7 +98,8 @@ value                   = 15
 [configure.module.mixer.master]
 send_to_physical_output = true
 audio_input_0           = "mixer.pre_master"
-audio_input_1           = "convolution_reverb.master"
+# audio_input_1           = "convolution_reverb.master"
 
 [configure.module.value.mixer_master_child_decibel]
 value                   = 14
+

@@ -19,7 +19,11 @@ value = 480
 
 [cue.300.parameter.string_0_frequency]
 value = 300
+[cue.300.audio_input.0]
 
+
+[cue.240.hub.0]
+[cue.240.mixer.strings]
 
 [cue.240.string.0]
 
@@ -85,7 +89,7 @@ value = [[0, 1.875], [20, 300], [30, 0.5], [35, 1]]
 envelope_type = "exponential"
 
 
-{% set tf = 200 %}
+{% set tf = 100 %}
 
 
 [cue.only-one.string.0]
@@ -96,9 +100,13 @@ value = {{ tf }}
 [cue.only-two.parameter.string_1_frequency]
 value = {{ tf }}
 
+[cue.only-two.audio_input.0]
+
 [cue.only-three.string.2]
 [cue.only-three.parameter.string_2_frequency]
 value = {{ tf }}
+
+[cue.only-three.audio_input.0]
 
 
 
@@ -111,3 +119,6 @@ value = {{ tf }}
 [cue.three-magnets.string.2]
 [cue.three-magnets.parameter.string_2_frequency]
 value = {{ tf }}
+
+[cue.three-magnets.audio_input.0]
+
