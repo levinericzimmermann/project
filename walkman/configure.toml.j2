@@ -19,17 +19,12 @@ channel_count           = 2
 [configure.module.string.{{ string_index }}]
 com_port                = "/dev/ttyACM0"
 pin_index               = {{ pin_index }}
-frequency               = "parameter.string_{{ string_index }}_frequency"
 fade_in_duration        = {{ fade_in }}
 fade_out_duration       = {{ fade_out }}
 
 [configure.module.value.string_{{ string_index }}_child_decibel]
 # We have a very quiet signal
 value                   = 40
-
-[configure.module.parameter.string_{{ string_index }}_frequency]
-fade_in_duration        = {{ fade_in }}
-fade_out_duration       = {{ fade_out }}
 
 {% endfor %}
 
