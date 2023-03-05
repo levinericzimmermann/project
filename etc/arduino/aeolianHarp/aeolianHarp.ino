@@ -4,35 +4,60 @@
 // Use https://github.com/scandum/rotate
 #include "rotate.h"
 
-const int loopCount = 10;
+const unsigned long loopCount = 7;
+const int leftRotate = loopCount - 1;
 
 // This array contains all waveforms we can pick from
+/*----------------------
 const int loopChoiceArray[][10] = {
   // silence
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
   // basic
   { 0, 90, 140, 180, 200, 204, 180, 150, 100, 50 },
   // loud :)
-  { 0, 255, 255, 255, 255, 255, 255, 255, 255 },
+  { 0, 255, 255, 255, 255, 255, 255, 255, 255, 255 },
   // basic 2
-  { 0, 100, 150, 200, 255, 200, 150, 100, 0 },
+  { 0, 100, 150, 200, 255, 200, 150, 100, 50, 0 },
   // plucking
   { 255, 255, 255, 254, 254, 254, 253, 253, 253, 253 },
   { 100, 100, 100, 99, 99, 99, 98, 98, 98, 100 },
+  { 0, 25, 50, 75, 100, 200, 100, 75, 50, 25 },
+
 };
+----------------------*/
+
+const int loopChoiceArray[][7] = {
+  // silence
+  { 0, 0, 0, 0, 0, 0, 0 },
+  // basic
+  { 0, 255, 255, 255, 255, 255, 0 },
+};
+
+
 
 // Set which pins use electromagnets
 const int         pinArray[3]             = { 3, 5, 6 };
-// This array sets the frequency of each magnet. periodTime is calculated: (1 / frequency * 1000000)
-unsigned long     periodTimeArray[3]      = { 8333, 8333, 8333 };
+// This array sets the frequency of each magnet. periodTime is calculated: ((1 / frequency * 1000000) / loopCount)
+// Default is 120Hz -> 8333 periodTime
+unsigned long     defaultPeriodTime       = 8333 / loopCount;
+unsigned long     periodTimeArray[3]      = { defaultPeriodTime, defaultPeriodTime, defaultPeriodTime };
 // The last time when the magnet was triggered
 unsigned long     lastTimeArray[3]        = { 0, 0, 0 };
+// isPlaying actually specifies whether we make a fadein or a fadeout.
 bool              isPlayingArray[3]       = { false, false, false };
+double            amplitudeFactorArray[3] = { 0, 0, 0 };
 // Array of waveforms
+/*----------------------
 int               loopArray[3][10]        = {
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+----------------------*/
+int               loopArray[3][7]        = {
+  { 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 0, 0, 0, 0 },
 };
 // How many magnets exist? 
 const int         magnetCount             = sizeof(pinArray) / sizeof(*pinArray);
@@ -43,6 +68,9 @@ int               msgIndex;
 const int         msgCount                = 256;
 
 unsigned long     currentTime;
+
+const double riseFactor = 1.1;
+const double fallFactor = 0.9;
 
 
 void setup() {
@@ -57,15 +85,14 @@ void setup() {
 }
 
 void loop() {
-      // /////////////////////////////////
+      // ////////////////////////////////////////////////////////////////////
       // START STRING EXECUTION PART
       currentTime = micros();
-
       int i;
       for (i = 0; i < magnetCount; i++)
       {
-        bool  isPlaying   = isPlayingArray[i];
-        if (isPlaying) {
+        double amplitudeFactor = amplitudeFactorArray[i];
+        if (amplitudeFactor > 0) {
           unsigned long   lastTime    = lastTimeArray[i];
           unsigned long   periodTime  = periodTimeArray[i];
           // "micros" resets itself after 70 minutes
@@ -80,20 +107,41 @@ void loop() {
           }
 
           if (difference > periodTime) {
-            int value = loopArray[i][0];
+            // isPlaying actually specifies whether we make a fadein or a fadeout.
+            bool isPlaying = isPlayingArray[i];
+            int value = loopArray[i][0] * amplitudeFactor;
             // debug
             // Serial.println(difference);
             // Serial.println(value);
             digitalWrite(pinArray[i], value);
             lastTimeArray[i] = currentTime;
-            auxiliary_rotation(loopArray[i], 1, 9);
+            auxiliary_rotation(loopArray[i], 1, leftRotate);
+            // Fadein / Fadeout
+            double amplitudeFactorFactor;
+            if (isPlayingArray[i]) {
+              amplitudeFactorFactor = riseFactor;
+            } else {
+              amplitudeFactorFactor = fallFactor;
+            }
+            double newAmplitudeFactor = amplitudeFactor * amplitudeFactorFactor;
+            if (newAmplitudeFactor > 1) {
+              newAmplitudeFactor = 1;
+            } else if (newAmplitudeFactor < 0.01) {
+              newAmplitudeFactor = 0;
+              // The next time the magnet is ignored, because
+              // its amplitudeFactor is already 0. So 0 won't
+              // be written to the magnet, so it's still a bit
+              // on. But we want to safely turn it off.
+              digitalWrite(pinArray[i], newAmplitudeFactor);
+            }
+            amplitudeFactorArray[i] = newAmplitudeFactor;
           }
         }
       }
       // END STRING EXECUTION PART
-      // /////////////////////////////////
+      // ////////////////////////////////////////////////////////////////////
 
-      // /////////////////////////////////
+      // ////////////////////////////////////////////////////////////////////
       // START PROTOCOL TRANSMISSION PART
       // Basic technique copied from
       // https://makersportal.com/blog/2019/12/15/controlling-arduino-pins-from-the-serial-monitor
@@ -117,7 +165,8 @@ void loop() {
         msgIndex = 0;
       }
       // END PROTOCOL TRANSMISSION PART
-      // /////////////////////////////////
+      // ////////////////////////////////////////////////////////////////////
+
  }
 
  
@@ -134,13 +183,19 @@ void decodeMsg(char str[]) {
       Serial.println("INVALID MSG!");
       return;
     } else {
-      int pinIndex                = tokenArray[0];
-      int mode                    = tokenArray[1];  // 0 = setFrequency; 1 = setLoop
-      int periodTimeOrLoopIndex   = tokenArray[2];
+      int pinIndex                          = tokenArray[0];
+      int mode                              = tokenArray[1];  // 0 = setFrequency; 1 = setLoop
+      unsigned long periodTimeOrLoopIndex   = tokenArray[2];
 
       if (pinIndex >= magnetCount || pinIndex < 0) {
         Serial.print("INVALID PIN INDEX ");
         Serial.println(pinIndex);
+        return;
+      }
+
+      if (periodTimeOrLoopIndex < 0) {
+        Serial.print("INVALID periodTimeOrLoopIndex ");
+        Serial.println(periodTimeOrLoopIndex);
         return;
       }
 
@@ -152,6 +207,10 @@ void decodeMsg(char str[]) {
 
       // Execute command
       if (mode == 0) {
+        // We need to divide the frequency value by our loopCount,
+        // because one loop equals one repeating period e.g. the period
+        // size of the frequeny.
+        periodTimeOrLoopIndex /= loopCount;
         Serial.print("): set frequency to ");
         Serial.println(periodTimeOrLoopIndex);
         periodTimeArray[pinIndex] = periodTimeOrLoopIndex;
@@ -163,9 +222,19 @@ void decodeMsg(char str[]) {
           loopArray[pinIndex][i] = loopChoiceArray[periodTimeOrLoopIndex][i];
         }
         if (periodTimeOrLoopIndex == 0) {
+          // When setting to 'false', amplitudeFactor
+          // is becoming smaller and smaller. When it's
+          // small enough it is set to 0 and the magnet
+          // stops playing.
           isPlayingArray[pinIndex] = false;
         } else {
+          // When setting to 'true', amplitudeFactor is
+          // becoming bigger and bigger until it reaches 1.
+          // But our loop still ignores our magnet if we
+          // don't specify a value which is already bigger
+          // than 0. This is why seed the starting value 0.01.
           isPlayingArray[pinIndex] = true;
+          amplitudeFactorArray[pinIndex] = 0.01;
         }
       }
    }
