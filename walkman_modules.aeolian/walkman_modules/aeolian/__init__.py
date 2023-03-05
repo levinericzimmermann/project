@@ -44,7 +44,7 @@ class Protocol(object):
     item_delimiter: str = " "
     msg_delimiter: str = "\n"
     Data: typing.TypeAlias = tuple[int, int, int]
-    frequency_factor: int = 10**6  # mikro (seconds)
+    frequency_factor: int = 10**7  # mikro (seconds)
     mode_frequency: int = 0
     mode_envelope: int = 1
 
@@ -104,7 +104,7 @@ class String(
 
     def _setup_pyo_object(self):
         super()._setup_pyo_object()
-        self.frequency_changer_metro = pyo.Metro(2)
+        self.frequency_changer_metro = pyo.Metro(4)
         self.frequency_changer = pyo.TrigFunc(
             self.frequency_changer_metro, self._set_frequency
         )
@@ -122,7 +122,11 @@ class String(
 
     def _play(self, *args, **kwargs):
         super()._play(*args, **kwargs)
-        self.protocol.set_envelope(1)
+        self.protocol.set_envelope(6)
+        # da kommt nur rauschen
+        # self.protocol.set_envelope(5)
+        # super interessanter noisy klang mit 6
+        # self.protocol.set_envelope(6)
         # self.protocol.set_envelope(3)  # basic II 
         # self.protocol.set_envelope(4)  # plucking
 
