@@ -136,8 +136,9 @@ class String(walkman.ModuleWithFader):
 
     def _play(self, *args, **kwargs):
         super()._play(*args, **kwargs)
-        self.protocol.set_frequency(self.frequency)
         self.protocol.set_envelope(self.envelope)
+        if self.envelope is not Envelope.SILENCE:
+            self.protocol.set_frequency(self.frequency)
 
     def _stop_without_fader(self, wait: float = 0):
         super()._stop_without_fader(wait=wait)
