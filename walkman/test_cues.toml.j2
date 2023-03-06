@@ -1,76 +1,21 @@
 # Some adhoc written test cues
 
 
-# Computer breaks :)
-# [cue.960.string.0]
-# 
-# [cue.960.parameter.string_0_frequency]
-# value = 960
+{% set frequency_list = [960, 480, 300, 240, 120, 60, 30, 15, 7, 3, 1] %}
+
+{% for i in [0, 1, 2] %}
+    {% for f in frequency_list %}
+
+        [cue.{{ i }}_{{ f }}.string.{{ i }}]
+        frequency = {{ f }}
+
+        [cue.{{ i }}_{{ f }}.audio_input.0]
+
+    {% endfor %}
+{% endfor %}
 
 
-
-[cue.480.string.0]
-frequency = 480
-
-
-[cue.300.string.0]
-frequency = 300
-
-[cue.300.audio_input.0]
-
-
-[cue.240.aeolian_harp.0]
-[cue.240.mixer.strings]
-
-[cue.240.string.0]
-frequency = 240
-
-
-
-[cue.240.audio_input.0]
-
-
-[cue.120.string.0]
-frequency = 120
-
-[cue.120.audio_input.0]
-
-
-
-[cue.60.string.0]
-frequency = 60
-
-[cue.60.audio_input.0]
-
-
-[cue.30.string.0]
-frequency = 30
-
-[cue.30.audio_input.0]
-
-[cue.15.string.0]
-frequency = 15
-
-[cue.15.audio_input.0]
-
-[cue.7.string.0]
-frequency = 7.5
-
-[cue.7.audio_input.0]
-
-[cue.3.string.0]
-frequency = 3.75
-
-[cue.3.audio_input.0]
-
-[cue.1.string.0]
-frequency = 1.875
-
-[cue.1.audio_input.0]
-
-
-
-{% set tf = 200 %}
+{% set tf = 240 %}
 
 
 [cue.only-one.string.0]

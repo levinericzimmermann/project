@@ -1,3 +1,4 @@
+import enum
 import time
 import typing
 
@@ -8,8 +9,20 @@ import walkman
 
 __all__ = ("String", "AeolianHarp")
 
-BAUDRATE = 9600
+BAUDRATE = 230400
 READ_TIMEOUT = 0.1
+MAX_FREQUENCY = 450
+
+walkman.constants.LOGGER.handlers = walkman.constants.LOGGER.handlers[1:]
+
+
+class Envelope(enum.IntEnum):
+    SILENCE = 0
+    BASIC = 1
+    BASIC_QUIET = 2
+    BASIC_LOUD = 3
+    PLUCK_0 = 4
+    PLUCK_1 = 5
 
 
 class ReadingSerial(serial.Serial):
@@ -26,7 +39,7 @@ class ReadingSerial(serial.Serial):
             if self.in_waiting:
                 serial_reply = self.read(self.in_waiting).decode("Ascii")
                 for line in serial_reply.splitlines():
-                    walkman.constants.LOGGER.info(f"{self.name} => C: {line}")
+                    walkman.constants.LOGGER.debug(f"{self.name} => C: {line}")
 
     def close(self, *args, **kwargs):
         if not self.is_closed:
@@ -44,7 +57,7 @@ class Protocol(object):
     item_delimiter: str = " "
     msg_delimiter: str = "\n"
     Data: typing.TypeAlias = tuple[int, int, int]
-    frequency_factor: int = 10**7  # mikro (seconds)
+    frequency_factor: int = 10**6  # mikro (seconds)
     mode_frequency: int = 0
     mode_envelope: int = 1
 
@@ -56,24 +69,24 @@ class Protocol(object):
         msg = "{}{}".format(
             self.item_delimiter.join(map(str, data)), self.msg_delimiter
         )
-        walkman.constants.LOGGER.info(f"C => {self.board.name}: {msg}")
-        self.board.write(msg.encode("utf-8"))
+        try:
+            walkman.constants.LOGGER.debug(f"C => {self.board.name}: {msg}")
+            self.board.write(msg.encode("utf-8"))
+        except AttributeError:
+            walkman.constants.LOGGER.warning(f"Can't write to board: {self.board}")
 
     def set_frequency(self, frequency: float):
         period = int((1 / frequency) * self.frequency_factor)
         self.send((self.pin_index, self.mode_frequency, period))
 
-    def set_envelope(self, envelope_index: int):
-        self.send((self.pin_index, self.mode_envelope, envelope_index))
+    def set_envelope(self, envelope: Envelope):
+        self.send((self.pin_index, self.mode_envelope, envelope.value))
 
     def stop(self):
-        self.set_envelope(0)
+        self.set_envelope(Envelope.SILENCE)
 
 
-class String(
-    walkman.ModuleWithFader,
-    frequency=walkman.AutoSetup(walkman.Value, module_kwargs={"value": 75}),
-):
+class String(walkman.ModuleWithFader):
     ComPort: typing.TypeAlias = str
     ArduinoInstanceId: typing.TypeAlias = int
     com_port_to_board: dict[ComPort, ReadingSerial] = {}
@@ -86,14 +99,16 @@ class String(
     ):
         super().__init__(**kwargs)
 
-        self.last_frequency = 0
-
         try:
             board = self.com_port_to_board[com_port]
         except KeyError:
-            board = self.com_port_to_board[com_port] = ReadingSerial(
-                com_port, timeout=READ_TIMEOUT, baudrate=BAUDRATE
-            )
+            try:
+                board = self.com_port_to_board[com_port] = ReadingSerial(
+                    com_port, timeout=READ_TIMEOUT, baudrate=BAUDRATE
+                )
+            except serial.serialutil.SerialException as e:
+                walkman.constants.LOGGER.warning(f"Unusable board: {e}")
+                board = None
 
         self.protocol = Protocol(board, pin_index)
         self.board = board
@@ -102,33 +117,22 @@ class String(
             f"Finished setup for String with com_port = {com_port} and pin_index = {pin_index}."
         )
 
-    def _setup_pyo_object(self):
-        super()._setup_pyo_object()
-        self.frequency_changer_metro = pyo.Metro(4)
-        self.frequency_changer = pyo.TrigFunc(
-            self.frequency_changer_metro, self._set_frequency
-        )
-        self.internal_pyo_object_list.extend(
-            [self.frequency_changer, self.frequency_changer_metro]
-        )
-        walkman.constants.LOGGER.info(
-            f"Frequency obj: {self.frequency}, {self.frequency.replication_key}."
-        )
-
-    def _set_frequency(self):
-        if (frequency := self.frequency.pyo_object.get()) != self.last_frequency:
-            self.protocol.set_frequency(frequency)
-            self.last_frequency = frequency
+    def _initialise(self, frequency: float = 200, *args, **kwargs):
+        super()._initialise(*args, **kwargs)
+        if frequency > MAX_FREQUENCY:
+            walkman.constants.LOGGER.warning(
+                f"Catched too high frequency {frequency}. Set to {MAX_FREQUENCY}."
+            )
+            frequency = MAX_FREQUENCY
+        self.frequency = frequency
+        # For cue switch during playing
+        if self.is_playing:
+            self.protocol.set_frequency(self.frequency)
 
     def _play(self, *args, **kwargs):
         super()._play(*args, **kwargs)
-        self.protocol.set_envelope(6)
-        # da kommt nur rauschen
-        # self.protocol.set_envelope(5)
-        # super interessanter noisy klang mit 6
-        # self.protocol.set_envelope(6)
-        # self.protocol.set_envelope(3)  # basic II 
-        # self.protocol.set_envelope(4)  # plucking
+        self.protocol.set_frequency(self.frequency)
+        self.protocol.set_envelope(Envelope.BASIC)
 
     def _stop_without_fader(self, wait: float = 0):
         super()._stop_without_fader(wait=wait)
@@ -136,7 +140,10 @@ class String(
 
     def close(self):
         super().close()
-        self.board.close()
+        try:
+            self.board.close()
+        except AttributeError:
+            pass
 
 
 class AeolianHarp(walkman.Hub):

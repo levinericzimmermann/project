@@ -4,35 +4,25 @@
 // Use https://github.com/scandum/rotate
 #include "rotate.h"
 
-const unsigned long loopCount = 7;
+
+const unsigned long loopCount = 4;
 const int leftRotate = loopCount - 1;
 
 // This array contains all waveforms we can pick from
-/*----------------------
-const int loopChoiceArray[][10] = {
+const int loopChoiceArray[][4] = {
   // silence
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 0 },
   // basic
-  { 0, 90, 140, 180, 200, 204, 180, 150, 100, 50 },
-  // loud :)
-  { 0, 255, 255, 255, 255, 255, 255, 255, 255, 255 },
-  // basic 2
-  { 0, 100, 150, 200, 255, 200, 150, 100, 50, 0 },
-  // plucking
-  { 255, 255, 255, 254, 254, 254, 253, 253, 253, 253 },
-  { 100, 100, 100, 99, 99, 99, 98, 98, 98, 100 },
-  { 0, 25, 50, 75, 100, 200, 100, 75, 50, 25 },
-
+  { 120, 254, 120, 0 },
+  // basic quiet
+  { 0, 20, 250, 20 },
+  // basic loud
+  { 0, 220, 250, 220 },
+  // plucking A
+  { 255, 254, 253, 255 },  
+  // plucking B
+  { 255, 255, 255, 254 },
 };
-----------------------*/
-
-const int loopChoiceArray[][7] = {
-  // silence
-  { 0, 0, 0, 0, 0, 0, 0 },
-  // basic
-  { 0, 255, 255, 255, 255, 255, 0 },
-};
-
 
 
 // Set which pins use electromagnets
@@ -47,18 +37,12 @@ unsigned long     lastTimeArray[3]        = { 0, 0, 0 };
 bool              isPlayingArray[3]       = { false, false, false };
 double            amplitudeFactorArray[3] = { 0, 0, 0 };
 // Array of waveforms
-/*----------------------
-int               loopArray[3][10]        = {
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+int               loopArray[3][4]        = {
+  { 0, 0, 0, 0 },
+  { 0, 0, 0, 0 },
+  { 0, 0, 0, 0 },
 };
-----------------------*/
-int               loopArray[3][7]        = {
-  { 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0 },
-  { 0, 0, 0, 0, 0, 0, 0 },
-};
+
 // How many magnets exist? 
 const int         magnetCount             = sizeof(pinArray) / sizeof(*pinArray);
 
@@ -68,14 +52,37 @@ int               msgIndex;
 const int         msgCount                = 256;
 
 unsigned long     currentTime;
+unsigned long     globalLastTime;
 
-const double riseFactor = 1.1;
-const double fallFactor = 0.9;
+// 3 seconds
+const unsigned long fadeInDuration = 3000000;
+// 4 seconds
+const unsigned long fadeOutDuration = 4000000;
+
+double fallFactorArray[3] = { 0.9935, 0.9935, 0.9935 };
+double riseFactorArray[3] = { 1.0065, 1.0065, 1.0065 };
+
+const double minAmplitudeFactor = 0.01;
+const double maxAmplitudeFactor = 1;
+const double fallAmplitudeFactorRatio = minAmplitudeFactor / maxAmplitudeFactor;
+const double riseAmplitudeFactorRatio = maxAmplitudeFactor / minAmplitudeFactor;
+
+// Min difference between two micros calls!
+// https://www.arduino.cc/reference/en/language/functions/time/micros/
+// arduino says 4 to 8 miliseconds precision.
+// But the loop frequency is much slower.
+// This is
+//    (1) because the code takes so long
+//    (2) because the baudrate is too low (must be higher)
+//
+// If we have 5 control points we can represent frequencies up
+// to 340Hz with this value. This should be ok.
+const unsigned long minPeriodTime = 580;
 
 
 void setup() {
     // Set up log infos in serial monitor
-    Serial.begin(9600);
+    Serial.begin(230400);
     // Initialize pins as output
     int i;
     for(i = 0; i < magnetCount; i++)
@@ -113,26 +120,26 @@ void loop() {
             // debug
             // Serial.println(difference);
             // Serial.println(value);
-            digitalWrite(pinArray[i], value);
+            analogWrite(pinArray[i], value);
             lastTimeArray[i] = currentTime;
             auxiliary_rotation(loopArray[i], 1, leftRotate);
             // Fadein / Fadeout
             double amplitudeFactorFactor;
             if (isPlayingArray[i]) {
-              amplitudeFactorFactor = riseFactor;
+              amplitudeFactorFactor = riseFactorArray[i];
             } else {
-              amplitudeFactorFactor = fallFactor;
+              amplitudeFactorFactor = fallFactorArray[i];
             }
             double newAmplitudeFactor = amplitudeFactor * amplitudeFactorFactor;
-            if (newAmplitudeFactor > 1) {
-              newAmplitudeFactor = 1;
-            } else if (newAmplitudeFactor < 0.01) {
+            if (newAmplitudeFactor > maxAmplitudeFactor) {
+              newAmplitudeFactor = maxAmplitudeFactor;
+            } else if (newAmplitudeFactor < minAmplitudeFactor) {
               newAmplitudeFactor = 0;
               // The next time the magnet is ignored, because
               // its amplitudeFactor is already 0. So 0 won't
               // be written to the magnet, so it's still a bit
               // on. But we want to safely turn it off.
-              digitalWrite(pinArray[i], newAmplitudeFactor);
+              analogWrite(pinArray[i], newAmplitudeFactor);
             }
             amplitudeFactorArray[i] = newAmplitudeFactor;
           }
@@ -167,6 +174,7 @@ void loop() {
       // END PROTOCOL TRANSMISSION PART
       // ////////////////////////////////////////////////////////////////////
 
+      globalLastTime = currentTime;
  }
 
  
@@ -207,20 +215,22 @@ void decodeMsg(char str[]) {
 
       // Execute command
       if (mode == 0) {
+        Serial.print("): set frequency to ");
+        Serial.println(periodTimeOrLoopIndex);
         // We need to divide the frequency value by our loopCount,
         // because one loop equals one repeating period e.g. the period
         // size of the frequeny.
         periodTimeOrLoopIndex /= loopCount;
-        Serial.print("): set frequency to ");
-        Serial.println(periodTimeOrLoopIndex);
+        if (periodTimeOrLoopIndex < minPeriodTime) {
+          periodTimeOrLoopIndex = minPeriodTime;
+          Serial.println("WARNING: Received too fast frequency. Autoset to higher freq.");
+        }
         periodTimeArray[pinIndex] = periodTimeOrLoopIndex;
+        riseFactorArray[pinIndex] = calculateRiseFactor(periodTimeOrLoopIndex);
+        fallFactorArray[pinIndex] = calculateFallFactor(periodTimeOrLoopIndex);
       } else {
         Serial.print("): set envelope to ");
         Serial.println(periodTimeOrLoopIndex);
-        int i;
-        for (i = 0; i < loopCount; i++) {
-          loopArray[pinIndex][i] = loopChoiceArray[periodTimeOrLoopIndex][i];
-        }
         if (periodTimeOrLoopIndex == 0) {
           // When setting to 'false', amplitudeFactor
           // is becoming smaller and smaller. When it's
@@ -228,16 +238,65 @@ void decodeMsg(char str[]) {
           // stops playing.
           isPlayingArray[pinIndex] = false;
         } else {
-          // When setting to 'true', amplitudeFactor is
-          // becoming bigger and bigger until it reaches 1.
-          // But our loop still ignores our magnet if we
-          // don't specify a value which is already bigger
-          // than 0. This is why seed the starting value 0.01.
           isPlayingArray[pinIndex] = true;
-          amplitudeFactorArray[pinIndex] = 0.01;
+          // We only override curve if it's not 0.
+          // Otherwise we don't have any fadein/fadeout.
+          int i;
+          for (i = 0; i < loopCount; i++) {
+            loopArray[pinIndex][i] = loopChoiceArray[periodTimeOrLoopIndex][i];
+          }
+          // Fadein if not already playing
+          if (amplitudeFactorArray[pinIndex] == 0) {
+            // When setting to 'true', amplitudeFactor is
+            // becoming bigger and bigger until it reaches 1.
+            // But our loop still ignores our magnet if we
+            // don't specify a value which is already bigger
+            // than 0. This is why set the starting seed 0.01.
+            amplitudeFactorArray[pinIndex] = minAmplitudeFactor;
+          }
         }
       }
    }
 }
+
+
+double calculateFallFactor(unsigned long periodTime) {
+    double attackCount = fadeOutDuration / periodTime;
+    double fallFactor = pow(fallAmplitudeFactorRatio, 1.0 / attackCount);
+    return fallFactor;
+}
+
+double calculateRiseFactor(unsigned long periodTime) {
+    double attackCount = fadeInDuration / periodTime;
+    double riseFactor = pow(riseAmplitudeFactorRatio, 1.0 / attackCount);
+    return riseFactor;
+}
+
+
+
+// Useful for debug
+// See: https://forum.arduino.cc/t/printing-a-double-variable/44327/2
+void printDouble( double val, unsigned int precision){
+// prints val with number of decimal places determine by precision
+// NOTE: precision is 1 followed by the number of zeros for the desired number of decimial places
+// example: printDouble( 3.1415, 100); // prints 3.14 (two decimal places)
+
+    Serial.print (int(val));  //prints the int part
+    Serial.print("."); // print the decimal point
+    unsigned int frac;
+    if(val >= 0)
+      frac = (val - int(val)) * precision;
+    else
+       frac = (int(val)- val ) * precision;
+    int frac1 = frac;
+    while( frac1 /= 10 )
+        precision /= 10;
+    precision /= 10;
+    while(  precision /= 10)
+        Serial.print("0");
+
+    Serial.println(frac, DEC) ;
+}
+
 
  
