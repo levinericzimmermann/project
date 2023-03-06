@@ -117,7 +117,7 @@ class String(walkman.ModuleWithFader):
             f"Finished setup for String with com_port = {com_port} and pin_index = {pin_index}."
         )
 
-    def _initialise(self, frequency: float = 200, *args, **kwargs):
+    def _initialise(self, frequency: float = 200, envelope: str = "BASIC", *args, **kwargs):
         super()._initialise(*args, **kwargs)
         if frequency > MAX_FREQUENCY:
             walkman.constants.LOGGER.warning(
@@ -128,11 +128,12 @@ class String(walkman.ModuleWithFader):
         # For cue switch during playing
         if self.is_playing:
             self.protocol.set_frequency(self.frequency)
+        self.envelope = getattr(Envelope, envelope, "BASIC")
 
     def _play(self, *args, **kwargs):
         super()._play(*args, **kwargs)
         self.protocol.set_frequency(self.frequency)
-        self.protocol.set_envelope(Envelope.BASIC)
+        self.protocol.set_envelope(self.envelope)
 
     def _stop_without_fader(self, wait: float = 0):
         super()._stop_without_fader(wait=wait)
