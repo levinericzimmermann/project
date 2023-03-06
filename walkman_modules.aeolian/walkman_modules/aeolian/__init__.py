@@ -1,4 +1,6 @@
+import collections
 import enum
+import itertools
 import time
 import typing
 
@@ -117,7 +119,9 @@ class String(walkman.ModuleWithFader):
             f"Finished setup for String with com_port = {com_port} and pin_index = {pin_index}."
         )
 
-    def _initialise(self, frequency: float = 200, envelope: str = "BASIC", *args, **kwargs):
+    def _initialise(
+        self, frequency: float = 200, envelope: str = "BASIC", *args, **kwargs
+    ):
         super()._initialise(*args, **kwargs)
         if frequency > MAX_FREQUENCY:
             walkman.constants.LOGGER.warning(
@@ -148,4 +152,46 @@ class String(walkman.ModuleWithFader):
 
 
 class AeolianHarp(walkman.Hub):
-    pass
+    E = collections.namedtuple("Event", ("duration", "kwargs", "is_rest"))
+
+    def _setup_pyo_object(self, *args, **kwargs):
+        super()._setup_pyo_object(*args, **kwargs)
+        self.sequencer0 = walkman.Sequencer(
+            self.audio_input_1,
+            itertools.cycle(
+                [
+                    self.E(15, dict(envelope="BASIC_QUIET", frequency=60), False),
+                    self.E(10, {}, True),
+                ]
+            ),
+        )
+        self.sequencer1 = walkman.Sequencer(
+            self.audio_input_2,
+            itertools.cycle(
+                [
+                    self.E(2, {}, True),
+                    self.E(7.4, dict(envelope="BASIC", frequency=120), False),
+                ]
+            ),
+        )
+        self.sequencer2 = walkman.Sequencer(
+            self.audio_input_2,
+            itertools.cycle(
+                [
+                    self.E(20, dict(envelope="BASIC", frequency=280), False),
+                    self.E(10, {}, True),
+                ]
+            ),
+        )
+
+    def _play(self, duration: float, delay: float):
+        super()._play(duration, delay)
+        self.sequencer0.play(duration, delay)
+        self.sequencer1.play(duration, delay)
+        self.sequencer2.play(duration, delay)
+
+    def _stop(self, wait: float):
+        super()._stop(wait)
+        self.sequencer0.stop(wait)
+        self.sequencer1.stop(wait)
+        self.sequencer2.stop(wait)
