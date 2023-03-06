@@ -36,6 +36,8 @@ unsigned long     lastTimeArray[3]        = { 0, 0, 0 };
 // isPlaying actually specifies whether we make a fadein or a fadeout.
 bool              isPlayingArray[3]       = { false, false, false };
 double            amplitudeFactorArray[3] = { 0, 0, 0 };
+unsigned long     randomMaxArray[3] = { 5, 5, 5 };
+
 // Array of waveforms
 int               loopArray[3][4]        = {
   { 0, 0, 0, 0 },
@@ -116,7 +118,11 @@ void loop() {
           if (difference > periodTime) {
             // isPlaying actually specifies whether we make a fadein or a fadeout.
             bool isPlaying = isPlayingArray[i];
-            int value = loopArray[i][0] * amplitudeFactor;
+            long randNumber = random(randomMaxArray[i]);
+            int value = (loopArray[i][0] * amplitudeFactor) - randNumber;
+            if (value < 0) {
+              value = 0;
+            }
             // debug
             // Serial.println(difference);
             // Serial.println(value);
