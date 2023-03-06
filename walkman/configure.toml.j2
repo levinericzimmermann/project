@@ -30,12 +30,15 @@ input_channel_index     = 0
 fade_in_duration        = {{ fade_in }}
 fade_out_duration       = {{ fade_out }}
 
+[configure.module.compressor.0]
+audio_input           = "audio_input.0"
+
 [configure.module.value.audio_input_0_child_decibel]
 # We have a very quiet signal
 value                   = 50
 
 [configure.module.aeolian_harp.0]
-audio_input_0           = "audio_input.0"
+audio_input_0           = "compressor.0"
 audio_input_1           = "string.0"
 audio_input_2           = "string.1"
 audio_input_3           = "string.2"

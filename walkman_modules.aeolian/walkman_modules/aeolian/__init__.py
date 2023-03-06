@@ -1,5 +1,6 @@
 import collections
 import enum
+import functools
 import itertools
 import time
 import typing
@@ -9,7 +10,7 @@ import serial
 import walkman
 
 
-__all__ = ("String", "AeolianHarp")
+__all__ = ("String", "AeolianHarp", "Compressor")
 
 BAUDRATE = 230400
 READ_TIMEOUT = 0.1
@@ -196,3 +197,26 @@ class AeolianHarp(walkman.Hub):
         self.sequencer0.stop(wait)
         self.sequencer1.stop(wait)
         self.sequencer2.stop(wait)
+
+
+class Compressor(
+    walkman.ModuleWithDecibel,
+    audio_input=walkman.Catch(walkman.constants.EMPTY_MODULE_INSTANCE_NAME),
+    ratio=walkman.AutoSetup(walkman.Value, module_kwargs={"value": 3}),
+    risetime=walkman.AutoSetup(walkman.Value, module_kwargs={"value": 0.01}),
+    falltime=walkman.AutoSetup(walkman.Value, module_kwargs={"value": 0.1}),
+):
+    def _setup_pyo_object(self):
+        super()._setup_pyo_object()
+        self.compressor = pyo.Compress(
+            self.audio_input.pyo_object,
+            mul=self.amplitude_signal_to,
+            ratio=self.ratio.pyo_object_or_float,
+            risetime=self.risetime.pyo_object_or_float,
+            falltime=self.falltime.pyo_object_or_float,
+        ).stop()
+        self.internal_pyo_object_list.append(self.compressor)
+
+    @functools.cached_property
+    def _pyo_object(self) -> pyo.PyoObject:
+        return self.compressor
