@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+arduino-cli monitor -c baudrate=230400 --protocol serial --fqbn arduino:avr:uno --port /dev/ttyACM0 etc/arduino/aeolianHarp/aeolianHarp.ino
