@@ -92,7 +92,7 @@ class Protocol(object):
         self.set_envelope(Envelope.SILENCE)
 
 
-class String(walkman.ModuleWithFader):
+class String(walkman.Module):
     ComPort: typing.TypeAlias = str
     ArduinoInstanceId: typing.TypeAlias = int
     com_port_to_board: dict[ComPort, ReadingSerial] = {}
@@ -144,16 +144,16 @@ class String(walkman.ModuleWithFader):
         if self.envelope is not Envelope.SILENCE:
             self.protocol.set_frequency(self.frequency)
 
-    def _stop_without_fader(self, wait: float = 0):
-        super()._stop_without_fader(wait=wait)
+    def _stop(self, wait: float = 0):
+        super()._stop(wait)
         self.protocol.stop()
+        super()._stop(wait=wait)
 
     def close(self):
+        # Use _stop instead of stop: this is a safety belt to
+        # really stop all strings from ringing.
+        self._stop()
         super().close()
-        try:
-            self.board.close()
-        except AttributeError:
-            pass
 
 
 class AeolianHarp(walkman.Hub):
@@ -163,30 +163,34 @@ class AeolianHarp(walkman.Hub):
         super()._setup_pyo_object(*args, **kwargs)
         self.sequencer0 = walkman.Sequencer(
             self.audio_input_1,
-            itertools.cycle(
-                [
-                    self.E(15, dict(envelope="BASIC_QUIET", frequency=60), False),
-                    self.E(10, {}, True),
-                ]
-            ),
         )
         self.sequencer1 = walkman.Sequencer(
             self.audio_input_2,
-            itertools.cycle(
-                [
-                    self.E(2, {}, True),
-                    self.E(7.4, dict(envelope="BASIC", frequency=120), False),
-                ]
-            ),
         )
         self.sequencer2 = walkman.Sequencer(
-            self.audio_input_2,
-            itertools.cycle(
-                [
-                    self.E(20, dict(envelope="BASIC", frequency=280), False),
-                    self.E(10, {}, True),
-                ]
-            ),
+            self.audio_input_3,
+        )
+        self._reset_events()
+
+    def _reset_events(self):
+        self.sequencer0.event_iterator = itertools.cycle(
+            [
+                self.E(10, dict(envelope="BASIC", frequency=120), False),
+                self.E(20, {}, True),
+            ]
+        )
+        self.sequencer1.event_iterator = itertools.cycle(
+            [
+                self.E(10, {}, True),
+                self.E(10, dict(envelope="BASIC", frequency=120), False),
+                self.E(10, {}, True),
+            ]
+        )
+        self.sequencer2.event_iterator = itertools.cycle(
+            [
+                self.E(20, {}, True),
+                self.E(10, dict(envelope="BASIC", frequency=120), False),
+            ]
         )
 
     def _play(self, duration: float, delay: float):
@@ -195,11 +199,20 @@ class AeolianHarp(walkman.Hub):
         self.sequencer1.play(duration, delay)
         self.sequencer2.play(duration, delay)
 
-    def _stop(self, wait: float):
+    def _stop(self, wait: float = 0):
         super()._stop(wait)
+        self._is_playing = False
         self.sequencer0.stop(wait)
         self.sequencer1.stop(wait)
         self.sequencer2.stop(wait)
+        # The current basic sequencer implementation of walkman isn't
+        # very clever and doesn't start the same event at the point where
+        # it stopped, but it simply jumps to the next event.
+        #
+        # This means that whenever any stop is triggered all sequencers
+        # won't be in sync anymore. So we simply re-initialize all sequencers
+        # before playing again.
+        self._reset_events()
 
 
 class Compressor(
