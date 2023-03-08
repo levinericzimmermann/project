@@ -54,7 +54,6 @@ int               msgIndex;
 const int         msgCount                = 256;
 
 unsigned long     currentTime;
-unsigned long     globalLastTime;
 
 // 3 seconds
 const unsigned long fadeInDuration = 3000000;
@@ -94,68 +93,16 @@ void setup() {
 }
 
 void loop() {
-      // ////////////////////////////////////////////////////////////////////
-      // START STRING EXECUTION PART
       currentTime = micros();
+
+      // String execution
       int i;
       for (i = 0; i < magnetCount; i++)
       {
-        double amplitudeFactor = amplitudeFactorArray[i];
-        if (amplitudeFactor > 0) {
-          unsigned long   lastTime    = lastTimeArray[i];
-          unsigned long   periodTime  = periodTimeArray[i];
-          // "micros" resets itself after 70 minutes
-          // (see https://www.arduino.cc/reference/en/language/functions/time/micros/)
-          // So it could happen that the lastTime looks bigger than the currentTime:
-          // in this case set lastTime to 0
-          unsigned long   difference;
-          if (lastTime > currentTime) {
-            difference  = currentTime;
-          } else {
-            difference  = currentTime - lastTime;
-          }
-
-          if (difference > periodTime) {
-            // isPlaying actually specifies whether we make a fadein or a fadeout.
-            bool isPlaying = isPlayingArray[i];
-            long randNumber = random(randomMaxArray[i]);
-            int value = (loopArray[i][0] * amplitudeFactor) - randNumber;
-            if (value < 0) {
-              value = 0;
-            }
-            // debug
-            // Serial.println(difference);
-            // Serial.println(value);
-            analogWrite(pinArray[i], value);
-            lastTimeArray[i] = currentTime;
-            auxiliary_rotation(loopArray[i], 1, leftRotate);
-            // Fadein / Fadeout
-            double amplitudeFactorFactor;
-            if (isPlayingArray[i]) {
-              amplitudeFactorFactor = riseFactorArray[i];
-            } else {
-              amplitudeFactorFactor = fallFactorArray[i];
-            }
-            double newAmplitudeFactor = amplitudeFactor * amplitudeFactorFactor;
-            if (newAmplitudeFactor > maxAmplitudeFactor) {
-              newAmplitudeFactor = maxAmplitudeFactor;
-            } else if (newAmplitudeFactor < minAmplitudeFactor) {
-              newAmplitudeFactor = 0;
-              // The next time the magnet is ignored, because
-              // its amplitudeFactor is already 0. So 0 won't
-              // be written to the magnet, so it's still a bit
-              // on. But we want to safely turn it off.
-              analogWrite(pinArray[i], newAmplitudeFactor);
-            }
-            amplitudeFactorArray[i] = newAmplitudeFactor;
-          }
-        }
+        executeString(i, currentTime);
       }
-      // END STRING EXECUTION PART
-      // ////////////////////////////////////////////////////////////////////
 
-      // ////////////////////////////////////////////////////////////////////
-      // START PROTOCOL TRANSMISSION PART
+      // Protocoll transmission
       // Basic technique copied from
       // https://makersportal.com/blog/2019/12/15/controlling-arduino-pins-from-the-serial-monitor
       // First collect all characters until we found a line break
@@ -177,11 +124,61 @@ void loop() {
         }
         msgIndex = 0;
       }
-      // END PROTOCOL TRANSMISSION PART
-      // ////////////////////////////////////////////////////////////////////
+}
 
-      globalLastTime = currentTime;
- }
+
+void executeString(int i, unsigned long currentTime) {
+    double amplitudeFactor = amplitudeFactorArray[i];
+    if (amplitudeFactor > 0) {
+      unsigned long   lastTime    = lastTimeArray[i];
+      unsigned long   periodTime  = periodTimeArray[i];
+      // "micros" resets itself after 70 minutes
+      // (see https://www.arduino.cc/reference/en/language/functions/time/micros/)
+      // So it could happen that the lastTime looks bigger than the currentTime:
+      // in this case set lastTime to 0
+      unsigned long   difference;
+      if (lastTime > currentTime) {
+        difference  = currentTime;
+      } else {
+        difference  = currentTime - lastTime;
+      }
+
+      if (difference > periodTime) {
+        // isPlaying actually specifies whether we make a fadein or a fadeout.
+        bool isPlaying = isPlayingArray[i];
+        long randNumber = random(randomMaxArray[i]);
+        int value = (loopArray[i][0] * amplitudeFactor) - randNumber;
+        if (value < 0) {
+          value = 0;
+        }
+        // debug
+        // Serial.println(difference);
+        // Serial.println(value);
+        analogWrite(pinArray[i], value);
+        lastTimeArray[i] = currentTime;
+        auxiliary_rotation(loopArray[i], 1, leftRotate);
+        // Fadein / Fadeout
+        double amplitudeFactorFactor;
+        if (isPlayingArray[i]) {
+          amplitudeFactorFactor = riseFactorArray[i];
+        } else {
+          amplitudeFactorFactor = fallFactorArray[i];
+        }
+        double newAmplitudeFactor = amplitudeFactor * amplitudeFactorFactor;
+        if (newAmplitudeFactor > maxAmplitudeFactor) {
+          newAmplitudeFactor = maxAmplitudeFactor;
+        } else if (newAmplitudeFactor < minAmplitudeFactor) {
+          newAmplitudeFactor = 0;
+          // The next time the magnet is ignored, because
+          // its amplitudeFactor is already 0. So 0 won't
+          // be written to the magnet, so it's still a bit
+          // on. But we want to safely turn it off.
+          analogWrite(pinArray[i], newAmplitudeFactor);
+        }
+        amplitudeFactorArray[i] = newAmplitudeFactor;
+      }
+    }
+}
 
  
 void decodeMsg(char str[]) {
@@ -201,6 +198,7 @@ void decodeMsg(char str[]) {
       int mode                              = tokenArray[1];  // 0 = setFrequency; 1 = setLoop
       unsigned long periodTimeOrLoopIndex   = tokenArray[2];
 
+      // Sanity check
       if (pinIndex >= magnetCount || pinIndex < 0) {
         Serial.print("INVALID PIN INDEX ");
         Serial.println(pinIndex);
@@ -221,50 +219,57 @@ void decodeMsg(char str[]) {
 
       // Execute command
       if (mode == 0) {
-        Serial.print("): set frequency to ");
-        Serial.println(periodTimeOrLoopIndex);
-        // We need to divide the frequency value by our loopCount,
-        // because one loop equals one repeating period e.g. the period
-        // size of the frequeny.
-        periodTimeOrLoopIndex /= loopCount;
-        if (periodTimeOrLoopIndex < minPeriodTime) {
-          periodTimeOrLoopIndex = minPeriodTime;
-          Serial.println("WARNING: Received too fast frequency. Autoset to higher freq.");
-        }
-        periodTimeArray[pinIndex] = periodTimeOrLoopIndex;
-        riseFactorArray[pinIndex] = calculateRiseFactor(periodTimeOrLoopIndex);
-        fallFactorArray[pinIndex] = calculateFallFactor(periodTimeOrLoopIndex);
+          setFrequency(pinIndex, periodTimeOrLoopIndex);
       } else {
-        Serial.print("): set envelope to ");
-        Serial.println(periodTimeOrLoopIndex);
-        if (periodTimeOrLoopIndex == 0) {
-          // When setting to 'false', amplitudeFactor
-          // is becoming smaller and smaller. When it's
-          // small enough it is set to 0 and the magnet
-          // stops playing.
-          isPlayingArray[pinIndex] = false;
-        } else {
-          isPlayingArray[pinIndex] = true;
-          // We only override curve if it's not 0.
-          // Otherwise we don't have any fadein/fadeout.
-          int i;
-          for (i = 0; i < loopCount; i++) {
-            loopArray[pinIndex][i] = loopChoiceArray[periodTimeOrLoopIndex][i];
-          }
-          // Fadein if not already playing
-          if (amplitudeFactorArray[pinIndex] == 0) {
-            // When setting to 'true', amplitudeFactor is
-            // becoming bigger and bigger until it reaches 1.
-            // But our loop still ignores our magnet if we
-            // don't specify a value which is already bigger
-            // than 0. This is why set the starting seed 0.01.
-            amplitudeFactorArray[pinIndex] = minAmplitudeFactor;
-          }
-        }
+          setEnvelope(pinIndex, periodTimeOrLoopIndex);
       }
    }
 }
 
+void setFrequency(int pinIndex, unsigned long periodTime) {
+    Serial.print("): set frequency to ");
+    Serial.println(periodTime);
+    // We need to divide the frequency value by our loopCount,
+    // because one loop equals one repeating period e.g. the period
+    // size of the frequeny.
+    periodTime /= loopCount;
+    if (periodTime < minPeriodTime) {
+      periodTime = minPeriodTime;
+      Serial.println("WARNING: Received too fast frequency. Autoset to higher freq.");
+    }
+    periodTimeArray[pinIndex] = periodTime;
+    riseFactorArray[pinIndex] = calculateRiseFactor(periodTime);
+    fallFactorArray[pinIndex] = calculateFallFactor(periodTime);
+}
+
+void setEnvelope (int pinIndex, unsigned long loopIndex) {
+    Serial.print("): set envelope to ");
+    Serial.println(loopIndex);
+    if (loopIndex == 0) {
+      // When setting to 'false', amplitudeFactor
+      // is becoming smaller and smaller. When it's
+      // small enough it is set to 0 and the magnet
+      // stops playing.
+      isPlayingArray[pinIndex] = false;
+    } else {
+      isPlayingArray[pinIndex] = true;
+      // We only override curve if it's not 0.
+      // Otherwise we don't have any fadein/fadeout.
+      int i;
+      for (i = 0; i < loopCount; i++) {
+        loopArray[pinIndex][i] = loopChoiceArray[loopIndex][i];
+      }
+      // Fadein if not already playing
+      if (amplitudeFactorArray[pinIndex] == 0) {
+        // When setting to 'true', amplitudeFactor is
+        // becoming bigger and bigger until it reaches 1.
+        // But our loop still ignores our magnet if we
+        // don't specify a value which is already bigger
+        // than 0. This is why set the starting seed 0.01.
+        amplitudeFactorArray[pinIndex] = minAmplitudeFactor;
+      }
+    }
+}
 
 double calculateFallFactor(unsigned long periodTime) {
     double attackCount = fadeOutDuration / periodTime;
@@ -277,8 +282,6 @@ double calculateRiseFactor(unsigned long periodTime) {
     double riseFactor = pow(riseAmplitudeFactorRatio, 1.0 / attackCount);
     return riseFactor;
 }
-
-
 
 // Useful for debug
 // See: https://forum.arduino.cc/t/printing-a-double-variable/44327/2
