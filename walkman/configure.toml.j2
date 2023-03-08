@@ -19,8 +19,6 @@ channel_count           = 2
 [configure.module.string.{{ string_index }}]
 com_port                = "/dev/ttyACM0"
 pin_index               = {{ pin_index }}
-fade_in_duration        = {{ fade_in }}
-fade_out_duration       = {{ fade_out }}
 
 {% endfor %}
 
@@ -31,7 +29,7 @@ fade_in_duration        = {{ fade_in }}
 fade_out_duration       = {{ fade_out }}
 
 [configure.module.compressor.0]
-audio_input           = "audio_input.0"
+audio_input             = "audio_input.0"
 
 [configure.module.value.audio_input_0_child_decibel]
 # We have a very quiet signal
@@ -53,20 +51,20 @@ audio_input_0           = "aeolian_harp.0.0"
 audio_input             = "mixer.strings"
 
 [configure.module.value.butterworth_highpass_filter_strings_child_frequency]
-value                   = 105
+value                   = 100
 
 [configure.module.butterworth_lowpass_filter.strings]
 audio_input             = "butterworth_highpass_filter.strings"
 
 [configure.module.value.butterworth_lowpass_filter_strings_child_frequency]
-value                   = 15000
+value                   = 17000
 
 [configure.module.average.strings]
 audio_input             = "butterworth_lowpass_filter.strings"
 
 [configure.module.value.average_strings_child_size]
 # Higher value -> less noise, but also less clear signal
-value                   = 40
+value                   = 25
 
 [configure.module.mixer.pre_master]
 audio_input_0           = "average.strings"
