@@ -157,7 +157,7 @@ class String(walkman.Module):
 
 
 class AeolianHarp(walkman.Hub):
-    E = collections.namedtuple("Event", ("duration", "kwargs", "is_rest"))
+    E = collections.namedtuple("E", ("duration", "kwargs", "is_rest"))
 
     def _setup_pyo_object(self, *args, **kwargs):
         super()._setup_pyo_object(*args, **kwargs)
