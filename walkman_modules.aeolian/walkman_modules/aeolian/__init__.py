@@ -58,7 +58,8 @@ class Protocol(object):
     """Communication between arduino and computer"""
 
     item_delimiter: str = " "
-    msg_delimiter: str = "\n"
+    msg_start_delimiter: str = "#"
+    msg_end_delimiter: str = "\n"
     Data: typing.TypeAlias = tuple[int, int, int]
     frequency_factor: int = 10**6  # mikro (seconds)
     mode_frequency: int = 0
@@ -69,8 +70,10 @@ class Protocol(object):
         self.pin_index = pin_index
 
     def send(self, data: Data):
-        msg = "{}{}".format(
-            self.item_delimiter.join(map(str, data)), self.msg_delimiter
+        msg = "{}{}{}".format(
+            self.msg_start_delimiter,
+            self.item_delimiter.join(map(str, data)),
+            self.msg_end_delimiter,
         )
         try:
             walkman.constants.LOGGER.debug(f"C => {self.board.name}: {msg}")

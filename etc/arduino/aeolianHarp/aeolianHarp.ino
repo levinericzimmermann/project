@@ -49,9 +49,12 @@ int               loopArray[3][4]        = {
 const int         magnetCount             = sizeof(pinArray) / sizeof(*pinArray);
 
 // Protocoll string
-char              msg[256];
+char              msg[128];
 int               msgIndex;
-const int         msgCount                = 256;
+const int         msgCount                = 128;
+bool              msgStarted              = false;
+const char        msgDelimiterStart       = '#';
+const char        msgDelimiterEnd         = '\n';
 
 unsigned long     currentTime;
 
@@ -110,20 +113,34 @@ void loop() {
       while (Serial.available()) {
         in_char = Serial.read();
         if (int(in_char) != -1) {
-          msg[msgIndex] = in_char;
-          msgIndex += 1;
+          if (msgStarted) {
+            msg[msgIndex] = in_char;
+            msgIndex += 1;
+          } else if (in_char==msgDelimiterStart) {
+            msgStarted = true;
+            if (msg) {
+              cleanupMsg();
+            }
+          }
+        }
+        if (msgStarted && in_char==msgDelimiterEnd) {
+          msgStarted = false;
+          Serial.print("Received msg: ");
+          Serial.print(msg);
+          decodeMsg(msg);
+          cleanupMsg();
         }
       }
-      if (in_char=='\n') {
-        Serial.print("Received msg: ");
-        Serial.print(msg);
-        decodeMsg(msg);
-        // Cleanup: make msg empty, set msgIndex to 0.
-        for (i = 0; i < msgCount ; i++) {
-          msg[i] = '\0';
-        }
-        msgIndex = 0;
-      }
+}
+
+
+void cleanupMsg() {
+    int i;
+    // Cleanup: make msg empty, set msgIndex to 0.
+    for (i = 0; i < msgCount ; i++) {
+      msg[i] = '\0';
+    }
+    msgIndex = 0;
 }
 
 
