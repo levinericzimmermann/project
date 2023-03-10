@@ -1,12 +1,8 @@
 import concurrent.futures
 
-import numpy as np
-import ranges
-
 from mutwo import clock_converters
 from mutwo import clock_interfaces
 from mutwo import core_events
-from mutwo import core_parameters
 from mutwo import midi_converters
 from mutwo import music_converters
 from mutwo import project_converters
@@ -14,20 +10,14 @@ from mutwo import project_converters
 import project
 
 
-def midi(
-    clock_tuple: tuple[clock_interfaces.Clock, ...],
-    repetition_count_range: ranges.Range = ranges.Range(1, 3),
-    random_seed: int = 100,
-):
+def midi(clock_tuple: tuple[clock_interfaces.Clock, ...]):
     clock2sim = clock_converters.ClockToSimultaneousEvent(
         project_converters.ClockLineToSimultaneousEvent()
     ).convert
 
     simultaneous_event = core_events.SimultaneousEvent([])
     for clock in clock_tuple:
-        clock_simultaneous_event = clock2sim(
-            clock, repetition_count=1
-        )
+        clock_simultaneous_event = clock2sim(clock, repetition_count=1)
         simultaneous_event.concatenate_by_tag(clock_simultaneous_event)
 
     grace_notes_converter = music_converters.GraceNotesConverter()
