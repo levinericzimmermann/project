@@ -38,6 +38,11 @@ def get_start_pitch_and_end_pitch(
         for p in (start_pitch_class, end_pitch_class)
     )
 
+    # If we only have one option, there is no point in searching further
+    # (in fact it will raise an error).
+    if len(start_pitch_tuple) == 1 and len(end_pitch_tuple) == 1:
+        return start_pitch_tuple[0], end_pitch_tuple[0]
+
     # Depending on direction, octave_count and start_pitch_tuple +
     # end_pitch_tuple, we can only pick certain start-pitch /
     # end-pitch combinations.
