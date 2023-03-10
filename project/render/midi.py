@@ -30,8 +30,6 @@ def midi(
         )
         simultaneous_event.concatenate_by_tag(clock_simultaneous_event)
 
-    adjust_tempo(simultaneous_event)
-
     grace_notes_converter = music_converters.GraceNotesConverter()
     playing_indicators_converter = music_converters.PlayingIndicatorsConverter(
         (
@@ -54,20 +52,3 @@ def midi(
                 event[0],
                 f"builds/{project.constants.TITLE}_{event.tag}.mid",
             )
-
-
-def adjust_tempo(simultaneous_event):
-    tempo_main = 60
-    tempo_envelope = core_events.TempoEnvelope(
-        [
-            [
-                0,
-                core_parameters.DirectTempoPoint(tempo_main),
-            ],
-            [
-                simultaneous_event.duration,
-                core_parameters.DirectTempoPoint(tempo_main),
-            ],
-        ]
-    )
-    simultaneous_event.set("tempo_envelope", tempo_envelope).metrize()
