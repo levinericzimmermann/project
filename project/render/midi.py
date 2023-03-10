@@ -4,7 +4,6 @@ import numpy as np
 import ranges
 
 from mutwo import clock_converters
-from mutwo import clock_events
 from mutwo import clock_interfaces
 from mutwo import core_events
 from mutwo import core_parameters
@@ -20,21 +19,14 @@ def midi(
     repetition_count_range: ranges.Range = ranges.Range(1, 3),
     random_seed: int = 100,
 ):
-    random = np.random.default_rng(random_seed)
-    repetition_count_tuple = tuple(
-        range(repetition_count_range.start, repetition_count_range.end)
-    )
-
     clock2sim = clock_converters.ClockToSimultaneousEvent(
         project_converters.ClockLineToSimultaneousEvent()
     ).convert
 
     simultaneous_event = core_events.SimultaneousEvent([])
     for clock in clock_tuple:
-        # clock_repetition_count = random.choice(repetition_count_tuple)
-        clock_repetition_count = 1
         clock_simultaneous_event = clock2sim(
-            clock, repetition_count=clock_repetition_count
+            clock, repetition_count=1
         )
         simultaneous_event.concatenate_by_tag(clock_simultaneous_event)
 
@@ -64,28 +56,18 @@ def midi(
             )
 
 
-
-
 def adjust_tempo(simultaneous_event):
-    import random
-
-    random.seed(10)
-    # SPEED UP. should later be slowed down again :)
-    step = core_parameters.DirectDuration(10)
-    index_count = int(simultaneous_event.duration / step) or 1
-
-    tempo_main = 15 / 4
-    # tempo_main = 30 / 4
-    derivation = 3 / 4
-
+    tempo_main = 60
     tempo_envelope = core_events.TempoEnvelope(
         [
             [
-                step * index,
-                core_parameters.DirectTempoPoint(random.gauss(tempo_main, derivation)),
-            ]
-            for index in range(index_count)
+                0,
+                core_parameters.DirectTempoPoint(tempo_main),
+            ],
+            [
+                simultaneous_event.duration,
+                core_parameters.DirectTempoPoint(tempo_main),
+            ],
         ]
     )
-
     simultaneous_event.set("tempo_envelope", tempo_envelope).metrize()
