@@ -38,7 +38,6 @@ def midi(
         )
         simultaneous_event.concatenate_by_tag(clock_simultaneous_event)
 
-    post_process_instruments(simultaneous_event)
     adjust_tempo(simultaneous_event)
 
     grace_notes_converter = music_converters.GraceNotesConverter()
@@ -65,38 +64,6 @@ def midi(
             )
 
 
-def post_process_instruments(simultaneous_event):
-    filter_pizz = project_converters.FilterPizzicatoNoteLike()
-    filter_arco = project_converters.FilterArcoNoteLike()
-
-    event_to_remove_index_list = []
-    event_to_add_list = []
-    for event_index, event in enumerate(simultaneous_event):
-        match event.tag:
-            case clock_events.configurations.DEFAULT_CLOCK_TAG:
-                # split_clock_event = c94_converters.SplitClockTreeEvent(
-                #     c94.constants.TREE_LAYER_TUPLE
-                # ).convert(event)
-                # simultaneous_event.extend(split_clock_event)
-                # event_index_to_remove = event_index
-                ...
-            case project.constants.ORCHESTRATION.VIOLIN.name:
-                event_to_remove_index_list.append(event_index)
-                event_to_add_list.extend(
-                    (
-                        filter_pizz(
-                            event.set("tag", f"{event.tag}_pizz", mutate=False)
-                        ),
-                        filter_arco(
-                            event.set("tag", f"{event.tag}_arco", mutate=False)
-                        ),
-                    )
-                )
-
-    for event_to_remove_index in reversed(event_to_remove_index_list):
-        del simultaneous_event[event_to_remove_index]
-
-    simultaneous_event.extend(event_to_add_list)
 
 
 def adjust_tempo(simultaneous_event):
