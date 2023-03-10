@@ -82,6 +82,21 @@ MOON_PHASE_TO_INTONATION = {
     )
 }
 
+REFERENCE_PITCH_TUPLE = tuple(
+    j(r) for r in "1/1 9/8 32/27 4/3 3/2 27/16 16/9".split(" ")
+)
+
+SUN_LIGHT_TO_PITCH_INDEX_TUPLE = {
+    # 4, 1
+    sl.MORNING_TWILIGHT: (0, 1, 2, 4, 5),
+    # 3, 2
+    sl.DAYLIGHT: (1, 2, 4, 5, 6),
+    # 2, 3
+    sl.EVENING_TWILIGHT: (1, 2, 3, 5, 6),
+    # 1, 4
+    sl.NIGHTLIGHT: (0, 2, 3, 5, 6),
+}
+
 SUN_LIGHT_TO_PITCH_TUPLE = {
     # 4, 1
     sl.MORNING_TWILIGHT: (j("1/1"), j("9/8"), j("32/27"), j("3/2"), j("27/16")),
@@ -93,9 +108,16 @@ SUN_LIGHT_TO_PITCH_TUPLE = {
     sl.NIGHTLIGHT: (j("27/32"), j("8/9"), j("1/1"), j("32/27"), j("4/3")),
 }
 
+
+# Only 2 pitches are constantly present in all 4 pentatonics
+# of the sun. Therefore we use only those two pitches here.
+
+MOON_LIGHT_TO_PITCH_INDEX_TUPLE = {
+    ml.ABSENT: (2,),
+    ml.PRESENT: (5,),
+}
+
 MOON_LIGHT_TO_PITCH_TUPLE = {
-    # Only 2 pitches are constantly present in all 4 pentatonics
-    # of the sun. Therefore we use only those two pitches here.
     ml.ABSENT: (j("32/27"),),
     ml.PRESENT: (j("27/32"),),
 }
