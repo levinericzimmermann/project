@@ -14,8 +14,9 @@ SKIP_CHECK_CLOCK = False
 
 # a' frequency
 A_FREQUENCY = 442
+A_3_FREQUENCY = A_FREQUENCY / 2
 # we tune to 'a'
-music_parameters.configurations.DEFAULT_CONCERT_PITCH = A_FREQUENCY
+music_parameters.configurations.DEFAULT_CONCERT_PITCH = A_3_FREQUENCY
 
 music_parameters.configurations.EQUAL_DIVIDED_OCTAVE_PITCH_ROUND_FREQUENCY_DIGIT_COUNT = (
     7
