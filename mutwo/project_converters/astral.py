@@ -10,8 +10,14 @@ import typing
 from astral import sun, moon, LocationInfo, Depression
 import ranges
 
+from mutwo import clock_converters
+from mutwo import clock_events
+from mutwo import clock_interfaces
 from mutwo import core_converters
 from mutwo import core_events
+from mutwo import diary_converters
+from mutwo import music_events
+from mutwo import music_parameters
 from mutwo import project_parameters
 
 __all__ = (
@@ -19,6 +25,10 @@ __all__ = (
     "DatetimeToSunLight",
     "DatetimeToMoonLight",
     "DatetimeToMoonPhase",
+    "AstralEventToClockTuple",
+    "AstralConstellationToOrchestration",
+    "AstralConstellationToScale",
+    "AstralEventToClockTuple",
 )
 
 
@@ -153,3 +163,167 @@ class DatetimeToMoonPhase(DatetimeConverter):
         # (reference: https://astral.readthedocs.io/en/latest/index.html?highlight=phase#phase)
         phase_index = moon.phase(d)
         return self._datetime_to_moon_phase[phase_index]
+
+
+class AstralConstellationToOrchestration(core_converters.abc.Converter):
+    def __init__(
+        self,
+        moon_phase_to_intonation: dict,
+        sun_light_to_pitch_index_tuple: dict,
+        moon_light_to_pitch_index_tuple: dict,
+    ):
+        self._moon_phase_to_intonation = moon_phase_to_intonation
+        self._sun_light_to_pitch_index_tuple = sun_light_to_pitch_index_tuple
+        self._moon_light_to_pitch_index_tuple = moon_light_to_pitch_index_tuple
+
+    def convert(
+        self, sun_light, moon_phase, moon_light
+    ) -> music_parameters.Orchestration:
+        return music_parameters.Orchestration(
+            AEOLIAN_HARP=project_parameters.AeolianHarp(
+                self._moon_phase_to_intonation[moon_phase]
+            )
+        )
+
+
+class AstralConstellationToScale(core_converters.abc.Converter):
+    def __init__(
+        self,
+        moon_phase_to_intonation: dict,
+        sun_light_to_pitch_index_tuple: dict,
+        moon_light_to_pitch_index_tuple: dict,
+    ):
+        self._moon_phase_to_intonation = moon_phase_to_intonation
+        self._sun_light_to_pitch_index_tuple = sun_light_to_pitch_index_tuple
+        self._moon_light_to_pitch_index_tuple = moon_light_to_pitch_index_tuple
+
+    def convert(self, sun_light, moon_phase, moon_light) -> music_parameters.Scale:
+        intonation = self._moon_phase_to_intonation[moon_phase]
+        pitch_list = [
+            intonation[i] for i in self._sun_light_to_pitch_index_tuple[sun_light]
+        ]
+        main_pitch = intonation[self._moon_light_to_pitch_index_tuple[moon_light][0]]
+        interval_list = sorted([(p - main_pitch).normalize() for p in pitch_list])
+        return music_parameters.Scale(
+            main_pitch, music_parameters.RepeatingScaleFamily(interval_list)
+        )
+
+
+class AstralEventToClockTuple(core_converters.abc.Converter):
+    def __init__(
+        self,
+        astral_constellation_to_orchestration: AstralConstellationToOrchestration,
+        astral_constellation_to_scale: AstralConstellationToScale,
+    ):
+        self._astral_constellation_to_orchestration = (
+            astral_constellation_to_orchestration
+        )
+        self._astral_constellation_to_scale = astral_constellation_to_scale
+
+    def convert(
+        self,
+        astral_event: core_events.SimultaneousEvent[core_events.TaggedSequentialEvent],
+    ) -> tuple[clock_interfaces.Clock, ...]:
+        # Sunlight: Which subconverter do we use?
+        #   (also which context, is it modal or stochastic?)
+        #
+        # Moonlight: Each moonlight event == one clock
+        #   So if there is (ABSENT, PRESENT, ABSENT) we have three clocks.
+        #   If there is (ABSENT,) we only have one clock.
+        #
+        # Moon phase: Simply describes which intonations we use.
+        #   Maybe also relevant for global parameter settings (for
+        #   creating a form).
+        clock_list = []
+        for absolute_time, moon_phase_event in zip(
+            astral_event["moon_phase"].absolute_time_tuple, astral_event["moon_phase"]
+        ):
+            astral_constellation = {
+                a: astral_event[a].get_event_at(absolute_time).get_parameter(a)
+                for a in "moon_phase sun_light moon_light".split(" ")
+            }
+            scale = self._astral_constellation_to_scale(**astral_constellation)
+            orchestration = self._astral_constellation_to_orchestration(
+                **astral_constellation
+            )
+            clock_count = len(astral_event["moon_light"])
+            duration = moon_phase_event.duration
+            # XXX: fast POC, improve ASAP
+            # => for now we only have one algorithm to create a clock.
+            # => but actually the algorithm MUST change depending on the
+            #    sun light.
+            clock_list.append(
+                self._make_clock(orchestration, clock_count, scale, duration)
+            )
+        return tuple(clock_list)
+
+    def _make_clock(
+        self,
+        orchestration: music_parameters.Orchestration,
+        clock_count: int,
+        scale: music_parameters.Scale,
+        duration,
+    ) -> clock_interfaces.Clock:
+        duration = duration.duration
+
+        # So we have a 60 seconds grid. Each interpolation
+        # takes 60 seconds. This is slow and ok.
+        scale_position_duration = 60  # seconds
+        scale_position_count = int(duration // scale_position_duration)
+        scale_position_duration = duration / scale_position_count
+
+        clock_event = clock_events.ClockEvent(
+            [
+                core_events.SequentialEvent(
+                    [
+                        music_events.NoteLike(
+                            pitch_list="c", duration=scale_position_duration
+                        )
+                    ]
+                )
+            ]
+        )
+
+        scale_position_list = []
+        for i in range(scale_position_count):
+            if i % 2 == 0:
+                scale_position_list.append((0, 0))
+            else:
+                scale_position_list.append((2, 0))
+
+        root_pitch_tuple = tuple(
+            scale.scale_position_to_pitch(scale_position)
+            for scale_position in scale_position_list
+        )
+        modal_sequential_event = core_events.SequentialEvent(
+            [
+                clock_events.ModalEvent0(
+                    start_pitch,
+                    end_pitch,
+                    scale,
+                    clock_event=clock_event,
+                    control_event=clock_event,
+                )
+                for start_pitch, end_pitch in zip(
+                    root_pitch_tuple, root_pitch_tuple[1:]
+                )
+            ]
+        )
+
+        modal_0_sequential_event_to_clock_line = clock_converters.Modal0SequentialEventToClockLine(
+            (
+                diary_converters.Modal0SequentialEventToEventPlacementTuple(
+                    orchestration,
+                    # Turn off modal1 mode converter for better performance
+                    # (this is very expensive and we don't want to use any
+                    #  modal1 context based entries here anyway).
+                    add_mod1=False,
+                ),
+            )
+        )
+        main_clock_line = modal_0_sequential_event_to_clock_line.convert(
+            modal_sequential_event
+        )
+
+        clock = clock_interfaces.Clock(main_clock_line)
+        return clock
