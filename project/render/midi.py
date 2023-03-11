@@ -32,13 +32,16 @@ def midi(clock_tuple: tuple[clock_interfaces.Clock, ...]):
         )
     )
 
-    event_to_midi_file = midi_converters.EventToMidiFile()
+    event_to_midi_file = midi_converters.EventToMidiFile(
+        # distribute_midi_channels=True, midi_channel_count_per_track=1
+    )
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         for event in simultaneous_event:
             event = grace_notes_converter(playing_indicators_converter(event))
-            executor.submit(
-                event_to_midi_file.convert,
-                event[0],
-                f"builds/{project.constants.TITLE}_{event.tag}.mid",
-            )
+            for s_index, seq in enumerate(event):
+                executor.submit(
+                    event_to_midi_file.convert,
+                    seq,
+                    f"builds/{project.constants.TITLE}_{event.tag}_{s_index}.mid",
+                )
