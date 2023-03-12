@@ -109,7 +109,7 @@ def find_string_list_tuple(
 
 def find_partner(pitch, string0, instrument, random):
     def string_index2box_index(string_index):
-        return string_index % instrument.BOX_STRING_COUNT
+        return string_index // instrument.BOX_COUNT
 
     string0_box_index = string_index2box_index(string0.index)
 
