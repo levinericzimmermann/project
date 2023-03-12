@@ -166,12 +166,9 @@ def get_pitch(context):
 
 def get_second_pitch_candidate_tuple(pitch, instrument, scale):
     normalized_pitch = pitch.normalize(False)
-    # TODO(Replace with scale.scale_degree_count, once implemented)
-    scale_degree_count = len(set(scale.scale_degree_tuple))
     candidate_list = [
-        # TODO(Replace with 'scale_degree_to_pitch_class'!)
         scale.scale_position_to_pitch((scale_degree, 0)).normalize(False)
-        for scale_degree in range(scale_degree_count)
+        for scale_degree in set(scale.scale_degree_tuple)
     ]
     candidate_list = list(filter(lambda p: p != normalized_pitch, candidate_list))
     second_pitch_candidate_list = []
