@@ -67,9 +67,10 @@ def make_simultaneous_event(string_list_tuple, random, instrument):
     )
 
     absolute_time = core_parameters.DirectDuration(0)
-    absolute_time_tuple = tuple(core_utilities.accumulate_from_zero(duration_list))
-    for string_list, duration, start, end in zip(
-        string_list_tuple, duration_list, absolute_time_tuple, absolute_time_tuple[1:]
+    for string_list, duration, start in zip(
+        string_list_tuple,
+        duration_list,
+        core_utilities.accumulate_from_zero(duration_list),
     ):
         for string in string_list:
             seq = sim[string.index]
@@ -78,7 +79,7 @@ def make_simultaneous_event(string_list_tuple, random, instrument):
             )
             note_like.frequency_factor = 1
             note_like.envelope = next(ENVELOPE_CYCLE)
-            seq.squash_in(start, end, note_like)
+            seq.squash_in(start, note_like)
         absolute_time += duration
 
     sim.extend_until()
