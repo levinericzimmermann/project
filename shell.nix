@@ -31,6 +31,27 @@ let
     '';
   };
 
+  yamm = pkgs.python310Packages.buildPythonPackage rec {
+    pname = "yamm";
+    version = "0.1";
+  
+    src = pkgs.python310Packages.fetchPypi {
+      inherit pname version;
+      sha256 = "sha256-bbEUoj27A2PrPRAOYuNbFsdrvisy3Y0DdJCOnhUntQk=";
+    };
+  
+    propagatedBuildInputs = with pkgs.python310Packages; [
+    ];
+  
+    checkInputs = with pkgs.python310Packages; [
+      pytest-runner
+      pytest
+    ];
+  
+    checkPhase = ''
+    '';
+  };
+
   python94 = pkgs.python310.buildEnv.override {
     extraLibs = with pkgs; [
       astral
@@ -40,6 +61,8 @@ let
       mutwo-diary
       # diy ebow live
       walkman-aeolian
+      # markov chain
+      yamm
     ];
   };
 
