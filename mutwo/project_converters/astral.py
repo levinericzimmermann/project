@@ -18,6 +18,7 @@ from mutwo import core_events
 from mutwo import diary_converters
 from mutwo import music_events
 from mutwo import music_parameters
+from mutwo import project_converters
 from mutwo import project_parameters
 
 __all__ = (
@@ -292,12 +293,16 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
             ]
         )
 
+        gatra_tuple = project_converters.ScaleToGatraTuple().convert(scale)
+        markov_chain = project_converters.GatraTupleToMarkovChain().convert(gatra_tuple)
+        markov_chain.make_deterministic_map()
+        start = gatra_tuple[0]
+        gatra_generator = markov_chain.walk_deterministic((start,))
+
         scale_position_list = []
-        for i in range(scale_position_count):
-            if i % 2 == 0:
-                scale_position_list.append((0, 0))
-            else:
-                scale_position_list.append((2, 0))
+        while len(scale_position_list) < scale_position_count:
+            scale_position_list.extend(next(gatra_generator))
+        scale_position_list = scale_position_list[:scale_position_count]
 
         root_pitch_tuple = tuple(
             scale.scale_position_to_pitch(scale_position)
