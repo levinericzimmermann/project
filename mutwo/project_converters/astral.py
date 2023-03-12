@@ -80,10 +80,10 @@ class DatetimeToSimultaneousEvent(DatetimeConverter):
             )
 
         moonlight_ev = core_events.TaggedSequentialEvent([], tag="moon_light")
-        moonlight, d_moon_end = self._d_to_moon_light(d)
+        moonlight, d_moon_end = self._d_to_moon_light(d, d_end)
         add(moonlight, d, d_moon_end)
         while d_moon_end < d_end:
-            moonlight, d_moon_new_end = self._d_to_moon_light(d_moon_end)
+            moonlight, d_moon_new_end = self._d_to_moon_light(d_moon_end, d_end)
             add(moonlight, d_moon_end, d_moon_new_end)
             d_moon_end = d_moon_new_end
         return moonlight_ev.cut_out(0, dur)
@@ -123,12 +123,20 @@ class DatetimeToSunLight(DatetimeConverter):
 
 
 class DatetimeToMoonLight(DatetimeConverter):
-    def convert(self, d: datetime.datetime):
-        mrise = moon.moonrise(self._location_info.observer, date=d)
+    def convert(self, d: datetime.datetime, d_end: datetime.datetime):
+        try:
+            mrise = moon.moonrise(self._location_info.observer, date=d)
+        # Moon never raises on this date at this location
+        except ValueError:
+            mrise = d_end
         mset = moon.moonset(self._location_info.observer, date=d)
         d2 = d + datetime.timedelta(days=1)
-        next_mrise = moon.moonrise(self._location_info.observer, date=d2)
         next_mset = moon.moonset(self._location_info.observer, date=d2)
+        try:
+            next_mrise = moon.moonrise(self._location_info.observer, date=d2)
+        # Moon never raises on this date at this location
+        except ValueError:
+            next_mrise = d_end
         if mset > mrise:
             if d >= mrise and d < mset:
                 return project_parameters.MoonLight.PRESENT, mset
