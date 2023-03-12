@@ -40,8 +40,8 @@ def main(
     sim = make_simultaneous_event(string_list_tuple, random, instrument)
 
     duration = modal_event_to_convert.clock_event.duration
-    start_range = ranges.Range(duration * 0, duration * 0.3)
-    end_range = ranges.Range(duration * 0.7, duration * 0.98)
+    start_range = ranges.Range(duration * 0.3, duration * 0.35)
+    end_range = ranges.Range(duration * 0.65, duration * 0.7)
 
     return timeline_interfaces.EventPlacement(
         core_events.SimultaneousEvent([sim]),

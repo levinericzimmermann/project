@@ -9,7 +9,7 @@ from mutwo import project_parameters
 from mutwo.music_parameters.instruments.general import _setdefault
 
 
-__all__ = ("Violin", "AeolianHarp")
+__all__ = ("Violin", "Clavichord", "AeolianHarp")
 
 
 class Violin(music_parameters.ContinuousPitchedStringInstrument):
@@ -18,6 +18,11 @@ class Violin(music_parameters.ContinuousPitchedStringInstrument):
             **_setdefault(kwargs, project_parameters.configurations.DEFAULT_VIOLIN_DICT)
         )
 
+class Clavichord(music_parameters.DiscreetPitchedStringInstrument):
+    def __init__(self, **kwargs):
+        super().__init__(
+            **_setdefault(kwargs, project_parameters.configurations.DEFAULT_CLAVICHORD_DICT)
+        )
 
 class AeolianHarp(music_parameters.DiscreetPitchedStringInstrument):
     # My aeolian harp is actually build of three independent instrument

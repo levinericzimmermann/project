@@ -211,10 +211,8 @@ class AstralConstellationToOrchestration(core_converters.abc.Converter):
         string_tuple = tuple(
             music_parameters.String(i, p) for i, p in enumerate(pitch_tuple)
         )
-        return music_parameters.DiscreetPitchedStringInstrument(
-            pitch_tuple,
-            name="clavichord",
-            short_name="c.",
+        return project_parameters.Clavichord(
+            pitch_tuple=pitch_tuple,
             string_tuple=string_tuple,
         )
 
@@ -238,7 +236,12 @@ class AstralConstellationToScale(core_converters.abc.Converter):
         main_pitch = intonation[self._moon_light_to_pitch_index_tuple[moon_light][0]]
         interval_list = sorted([(p - main_pitch).normalize() for p in pitch_list])
         return music_parameters.Scale(
-            main_pitch, music_parameters.RepeatingScaleFamily(interval_list)
+            main_pitch,
+            music_parameters.RepeatingScaleFamily(
+                interval_list,
+                min_pitch_interval=music_parameters.JustIntonationPitch("1/8"),
+                max_pitch_interval=music_parameters.JustIntonationPitch("8/1"),
+            ),
         )
 
 
@@ -355,6 +358,10 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
                     # (this is very expensive and we don't want to use any
                     #  modal1 context based entries here anyway).
                     add_mod1=False,
+                ),
+                diary_converters.Modal0SequentialEventToEventPlacementTuple(
+                    orchestration.get_subset("CLAVICHORD"),
+                    add_mod1=True,
                 ),
             )
         )

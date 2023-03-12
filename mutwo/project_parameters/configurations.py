@@ -30,3 +30,8 @@ DEFAULT_VIOLIN_DICT = dict(
         ),
     ),
 )
+
+DEFAULT_CLAVICHORD_DICT = dict(
+    name="clavichord",
+    short_name="clav.",
+)
