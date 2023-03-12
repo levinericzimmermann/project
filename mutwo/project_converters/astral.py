@@ -191,7 +191,31 @@ class AstralConstellationToOrchestration(core_converters.abc.Converter):
         return music_parameters.Orchestration(
             AEOLIAN_HARP=project_parameters.AeolianHarp(
                 self._moon_phase_to_intonation[moon_phase]
-            )
+            ),
+            CLAVICHORD=self._make_clavichord(
+                self._moon_phase_to_intonation[moon_phase]
+            ),
+        )
+
+    def _make_clavichord(
+        self, pitch_tuple: tuple[music_parameters.abc.Pitch, ...]
+    ) -> music_parameters.DiscreetPitchedStringInstrument:
+        pitch_tuple = music_parameters.Scale(
+            music_parameters.JustIntonationPitch("1/1"),
+            music_parameters.RepeatingScaleFamily(
+                pitch_tuple,
+                min_pitch_interval=music_parameters.JustIntonationPitch("1/4"),
+                max_pitch_interval=music_parameters.JustIntonationPitch("2/1"),
+            ),
+        ).pitch_tuple
+        string_tuple = tuple(
+            music_parameters.String(i, p) for i, p in enumerate(pitch_tuple)
+        )
+        return music_parameters.DiscreetPitchedStringInstrument(
+            pitch_tuple,
+            name="clavichord",
+            short_name="c.",
+            string_tuple=string_tuple,
         )
 
 
@@ -326,7 +350,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         modal_0_sequential_event_to_clock_line = clock_converters.Modal0SequentialEventToClockLine(
             (
                 diary_converters.Modal0SequentialEventToEventPlacementTuple(
-                    orchestration,
+                    orchestration.get_subset("AEOLIAN_HARP"),
                     # Turn off modal1 mode converter for better performance
                     # (this is very expensive and we don't want to use any
                     #  modal1 context based entries here anyway).
