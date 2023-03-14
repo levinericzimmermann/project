@@ -26,7 +26,6 @@ __all__ = (
     "DatetimeToSunLight",
     "DatetimeToMoonLight",
     "DatetimeToMoonPhase",
-    "AstralEventToClockTuple",
     "AstralConstellationToOrchestration",
     "AstralConstellationToScale",
     "AstralEventToClockTuple",
@@ -308,13 +307,19 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         scale_position_count = int(duration // scale_position_duration)
         scale_position_duration = duration / scale_position_count
 
+        # we use 15 BPM = 4
+        scale_position_duration = int(scale_position_duration / 4)
+
+        # each clock NoteLike == 1/1
+        scale_position_duration = int(scale_position_duration // 4)
+
         clock_event = clock_events.ClockEvent(
             [
                 core_events.SequentialEvent(
                     [
                         music_events.NoteLike(
-                            pitch_list="c", duration=scale_position_duration
-                        )
+                            pitch_list="c", duration=1
+                        ) for _ in range(scale_position_duration)
                     ]
                 )
             ]
