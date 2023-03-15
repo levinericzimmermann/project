@@ -30,7 +30,6 @@ let
 
   python94 = pkgs.python310.buildEnv.override {
     extraLibs = with pkgs; [
-      astral
       python310Packages.ipython
       python310Packages.ortools
       mutwo-midi
@@ -50,5 +49,7 @@ in
           lilypond-with-fonts
           # For generating books
           texlive.combined.scheme-full
+          # Concatenating notes
+          pdftk
       ];
   }
