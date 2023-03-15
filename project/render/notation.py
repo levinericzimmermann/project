@@ -201,7 +201,10 @@ def sounding_clavichord_pitch_to_written_clavichord_pitch(p):
     except ValueError:
         print(f"Can't find pitch {p.ratio}")
         return music_parameters.WesternPitch()
-    return SCALE_TRANSPOSED.scale_position_to_pitch(scale_position)
+    p = SCALE_TRANSPOSED.scale_position_to_pitch(scale_position)
+    if p.pitch_class_name == "bs":  # stupid rounding conversion?
+        p = music_parameters.WesternPitch("c", p.octave + 1)
+    return p
 
 
 def get_clavichord_tuning():
