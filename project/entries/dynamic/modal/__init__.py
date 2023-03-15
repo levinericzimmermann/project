@@ -83,7 +83,7 @@ diary_interfaces.DynamicEntry.from_file(
     timeline_interfaces.EventPlacement,
     skip_check=project.constants.SKIP_CHECK,
     file_path=f"{path}/natural-harmonic.py",
-    relevance=80,
+    relevance=0,
 )
 
 diary_interfaces.DynamicEntry.from_file(
