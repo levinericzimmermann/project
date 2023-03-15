@@ -1,12 +1,10 @@
 import itertools
-import operator
 import ranges
 
 from mutwo import clock_events
 from mutwo import core_events
 from mutwo import music_events
 from mutwo import music_parameters
-from mutwo import project_events
 from mutwo import project_generators
 from mutwo import project_parameters
 from mutwo import timeline_interfaces
@@ -118,12 +116,19 @@ def make_chord_tuple(
             ambitus,
             min_interval,
         )
+        if chord_list:
+            chord_difference_tuple = project_generators.make_chord_difference_tuple(
+                (chord_list[-1],), chord_tuple
+            )
+            chord_tuple = tuple(
+                cdelta.chord1 for cdelta in chord_difference_tuple if len(cdelta.only1) >= len(cdelta.intersection)
+            )
         if chord_tuple:
-            chord_list.append(random.choice(chord_tuple)[0])
-        else:
-            chord_list.append([])
+            chord_list.append(chord_tuple[0])
+        elif chord_list:
+            chord_list.append(chord_list[-1])
 
-    return tuple(chord_list)
+    return tuple(c[0] for c in chord_list)
 
 
 def make_main_pitch_tuple(

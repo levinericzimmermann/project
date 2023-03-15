@@ -23,6 +23,8 @@ Chord = collections.namedtuple(
 ChordDifference = collections.namedtuple(
     "ChordDifference",
     (
+        "chord0",
+        "chord1",
         "intersection",
         "union",
         "only0",
@@ -48,7 +50,7 @@ def make_chord_difference_tuple(
 
 def _make_chord_difference(chord0: Chord, chord1: Chord):
     union = tuple(
-        sorted(core_utilities.uniqify_iterable(chord0.pitch_tuple + chord1.pitch_tuple))
+        sorted(core_utilities.uniqify_sequence(chord0.pitch_tuple + chord1.pitch_tuple))
     )
     intersection, only0, only1 = [], [], []
     for p in union:
@@ -64,6 +66,8 @@ def _make_chord_difference(chord0: Chord, chord1: Chord):
     )
     harmonicity_delta = chord1.harmonicity - chord0.harmonicity
     return ChordDifference(
+        chord0,
+        chord1,
         tuple(intersection),
         union,
         tuple(only0),
@@ -93,7 +97,9 @@ def find_chord_tuple(
 ) -> tuple[Chord, ...]:
     """Create a tuple of chords which fulfill specific constraints"""
 
-    valid_pitch_tuple = tuple(p for p in pitch_tuple if p in ambitus and p not in picked_pitch_tuple)
+    valid_pitch_tuple = tuple(
+        p for p in pitch_tuple if p in ambitus and p not in picked_pitch_tuple
+    )
     picked_pitch_count = len(picked_pitch_tuple)
 
     chord_list = []
@@ -154,7 +160,9 @@ def _make_chord(
     if len(pitch_tuple) > 1:
         ambitus = music_parameters.OctaveAmbitus(pitch_tuple[0], pitch_tuple[-1])
     else:
-        ambitus = music_parameters.OctaveAmbitus(pitch_tuple[0], pitch_tuple[0] + music_parameters.JustIntonationPitch('2/1'))
+        ambitus = music_parameters.OctaveAmbitus(
+            pitch_tuple[0], pitch_tuple[0] + music_parameters.JustIntonationPitch("2/1")
+        )
     return Chord(
         pitch_tuple,
         pitch_count,
