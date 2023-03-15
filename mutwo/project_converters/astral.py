@@ -245,6 +245,17 @@ class AstralConstellationToScale(core_converters.abc.Converter):
 
 
 class AstralEventToClockTuple(core_converters.abc.Converter):
+    # Sunlight: Which subconverter do we use?
+    #   (also which context, is it modal or stochastic?)
+    #
+    # Moonlight: Each moonlight event == one clock
+    #   So if there is (ABSENT, PRESENT, ABSENT) we have three clocks.
+    #   If there is (ABSENT,) we only have one clock.
+    #
+    # Moon phase: Simply describes which intonations we use.
+    #   Maybe also relevant for global parameter settings (for
+    #   creating a form).
+
     def __init__(
         self,
         astral_constellation_to_orchestration: AstralConstellationToOrchestration,
@@ -259,17 +270,16 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         self,
         astral_event: core_events.SimultaneousEvent[core_events.TaggedSequentialEvent],
     ) -> tuple[clock_interfaces.Clock, ...]:
-        # Sunlight: Which subconverter do we use?
-        #   (also which context, is it modal or stochastic?)
-        #
-        # Moonlight: Each moonlight event == one clock
-        #   So if there is (ABSENT, PRESENT, ABSENT) we have three clocks.
-        #   If there is (ABSENT,) we only have one clock.
-        #
-        # Moon phase: Simply describes which intonations we use.
-        #   Maybe also relevant for global parameter settings (for
-        #   creating a form).
         clock_list = []
+
+        # We need a global tempo which is the same for all clocks, because
+        # afterwards we return this tempo and midi/walkman converter want
+        # to apply this tempo. So we specify this common tempo here.
+        #
+        # If we use a higher tempo the score is longer and more verbose.
+        # With a too low tempo the score is too dense / almost unreadable.
+        tempo = 4  # 4/1 == 60 seconds
+
         for absolute_time, moon_phase_event in zip(
             astral_event["moon_phase"].absolute_time_tuple, astral_event["moon_phase"]
         ):
@@ -288,9 +298,9 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
             # => but actually the algorithm MUST change depending on the
             #    sun light.
             clock_list.append(
-                self._make_clock(orchestration, clock_count, scale, duration)
+                self._make_clock(orchestration, clock_count, scale, duration, tempo)
             )
-        return tuple(clock_list)
+        return tuple(clock_list), tempo
 
     def _make_clock(
         self,
@@ -298,32 +308,25 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         clock_count: int,
         scale: music_parameters.Scale,
         duration,
+        tempo,
     ) -> clock_interfaces.Clock:
         duration = duration.duration
 
-        # So we have a 60 seconds grid. Each interpolation
-        # takes 60 seconds. This is slow and ok.
-        scale_position_duration = 60  # seconds
-        scale_position_count = int(duration // scale_position_duration)
-        scale_position_duration = duration / scale_position_count
-
-        # we use 15 BPM = 4
-        scale_position_duration = int(scale_position_duration / 4)
-
-        # each clock NoteLike == 1/1
-        scale_position_duration = int(scale_position_duration // 4)
-
+        ev_duration = 4
         clock_event = clock_events.ClockEvent(
             [
                 core_events.SequentialEvent(
-                    [
-                        music_events.NoteLike(
-                            pitch_list="c", duration=1
-                        ) for _ in range(scale_position_duration)
-                    ]
-                )
-            ]
+                    [music_events.NoteLike(pitch_list="c", duration=ev_duration)]
+                ),
+            ],
+            tempo_envelope=core_events.TempoEnvelope([[0, tempo], [ev_duration, tempo]]),
         )
+
+        scale_position_duration_in_seconds = float(
+            clock_event.metrize(mutate=False).duration.duration
+        )
+        print("DUR", scale_position_duration_in_seconds)
+        scale_position_count = int(duration // scale_position_duration_in_seconds)
 
         gatra_tuple = project_converters.ScaleToGatraTuple().convert(scale)
         markov_chain = project_converters.GatraTupleToMarkovChain().convert(gatra_tuple)

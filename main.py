@@ -25,7 +25,7 @@ def make_part(location_info, d, day_light):
     astral_event = project_converters.DatetimeToSimultaneousEvent(
         location_info
     ).convert(d)
-    clock_tuple = project_converters.AstralEventToClockTuple(
+    clock_tuple, tempo = project_converters.AstralEventToClockTuple(
         project_converters.AstralConstellationToOrchestration(
             project.constants.MOON_PHASE_TO_INTONATION,
             project.constants.SUN_LIGHT_TO_PITCH_INDEX_TUPLE,
@@ -54,6 +54,11 @@ def make_part(location_info, d, day_light):
     assert simultaneous_event[0].tag == "clock"
     del simultaneous_event[0]
 
+    simultaneous_event.tempo_envelope = core_events.TempoEnvelope(
+        [[0, tempo], [simultaneous_event.duration, tempo]]
+    )
+    simultaneous_event.metrize()
+
     project.render.midi(simultaneous_event)
     project.render.walkman(simultaneous_event, d)
 
@@ -62,22 +67,20 @@ def make_part(location_info, d, day_light):
             astral_event["moon_phase"][0].moon_phase
         ]
         scale = music_parameters.Scale(
-            music_parameters.JustIntonationPitch('1/1'),
+            music_parameters.JustIntonationPitch("1/1"),
             music_parameters.RepeatingScaleFamily(
                 intonation_tuple,
                 min_pitch_interval=music_parameters.JustIntonationPitch("1/16"),
                 max_pitch_interval=music_parameters.JustIntonationPitch("32/1"),
             ),
         )
-        NOTATION_PATH_LIST.append(
-            project.render.notation(clock_tuple, d, scale)
-        )
+        NOTATION_PATH_LIST.append(project.render.notation(clock_tuple, d, scale))
 
 
 NOTATION_PATH_LIST = []
 
 # allowed_date_list = [datetime.datetime(2023, 4, 29), datetime.datetime(2023, 4, 30)]
-allowed_date_list = [datetime.datetime(2023, 4, 30)]
+allowed_date_list = [datetime.datetime(2023, 4, 20)]
 allowed_day_light_list = ["sunset"]
 
 if __name__ == "__main__":
