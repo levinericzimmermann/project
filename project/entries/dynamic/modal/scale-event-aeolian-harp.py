@@ -40,8 +40,27 @@ def main(
     sim = make_simultaneous_event(string_list_tuple, random, instrument)
 
     duration = modal_event_to_convert.clock_event.duration
-    start_range = ranges.Range(duration * 0.3, duration * 0.35)
-    end_range = ranges.Range(duration * 0.65, duration * 0.7)
+
+    event_count = len(string_list_tuple)
+    match event_count:
+        case 1:
+            start_range = ranges.Range(duration * 0.38, duration * 0.42)
+            end_range = ranges.Range(duration * 0.58, duration * 0.62)
+        case 2:
+            start_range = ranges.Range(duration * 0.34, duration * 0.4)
+            end_range = ranges.Range(duration * 0.6, duration * 0.66)
+        case 3:
+            start_range = ranges.Range(duration * 0.3, duration * 0.33)
+            end_range = ranges.Range(duration * 0.67, duration * 0.7)
+        case 4:
+            start_range = ranges.Range(duration * 0.295, duration * 0.32)
+            end_range = ranges.Range(duration * 0.69, duration * 0.725)
+        case 5:
+            start_range = ranges.Range(duration * 0.27, duration * 0.3)
+            end_range = ranges.Range(duration * 0.71, duration * 0.74)
+        case _:
+            start_range = ranges.Range(duration * 0.3, duration * 0.33)
+            end_range = ranges.Range(duration * 0.67, duration * 0.7)
 
     return timeline_interfaces.EventPlacement(
         core_events.SimultaneousEvent([sim]),
@@ -55,7 +74,11 @@ def make_simultaneous_event(string_list_tuple, random, instrument):
 
     event_count = len(string_list_tuple)
     duration_list = [random.choice([1.0, 1.5, 2.0, 2.5]) for _ in range(event_count)]
-    duration_list[-1] = 3
+    match random.integers(0, 3):
+        case 1:
+            duration_list[-1] *= 2
+        case 2:
+            duration_list[-1] *= 1.5
     summed_duration = sum(duration_list)
 
     sim = core_events.TaggedSimultaneousEvent(

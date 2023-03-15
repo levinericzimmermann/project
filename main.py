@@ -50,14 +50,16 @@ def make_part(location_info, d, day_light):
         clock_simultaneous_event = clock2sim(clock, repetition_count=1)
         simultaneous_event.concatenate_by_tag(clock_simultaneous_event)
 
-    # And we don't need to render 'clock' for any of them :)
-    assert simultaneous_event[0].tag == "clock"
-    del simultaneous_event[0]
-
-    simultaneous_event.tempo_envelope = core_events.TempoEnvelope(
-        [[0, tempo], [simultaneous_event.duration, tempo]]
-    )
-    simultaneous_event.metrize()
+    # We don't apply tempo envelope on complete event, to take into account
+    # that there is already a tempo envelope on the clock event, and if
+    # we add an envelope on the simultaneous event the tempo envelope will
+    # be applied twice for the clock event. This doesn't matter if we actually
+    # don't want to use the clock event...
+    for s in simultaneous_event:
+        s.tempo_envelope = core_events.TempoEnvelope(
+            [[0, tempo], [simultaneous_event.duration, tempo]]
+        )
+        s.metrize()
 
     project.render.midi(simultaneous_event)
     project.render.walkman(simultaneous_event, d)
@@ -80,7 +82,7 @@ def make_part(location_info, d, day_light):
 NOTATION_PATH_LIST = []
 
 # allowed_date_list = [datetime.datetime(2023, 4, 29), datetime.datetime(2023, 4, 30)]
-allowed_date_list = [datetime.datetime(2023, 4, 20)]
+allowed_date_list = [datetime.datetime(2023, 4, 30)]
 allowed_day_light_list = ["sunset"]
 
 if __name__ == "__main__":
