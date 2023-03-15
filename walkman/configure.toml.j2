@@ -9,17 +9,16 @@ sampling_rate           = 44100
 buffer_size             = 512
 channel_count           = 2
 
-{% set fade_in          = 5 %}
-{% set fade_out         = 8 %}
+{% set fade_in                  = 5 %}
+{% set fade_out                 = 8 %}
+{% set string_count             = 3 %}
+{% set audio_input_count        = 1 %}
 
 {% for pin_index in [0, 1, 2] %}
-
-{% set string_index = loop.index - 1 %}
-
-[configure.module.string.{{ string_index }}]
-com_port                = "/dev/ttyACM0"
-pin_index               = {{ pin_index }}
-
+    {% set string_index = loop.index - 1 %}
+    [configure.module.string.{{ string_index }}]
+    com_port                = "/dev/ttyACM0"
+    pin_index               = {{ pin_index }}
 {% endfor %}
 
 # Pickup 1
@@ -36,10 +35,13 @@ audio_input             = "audio_input.0"
 value                   = 50
 
 [configure.module.aeolian_harp.0]
-audio_input_0           = "compressor.0"
-audio_input_1           = "string.0"
-audio_input_2           = "string.1"
-audio_input_3           = "string.2"
+{% for string_index in range(string_count) %}
+audio_input_{{ string_index }}           = "string.{{ string_index }}"
+{% endfor %}
+
+{% for audio_input_index in range(audio_input_count) %}
+audio_input_{{ string_count + audio_input_index }} = "compressor.{{ audio_input_index }}"
+{% endfor %}
 
     [configure.module.aeolian_harp.0.audio_input_index_to_pyo_object_index]
     0 = 0

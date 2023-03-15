@@ -7,6 +7,7 @@ from mutwo import project_parameters
 
 TITLE = "10.1"
 
+WALKMAN_DATA_PATH = "etc/walkmansequences"
 diary_interfaces.configurations.DEFAULT_STORAGE_PATH = "etc/data/diary.fs"
 
 SKIP_CHECK = False

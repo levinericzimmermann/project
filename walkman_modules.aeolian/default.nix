@@ -7,6 +7,17 @@ let
 
   walkman  = import (sources.walkman.outPath + "/default.nix");
 
+  walkmanio = pkgs.python310Packages.buildPythonPackage rec {
+    pname = "walkmanio";
+    version = "0.1.0";
+    src = ./walkmanio;
+    propagatedBuildInputs = with pkgs.python310Packages; [
+    ];
+    checkInputs = with pkgs.python310Packages; [
+    ];
+    checkPhase = ''
+    '';
+  };
 in
 
   buildPythonPackage rec {
@@ -17,8 +28,10 @@ in
     ];
     propagatedBuildInputs = with pkgs.python310Packages; [ 
       walkman
+      walkmanio
       pyserial
       numpy
+      APScheduler
     ];
     checkPhase = ''
       runHook preCheck

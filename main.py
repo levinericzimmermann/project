@@ -5,7 +5,8 @@ import project
 
 from astral import LocationInfo, sun, Depression
 
-from mutwo import core_converters
+from mutwo import clock_converters
+from mutwo import core_events
 from mutwo import diary_interfaces
 from mutwo import project_converters
 
@@ -36,13 +37,31 @@ def make_part(location_info, d, day_light):
         ),
     ).convert(astral_event)
 
-    project.render.midi(clock_tuple)
+    # For both - midi frontend and walkman frontend - we need
+    # to convert our clocks to one simultaneous event. So we do
+    # it here instead of having it inside the midi converter.
+    clock2sim = clock_converters.ClockToSimultaneousEvent(
+        project_converters.ClockLineToSimultaneousEvent()
+    ).convert
+
+    simultaneous_event = core_events.SimultaneousEvent([])
+    for clock in clock_tuple:
+        clock_simultaneous_event = clock2sim(clock, repetition_count=1)
+        simultaneous_event.concatenate_by_tag(clock_simultaneous_event)
+
+    # And we don't need to render 'clock' for any of them :)
+    assert simultaneous_event[0].tag == "clock"
+    del simultaneous_event[0]
+
+    project.render.midi(simultaneous_event)
+    project.render.walkman(simultaneous_event, d)
+
     if day_light == "dawn":
         project.render.notation(clock_tuple)
 
 
 allowed_date_list = [datetime.datetime(2023, 4, 30)]
-allowed_day_light_list = ["dawn"]
+allowed_day_light_list = ["sunset"]
 
 if __name__ == "__main__":
     location_info = LocationInfo(

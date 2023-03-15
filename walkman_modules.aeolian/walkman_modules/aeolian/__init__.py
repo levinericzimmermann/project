@@ -1,13 +1,16 @@
-import collections
+import datetime
 import enum
 import functools
 import itertools
 import time
 import typing
 
+from apscheduler.schedulers.background import BackgroundScheduler
+
 import pyo
 import serial
 import walkman
+import walkmanio
 
 
 __all__ = ("String", "AeolianHarp", "Compressor")
@@ -157,54 +160,41 @@ class String(walkman.Module):
 
 
 class AeolianHarp(walkman.Hub):
-    E = collections.namedtuple("E", ("duration", "kwargs", "is_rest"))
+    TOTAL_STRING_COUNT = 9
 
     def _setup_pyo_object(self, *args, **kwargs):
         super()._setup_pyo_object(*args, **kwargs)
-        self.sequencer0 = walkman.Sequencer(
-            self.audio_input_1,
-        )
-        self.sequencer1 = walkman.Sequencer(
-            self.audio_input_2,
-        )
-        self.sequencer2 = walkman.Sequencer(
-            self.audio_input_3,
-        )
+        sequencer_list = []
+        for string_index in range(self.TOTAL_STRING_COUNT):
+            sequencer = walkman.Sequencer(
+                getattr(self, f"audio_input_{string_index}"),
+            )
+            sequencer_list.append(sequencer)
+        self.sequencer_tuple = tuple(sequencer_list)
+        self._reset_events()
+
+    def _initialise(self, play_mode: str = "test", *args, **kwargs):
+        super()._initialise(*args, **kwargs)
+        self.play_mode = play_mode
         self._reset_events()
 
     def _reset_events(self):
-        self.sequencer0.event_iterator = itertools.cycle(
-            [
-                self.E(10, dict(envelope="BASIC", frequency=120), False),
-                self.E(20, {}, True),
-            ]
-        )
-        self.sequencer1.event_iterator = itertools.cycle(
-            [
-                self.E(10, {}, True),
-                self.E(10, dict(envelope="BASIC", frequency=120), False),
-                self.E(10, {}, True),
-            ]
-        )
-        self.sequencer2.event_iterator = itertools.cycle(
-            [
-                self.E(20, {}, True),
-                self.E(10, dict(envelope="BASIC", frequency=120), False),
-            ]
-        )
+        play_mode = getattr(self, "play_mode", "test")
+        getattr(self, f"_{play_mode}")()
 
     def _play(self, duration: float, delay: float):
         super()._play(duration, delay)
-        self.sequencer0.play(duration, delay)
-        self.sequencer1.play(duration, delay)
-        self.sequencer2.play(duration, delay)
+        for sequencer in self.sequencer_tuple:
+            sequencer.play()
 
     def _stop(self, wait: float = 0):
         super()._stop(wait)
         self._is_playing = False
-        self.sequencer0.stop(wait)
-        self.sequencer1.stop(wait)
-        self.sequencer2.stop(wait)
+        for sequencer in self.sequencer_tuple:
+            sequencer.stop(wait)
+
+        self._shutdown_scheduler()
+
         # The current basic sequencer implementation of walkman isn't
         # very clever and doesn't start the same event at the point where
         # it stopped, but it simply jumps to the next event.
@@ -213,6 +203,86 @@ class AeolianHarp(walkman.Hub):
         # won't be in sync anymore. So we simply re-initialize all sequencers
         # before playing again.
         self._reset_events()
+
+    def _shutdown_scheduler(self):
+        walkman.constants.LOGGER.info("Shutdown/cleanup scheduler")
+        try:
+            [j.remove() for j in self.scheduler.get_jobs()]
+            self.scheduler.shutdown()
+        except AttributeError:
+            pass
+
+    def _music(self):
+        # First cleanup all sequencers
+        for sequencer in self.sequencer_tuple:
+            sequencer.event_iterator = iter([])
+
+        # Now we can schedule new events
+        self.scheduler = BackgroundScheduler()
+        astral_part_tuple = walkmanio.import_astral_part_tuple("etc/walkmansequences")
+        now = datetime.datetime.now()
+        for d, sequence_tuple in astral_part_tuple:
+            d = datetime.datetime(2023, 3, 15, 14, 36)
+            if d < now:  # Ignore past event
+                continue
+            for s_index, sequence in enumerate(sequence_tuple):
+                try:
+                    sequencer = self.sequencer_tuple[s_index]
+                except IndexError:
+                    walkman.constants.LOGGER.warning(
+                        f"No sequencer with index {s_index} available."
+                    )
+                    continue
+                f = self._makef(s_index, sequencer, sequence)
+                walkman.constants.LOGGER.info(
+                    f"Added job to sequencer {s_index} on {d}."
+                )
+                self.scheduler.add_job(f, trigger="date", run_date=d)
+
+        walkman.constants.LOGGER.info("Start scheduler")
+        self.scheduler.start()
+
+    def _makef(self, index, sequencer, sequence):
+        def f():
+            walkman.constants.LOGGER.info(
+                f"Try to execute schedule event on seq ({index}) {sequencer.module}..."
+            )
+            if self.is_playing:
+                for s in self.sequencer_tuple:
+                    s.stop()
+                sequencer.event_iterator = iter(sequence)
+                for s in self.sequencer_tuple:
+                    s.play()
+                walkman.constants.LOGGER.info(
+                    f"Successfully started sequencer {index}."
+                )
+            else:
+                walkman.constants.LOGGER.info(
+                    "Didn't start scheduled event, because module isn't playing."
+                )
+
+        return f
+
+    def _test(self):
+        e, f, d = "BASIC", 120, 10
+        max_d = d * (self.TOTAL_STRING_COUNT - 1)
+        for string_index in range(self.TOTAL_STRING_COUNT):
+            event_list = [
+                walkmanio.WalkmanEvent(d, dict(envelope=e, frequency=f), False),
+            ]
+            r0_duration = string_index * d
+            for rest_index, rest_duration in enumerate(
+                [r0_duration, max_d - (r0_duration)]
+            ):
+                if rest_duration:
+                    r = walkmanio.WalkmanEvent(rest_duration, {}, True)
+                    if rest_index:
+                        event_list.append(r)
+                    else:
+                        event_list.insert(0, r)
+            self.sequencer_tuple[string_index].event_iterator = itertools.cycle(
+                event_list
+            )
 
 
 class Compressor(
