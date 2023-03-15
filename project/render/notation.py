@@ -158,12 +158,20 @@ def clavichord_converter():
                     else None,
                     mutate=False,
                 )[0]
+
+                for note_like in right:
+                    if notation_indicator_collection := getattr(
+                        note_like, "notation_indicator_collection", None
+                    ):
+                        notation_indicator_collection.clef.name = "treble"
+
                 for note_like in left:
                     if notation_indicator_collection := getattr(
                         note_like, "notation_indicator_collection", None
                     ):
                         notation_indicator_collection.clef.name = "bass"
                         break
+
                 event_placement.event[
                     clavichord_tag
                 ] = core_events.TaggedSimultaneousEvent(
@@ -204,6 +212,7 @@ def sounding_clavichord_pitch_to_written_clavichord_pitch(p):
     p = SCALE_TRANSPOSED.scale_position_to_pitch(scale_position)
     if p.pitch_class_name == "bs":  # stupid rounding conversion?
         p = music_parameters.WesternPitch("c", p.octave + 1)
+    p = music_parameters.WesternPitch(p.pitch_class_name, p.octave - 1)
     return p
 
 
