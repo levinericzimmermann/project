@@ -7,6 +7,30 @@ let
 
   walkman  = import (sources.walkman.outPath + "/default.nix");
 
+  astral = pkgs.python310Packages.buildPythonPackage rec {
+    pname = "astral";
+    version = "3.2";
+  
+    src = pkgs.python310Packages.fetchPypi {
+      inherit pname version;
+      sha256 = "sha256-m3w7QS6eadFyz7JL4Oat3MnxvQGijbi+vmbXXMxTPYg=";
+    };
+  
+    propagatedBuildInputs = with pkgs.python310Packages; [
+      pytz
+      requests
+      freezegun
+    ];
+  
+    checkInputs = with pkgs.python310Packages; [
+      pytest
+    ];
+  
+    checkPhase = ''
+      py.test -m "not webtest"
+    '';
+  };
+
   walkmanio = pkgs.python310Packages.buildPythonPackage rec {
     pname = "walkmanio";
     version = "0.1.0";
@@ -32,6 +56,7 @@ in
       pyserial
       numpy
       APScheduler
+      astral
     ];
     checkPhase = ''
       runHook preCheck

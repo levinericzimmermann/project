@@ -5,6 +5,7 @@ import itertools
 import time
 import typing
 
+from astral import LocationInfo
 from apscheduler.schedulers.background import BackgroundScheduler
 
 import pyo
@@ -20,6 +21,15 @@ READ_TIMEOUT = 0.1
 MAX_FREQUENCY = 450
 
 walkman.constants.LOGGER.handlers = walkman.constants.LOGGER.handlers[1:]
+
+# Duplicated in main.py
+LOCATION_INFO = LocationInfo(
+    name="Essen",
+    region="NRW",
+    timezone="Europe/Berlin",
+    latitude=51.4556432,
+    longitude=7.0115552,
+)
 
 
 class Envelope(enum.IntEnum):
@@ -220,9 +230,8 @@ class AeolianHarp(walkman.Hub):
         # Now we can schedule new events
         self.scheduler = BackgroundScheduler()
         astral_part_tuple = walkmanio.import_astral_part_tuple("etc/walkmansequences")
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(LOCATION_INFO.tzinfo)
         for d, sequence_tuple in astral_part_tuple:
-            d = datetime.datetime(2023, 3, 15, 14, 36)
             if d < now:  # Ignore past event
                 continue
             for s_index, sequence in enumerate(sequence_tuple):
@@ -237,7 +246,9 @@ class AeolianHarp(walkman.Hub):
                 walkman.constants.LOGGER.info(
                     f"Added job to sequencer {s_index} on {d}."
                 )
-                self.scheduler.add_job(f, trigger="date", run_date=d)
+                self.scheduler.add_job(
+                    f, trigger="date", run_date=d, timezone=LOCATION_INFO.tzinfo
+                )
 
         walkman.constants.LOGGER.info("Start scheduler")
         self.scheduler.start()

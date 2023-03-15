@@ -7,30 +7,6 @@ let
 
   walkman-aeolian = import ./walkman_modules.aeolian { };
 
-  astral = pkgs.python310Packages.buildPythonPackage rec {
-    pname = "astral";
-    version = "3.2";
-  
-    src = pkgs.python310Packages.fetchPypi {
-      inherit pname version;
-      sha256 = "sha256-m3w7QS6eadFyz7JL4Oat3MnxvQGijbi+vmbXXMxTPYg=";
-    };
-  
-    propagatedBuildInputs = with pkgs.python310Packages; [
-      pytz
-      requests
-      freezegun
-    ];
-  
-    checkInputs = with pkgs.python310Packages; [
-      pytest
-    ];
-  
-    checkPhase = ''
-      py.test -m "not webtest"
-    '';
-  };
-
   yamm = pkgs.python310Packages.buildPythonPackage rec {
     pname = "yamm";
     version = "0.1";

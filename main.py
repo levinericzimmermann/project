@@ -64,6 +64,7 @@ allowed_date_list = [datetime.datetime(2023, 4, 30)]
 allowed_day_light_list = ["sunset"]
 
 if __name__ == "__main__":
+    # Duplicated in walkman_modules.aeolian_harp
     location_info = LocationInfo(
         name="Essen",
         region="NRW",
