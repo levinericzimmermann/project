@@ -133,20 +133,17 @@ def clavichord_converter():
             event = event_placement.event[clavichord_tag]
             if isinstance(event, core_events.TaggedSimultaneousEvent):
                 # sounding -> written
-                # event.set_parameter(
-                #     "pitch_list",
-                #     lambda pitch_list: [
-                #         project.constants.sounding_harp_pitch_to_written_harp_pitch(
-                #             pitch
-                #         )
-                #         for pitch in pitch_list
-                #     ]
-                #     if pitch_list
-                #     else None,
-                # )
+                event.set_parameter(
+                    "pitch_list",
+                    lambda pitch_list: [
+                        sounding_clavichord_pitch_to_written_clavichord_pitch(pitch)
+                        for pitch in pitch_list
+                    ]
+                    if pitch_list
+                    else None,
+                )
                 # split staves
-                # border = music_parameters.WesternPitch("c", 4)
-                border = music_parameters.JustIntonationPitch("5/4")
+                border = music_parameters.WesternPitch("c", 4)
                 right = event.set_parameter(
                     "pitch_list",
                     lambda pitch_list: [p for p in pitch_list if p >= border]
@@ -198,9 +195,52 @@ def clavichord_converter():
     }
 
 
-def notation(clock_tuple, d):
-    title = '"10.1"'
-    subtitle = f'"{d.year}.{d.month}.{d.day}, evening twilight"'
+def sounding_clavichord_pitch_to_written_clavichord_pitch(p):
+    try:
+        scale_position = SCALE.pitch_to_scale_position(p)
+    except ValueError:
+        print(f"Can't find pitch {p.ratio}")
+        return music_parameters.WesternPitch()
+    return SCALE_TRANSPOSED.scale_position_to_pitch(scale_position)
+
+
+def get_clavichord_tuning():
+    diff_list = []
+    for scale_degree in range(7):
+        sounding, written = (
+            s.scale_position_to_pitch((scale_degree, 0))
+            for s in (SCALE, SCALE_TRANSPOSED)
+        )
+        diff = round(written.get_pitch_interval(sounding).interval, 2)
+        r = f"{sounding.ratio.numerator}/{sounding.ratio.denominator}"
+        diff_list.append(f"{written.pitch_class_name} ({r}): {diff}")
+    return ", ".join(diff_list)
+
+
+SCALE = None
+SCALE_TRANSPOSED = music_parameters.Scale(
+    music_parameters.WesternPitch("a", 4),
+    music_parameters.RepeatingScaleFamily(
+        tuple(
+            music_parameters.WesternPitchInterval(i)
+            for i in "p1 M2 m3 p4 p5 m6 m7".split(" ")
+        ),
+        min_pitch_interval=music_parameters.WesternPitchInterval("p-22"),
+        max_pitch_interval=music_parameters.WesternPitchInterval("p22"),
+    ),
+)
+
+
+def notation(clock_tuple, d, scale):
+    global SCALE
+    SCALE = scale
+    formatted_time = f"{d.year}.{d.month}.{d.day}"
+    title = (
+        r'\markup { \fontsize #-4 \medium \typewriter { "10.1, evening twilight, '
+        f'{formatted_time}"'
+        r"} }"
+    )
+    subtitle = rf'\markup {{ \fontsize #-2 \typewriter \medium {{ "{get_clavichord_tuning()}" }} }}'
     abjad_score_to_abjad_score_block = clock_converters.AbjadScoreToAbjadScoreBlock()
     instrument_note_like_to_pitched_note_like = (
         project_converters.InstrumentNoteLikeToPitchedNoteLike(
@@ -267,6 +307,7 @@ def notation(clock_tuple, d):
         abjad_score_block_list,
         title=title,
         subtitle=subtitle,
+        # tagline=rf'\markup {{ \typewriter {{ "{formatted_time}" }} }}',
     )
 
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ekme-heji.ily"')

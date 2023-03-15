@@ -8,6 +8,7 @@ from astral import LocationInfo, sun, Depression
 from mutwo import clock_converters
 from mutwo import core_events
 from mutwo import diary_interfaces
+from mutwo import music_parameters
 from mutwo import project_converters
 
 
@@ -57,10 +58,25 @@ def make_part(location_info, d, day_light):
     project.render.walkman(simultaneous_event, d)
 
     if day_light == "sunset":
-        NOTATION_PATH_LIST.append(project.render.notation(clock_tuple, d))
+        intonation_tuple = project.constants.MOON_PHASE_TO_INTONATION[
+            astral_event["moon_phase"][0].moon_phase
+        ]
+        scale = music_parameters.Scale(
+            music_parameters.JustIntonationPitch('1/1'),
+            music_parameters.RepeatingScaleFamily(
+                intonation_tuple,
+                min_pitch_interval=music_parameters.JustIntonationPitch("1/16"),
+                max_pitch_interval=music_parameters.JustIntonationPitch("32/1"),
+            ),
+        )
+        NOTATION_PATH_LIST.append(
+            project.render.notation(clock_tuple, d, scale)
+        )
+
 
 NOTATION_PATH_LIST = []
 
+# allowed_date_list = [datetime.datetime(2023, 4, 29), datetime.datetime(2023, 4, 30)]
 allowed_date_list = [datetime.datetime(2023, 4, 30)]
 allowed_day_light_list = ["sunset"]
 
