@@ -246,10 +246,10 @@ SCALE_TRANSPOSED = music_parameters.Scale(
 def notation(clock_tuple, d, scale):
     global SCALE
     SCALE = scale
-    formatted_time = f"{d.year}.{d.month}.{d.day}"
+    formatted_time = f"{d.year}.{d.month}.{d.day}, {d.hour}:{d.minute}"
     title = (
         r'\markup { \fontsize #-4 \medium \typewriter { "10.1, evening twilight, '
-        f'{formatted_time}"'
+        f'{formatted_time}, essen"'
         r"} }"
     )
     subtitle = rf'\markup {{ \fontsize #-2 \typewriter \medium {{ "{get_clavichord_tuning()}" }} }}'
