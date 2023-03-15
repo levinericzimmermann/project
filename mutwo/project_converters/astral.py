@@ -5,6 +5,7 @@ situation + related moonlight and moonphase data.
 """
 
 import datetime
+import itertools
 import typing
 
 from astral import sun, moon, LocationInfo, Depression
@@ -15,6 +16,7 @@ from mutwo import clock_events
 from mutwo import clock_interfaces
 from mutwo import core_converters
 from mutwo import core_events
+from mutwo import core_parameters
 from mutwo import diary_converters
 from mutwo import music_events
 from mutwo import music_parameters
@@ -278,7 +280,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         #
         # If we use a higher tempo the score is longer and more verbose.
         # With a too low tempo the score is too dense / almost unreadable.
-        tempo = 4  # 4/1 == 60 seconds
+        tempo = core_parameters.DirectTempoPoint(4)  # 4/1 == 60 seconds
 
         for absolute_time, moon_phase_event in zip(
             astral_event["moon_phase"].absolute_time_tuple, astral_event["moon_phase"]
@@ -308,25 +310,33 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         clock_count: int,
         scale: music_parameters.Scale,
         duration,
-        tempo,
+        tempo: core_parameters.DirectTempoPoint,
     ) -> clock_interfaces.Clock:
         duration = duration.duration
 
-        ev_duration = 4
-        clock_event = clock_events.ClockEvent(
-            [
-                core_events.SequentialEvent(
-                    [music_events.NoteLike(pitch_list="c", duration=ev_duration)]
-                ),
-            ],
-            tempo_envelope=core_events.TempoEnvelope([[0, tempo], [ev_duration, tempo]]),
-        )
+        ev_duration_cycle = itertools.cycle((4, 6, 4, 6, 2, 4))
 
-        scale_position_duration_in_seconds = float(
-            clock_event.metrize(mutate=False).duration.duration
-        )
-        print("DUR", scale_position_duration_in_seconds)
-        scale_position_count = int(duration // scale_position_duration_in_seconds)
+        clock_event_list = []
+        clock_duration = 0
+        while clock_duration < duration:
+            ev_duration = next(ev_duration_cycle)
+            clock_event = clock_events.ClockEvent(
+                [
+                    core_events.SequentialEvent(
+                        [music_events.NoteLike(pitch_list="c", duration=ev_duration)]
+                    ),
+                ],
+                tempo_envelope=core_events.TempoEnvelope([[0, tempo], [ev_duration, tempo]]),
+            )
+            clock_duration += float(
+                clock_event.metrize(mutate=False).duration.duration
+            )
+            clock_event_list.append(clock_event)
+
+        clock_event_list = clock_event_list[:-1]
+        scale_position_count = len(clock_event_list)
+
+        print(scale_position_count)
 
         gatra_tuple = project_converters.ScaleToGatraTuple().convert(scale)
         markov_chain = project_converters.GatraTupleToMarkovChain().convert(gatra_tuple)
@@ -352,8 +362,8 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
                     clock_event=clock_event,
                     control_event=clock_event,
                 )
-                for start_pitch, end_pitch in zip(
-                    root_pitch_tuple, root_pitch_tuple[1:]
+                for start_pitch, end_pitch, clock_event in zip(
+                    root_pitch_tuple, root_pitch_tuple[1:], clock_event_list
                 )
             ]
         )
