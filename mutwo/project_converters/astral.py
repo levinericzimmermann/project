@@ -314,7 +314,11 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
     ) -> clock_interfaces.Clock:
         duration = duration.duration
 
-        ev_duration_cycle = itertools.cycle((4, 6, 4, 6, 2, 4))
+        # We take exactly 4 durations, because a gatra consist
+        # of 4 events. So the structure repeats after each gatra.
+        # So one gatra/phrase takes around 4, 5 minutes (this
+        # is a basic melodic phrase).
+        ev_duration_cycle = itertools.cycle((5, 7, 6, 8))
 
         clock_event_list = []
         clock_duration = 0
@@ -326,17 +330,15 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
                         [music_events.NoteLike(pitch_list="c", duration=ev_duration)]
                     ),
                 ],
-                tempo_envelope=core_events.TempoEnvelope([[0, tempo], [ev_duration, tempo]]),
+                tempo_envelope=core_events.TempoEnvelope(
+                    [[0, tempo], [ev_duration, tempo]]
+                ),
             )
-            clock_duration += float(
-                clock_event.metrize(mutate=False).duration.duration
-            )
+            clock_duration += float(clock_event.metrize(mutate=False).duration.duration)
             clock_event_list.append(clock_event)
 
         clock_event_list = clock_event_list[:-1]
         scale_position_count = len(clock_event_list)
-
-        print(scale_position_count)
 
         gatra_tuple = project_converters.ScaleToGatraTuple().convert(scale)
         markov_chain = project_converters.GatraTupleToMarkovChain().convert(gatra_tuple)
