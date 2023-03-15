@@ -232,6 +232,7 @@ class AeolianHarp(walkman.Hub):
         astral_part_tuple = walkmanio.import_astral_part_tuple("etc/walkmansequences")
         now = datetime.datetime.now(LOCATION_INFO.tzinfo)
         for d, sequence_tuple in astral_part_tuple:
+            walkman.constants.LOGGER.warning(f"Activate astral part on {d}:")
             if d < now:  # Ignore past event
                 continue
             for s_index, sequence in enumerate(sequence_tuple):
@@ -244,7 +245,7 @@ class AeolianHarp(walkman.Hub):
                     continue
                 f = self._makef(s_index, sequencer, sequence)
                 walkman.constants.LOGGER.info(
-                    f"Added job to sequencer {s_index} on {d}."
+                    f"\t\tAdded job to sequencer {s_index} on {d}."
                 )
                 self.scheduler.add_job(
                     f, trigger="date", run_date=d, timezone=LOCATION_INFO.tzinfo
