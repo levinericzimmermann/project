@@ -56,9 +56,10 @@ def make_part(location_info, d, day_light):
     project.render.midi(simultaneous_event)
     project.render.walkman(simultaneous_event, d)
 
-    if day_light == "dawn":
-        project.render.notation(clock_tuple)
+    if day_light == "sunset":
+        NOTATION_PATH_LIST.append(project.render.notation(clock_tuple, d))
 
+NOTATION_PATH_LIST = []
 
 allowed_date_list = [datetime.datetime(2023, 4, 30)]
 allowed_day_light_list = ["sunset"]
@@ -83,3 +84,5 @@ if __name__ == "__main__":
             for day_light in ("dawn", "sunrise", "sunset", "dusk"):
                 d = s[day_light]
                 make_part(location_info, d, day_light)
+
+    project.render.merge_notation(NOTATION_PATH_LIST)

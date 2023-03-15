@@ -1,3 +1,5 @@
+import subprocess
+
 import abjad
 
 from mutwo import abjad_converters
@@ -178,10 +180,12 @@ def clavichord_converter():
                 )
             return super().convert(event_placement, *args, **kwargs)
 
-    complex_event_to_abjad_container = clock_generators.make_complex_event_to_abjad_container(
-        sequential_event_to_abjad_staff_kwargs=dict(
-            mutwo_volume_to_abjad_attachment_dynamic=None,
-        ),
+    complex_event_to_abjad_container = (
+        clock_generators.make_complex_event_to_abjad_container(
+            sequential_event_to_abjad_staff_kwargs=dict(
+                mutwo_volume_to_abjad_attachment_dynamic=None,
+            ),
+        )
     )
 
     clavichord_tag = "clavichord"
@@ -194,7 +198,9 @@ def clavichord_converter():
     }
 
 
-def notation(clock_tuple):
+def notation(clock_tuple, d):
+    title = '"10.1"'
+    subtitle = f'"{d.year}.{d.month}.{d.day}, evening twilight"'
     abjad_score_to_abjad_score_block = clock_converters.AbjadScoreToAbjadScoreBlock()
     instrument_note_like_to_pitched_note_like = (
         project_converters.InstrumentNoteLikeToPitchedNoteLike(
@@ -257,8 +263,20 @@ def notation(clock_tuple):
         markup_system_padding=1,
         markup_system_basic_distance=1,
         staff_height=20,
-    ).convert(abjad_score_block_list)
+    ).convert(
+        abjad_score_block_list,
+        title=title,
+        subtitle=subtitle,
+    )
 
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ekme-heji.ily"')
+    path = f"builds/notations/{project.constants.TITLE}_{d.year}_{d.month}_{d.day}.pdf"
+    abjad.persist.as_pdf(lilypond_file, path)
+    return path
 
-    abjad.persist.as_pdf(lilypond_file, f"builds/{project.constants.TITLE}.pdf")
+
+def merge_notation(path_list: list[str]):
+    command = (
+        ["pdftk"] + path_list + ["output", f"builds/{project.constants.TITLE}.pdf"]
+    )
+    subprocess.call(command)
