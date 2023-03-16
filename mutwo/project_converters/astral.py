@@ -324,6 +324,15 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         clock_duration = 0
         while clock_duration < duration:
             ev_duration = next(ev_duration_cycle)
+            # We add the tempo straight to the clock events,
+            # this has two advantages:
+            #
+            #   1. We can calculate its duration in seconds now and check if
+            #      we need more clock events.
+            #
+            #   2. In our entries we can also figure out the duration in
+            #      seconds using the same technique as here. This is
+            #      very important for creating musically useful materials.
             clock_event = clock_events.ClockEvent(
                 [
                     core_events.SequentialEvent(

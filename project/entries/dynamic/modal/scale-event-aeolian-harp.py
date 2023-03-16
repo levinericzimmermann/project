@@ -30,37 +30,58 @@ ENVELOPE_CYCLE = itertools.cycle(
 
 
 def main(
-    context, random, activity_level, scale, **kwargs
+    context,
+    random,
+    activity_level,
+    scale,
+    event_count_to_average_tone_duration={
+        1: 18,
+        2: 12,
+        3: 10,
+        4: 9,
+        5: 9,
+    },
+    **kwargs,
 ) -> timeline_interfaces.EventPlacement:
     pitch_tuple = scale(context, **kwargs)
     modal_event_to_convert = context.modal_event
     instrument = context.orchestration[0]
     string_list_tuple = find_string_list_tuple(pitch_tuple, instrument, random)
 
-    sim = make_simultaneous_event(string_list_tuple, random, instrument)
+    event_count = len(string_list_tuple)
+
+    duration_in_seconds = modal_event_to_convert.clock_event.metrize(
+        mutate=False
+    ).duration.duration_in_floats
+
+    try:
+        average_tone_duration_in_seconds = event_count_to_average_tone_duration[
+            event_count
+        ]
+    except KeyError:
+        average_tone_duration_in_seconds = 10
+
+    expected_full_duration_in_seconds = average_tone_duration_in_seconds * event_count
+    needed_duration_percentage = expected_full_duration_in_seconds / duration_in_seconds
+    if needed_duration_percentage >= 1:
+        needed_duration_percentage = 0.95
+    remaining = 1 - needed_duration_percentage
+    remaining_half = remaining / 2
+    start_percentage, end_percentage = (
+        remaining_half,
+        remaining_half + needed_duration_percentage,
+    )
 
     duration = modal_event_to_convert.clock_event.duration
 
-    event_count = len(string_list_tuple)
-    match event_count:
-        case 1:
-            start_range = ranges.Range(duration * 0.38, duration * 0.42)
-            end_range = ranges.Range(duration * 0.58, duration * 0.62)
-        case 2:
-            start_range = ranges.Range(duration * 0.34, duration * 0.4)
-            end_range = ranges.Range(duration * 0.6, duration * 0.66)
-        case 3:
-            start_range = ranges.Range(duration * 0.3, duration * 0.33)
-            end_range = ranges.Range(duration * 0.67, duration * 0.7)
-        case 4:
-            start_range = ranges.Range(duration * 0.295, duration * 0.32)
-            end_range = ranges.Range(duration * 0.69, duration * 0.725)
-        case 5:
-            start_range = ranges.Range(duration * 0.27, duration * 0.3)
-            end_range = ranges.Range(duration * 0.71, duration * 0.74)
-        case _:
-            start_range = ranges.Range(duration * 0.3, duration * 0.33)
-            end_range = ranges.Range(duration * 0.67, duration * 0.7)
+    start_range = ranges.Range(
+        duration * start_percentage, duration * (start_percentage * 1.1)
+    )
+    end_range = ranges.Range(
+        duration * (end_percentage * 0.9), duration * end_percentage
+    )
+
+    sim = make_simultaneous_event(string_list_tuple, random, instrument)
 
     return timeline_interfaces.EventPlacement(
         core_events.SimultaneousEvent([sim]),
