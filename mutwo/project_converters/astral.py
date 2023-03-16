@@ -302,7 +302,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
             clock_list.append(
                 self._make_clock(orchestration, clock_count, scale, duration, tempo)
             )
-        return tuple(clock_list), tempo
+        return tuple(clock_list)
 
     def _make_clock(
         self,
@@ -336,12 +336,12 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
             clock_event = clock_events.ClockEvent(
                 [
                     core_events.SequentialEvent(
-                        [music_events.NoteLike(pitch_list="c", duration=ev_duration)]
+                        [music_events.NoteLike(pitch_list="c", duration=ev_duration)],
+                        tempo_envelope=core_events.TempoEnvelope(
+                            [[0, tempo], [ev_duration, tempo]]
+                        ),
                     ),
                 ],
-                tempo_envelope=core_events.TempoEnvelope(
-                    [[0, tempo], [ev_duration, tempo]]
-                ),
             )
             clock_duration += float(clock_event.metrize(mutate=False).duration.duration)
             clock_event_list.append(clock_event)

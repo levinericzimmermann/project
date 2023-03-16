@@ -25,7 +25,7 @@ def make_part(location_info, d, day_light):
     astral_event = project_converters.DatetimeToSimultaneousEvent(
         location_info
     ).convert(d)
-    clock_tuple, tempo = project_converters.AstralEventToClockTuple(
+    clock_tuple  = project_converters.AstralEventToClockTuple(
         project_converters.AstralConstellationToOrchestration(
             project.constants.MOON_PHASE_TO_INTONATION,
             project.constants.SUN_LIGHT_TO_PITCH_INDEX_TUPLE,
@@ -50,16 +50,14 @@ def make_part(location_info, d, day_light):
         clock_simultaneous_event = clock2sim(clock, repetition_count=1)
         simultaneous_event.concatenate_by_tag(clock_simultaneous_event)
 
-    # We don't apply tempo envelope on complete event, to take into account
-    # that there is already a tempo envelope on the clock event, and if
-    # we add an envelope on the simultaneous event the tempo envelope will
-    # be applied twice for the clock event. This doesn't matter if we actually
-    # don't want to use the clock event...
-    for s in simultaneous_event:
-        s.tempo_envelope = core_events.TempoEnvelope(
-            [[0, tempo], [simultaneous_event.duration, tempo]]
-        )
-        s.metrize()
+    # Our clock event has the tempo information, but this tempo information
+    # is actually valid for the complete event! So we actually need
+    # to move it to a higher layer before apply 'metrize'.
+    simultaneous_event.tempo_envelope, simultaneous_event["clock"][0].tempo_envelope = (
+        simultaneous_event["clock"][0].tempo_envelope,
+        simultaneous_event.tempo_envelope,
+    )
+    simultaneous_event.metrize()
 
     project.render.midi(simultaneous_event)
     project.render.walkman(simultaneous_event, d)
@@ -81,7 +79,11 @@ def make_part(location_info, d, day_light):
 
 NOTATION_PATH_LIST = []
 
-# allowed_date_list = [datetime.datetime(2023, 4, 29), datetime.datetime(2023, 4, 30)]
+# allowed_date_list = [
+#     datetime.datetime(2023, 4, 28),
+#     datetime.datetime(2023, 4, 29),
+#     datetime.datetime(2023, 4, 30),
+# ]
 allowed_date_list = [datetime.datetime(2023, 4, 30)]
 allowed_day_light_list = ["sunset"]
 
