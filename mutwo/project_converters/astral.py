@@ -274,14 +274,6 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
     ) -> tuple[clock_interfaces.Clock, ...]:
         clock_list = []
 
-        # We need a global tempo which is the same for all clocks, because
-        # afterwards we return this tempo and midi/walkman converter want
-        # to apply this tempo. So we specify this common tempo here.
-        #
-        # If we use a higher tempo the score is longer and more verbose.
-        # With a too low tempo the score is too dense / almost unreadable.
-        tempo = core_parameters.DirectTempoPoint(4)  # 4/1 == 60 seconds
-
         for absolute_time, moon_phase_event in zip(
             astral_event["moon_phase"].absolute_time_tuple, astral_event["moon_phase"]
         ):
@@ -300,7 +292,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
             # => but actually the algorithm MUST change depending on the
             #    sun light.
             clock_list.append(
-                self._make_clock(orchestration, clock_count, scale, duration, tempo)
+                self._make_clock(orchestration, clock_count, scale, duration)
             )
         return tuple(clock_list)
 
@@ -310,7 +302,6 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         clock_count: int,
         scale: music_parameters.Scale,
         duration,
-        tempo: core_parameters.DirectTempoPoint,
     ) -> clock_interfaces.Clock:
         duration = duration.duration
 
@@ -320,10 +311,17 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         # is a basic melodic phrase).
         ev_duration_cycle = itertools.cycle((5, 7, 6, 8))
 
+        tempo_cycle = itertools.cycle((4, 4.2, 3.8, 4.1, 4.3, 4.05, 3.9))
+
         clock_event_list = []
         clock_duration = 0
         while clock_duration < duration:
             ev_duration = next(ev_duration_cycle)
+
+            # If we use a higher tempo the score is longer and more verbose.
+            # With a too low tempo the score is too dense / almost unreadable.
+            tempo = core_parameters.DirectTempoPoint(next(tempo_cycle))  # 4/1 == 60 seconds
+
             # We add the tempo straight to the clock events,
             # this has two advantages:
             #
