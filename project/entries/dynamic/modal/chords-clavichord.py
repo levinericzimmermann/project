@@ -5,6 +5,7 @@ from mutwo import clock_events
 from mutwo import core_events
 from mutwo import music_events
 from mutwo import music_parameters
+from mutwo import project_converters
 from mutwo import project_generators
 from mutwo import project_parameters
 from mutwo import timeline_interfaces
@@ -23,12 +24,23 @@ def is_supported(context, pitch=None, **kwargs):
 
 
 def main(
-    context, random, activity_level, **kwargs
+    context,
+    random,
+    activity_level,
+    event_count_to_average_tone_duration={
+        1: 14,
+        2: 11,
+        3: 9,
+        4: 7,
+        5: 6,
+    },
+    **kwargs
 ) -> timeline_interfaces.EventPlacement:
     orchestration = context.orchestration
     instrument = orchestration[0]
-    scale = context.modal_event.scale
-    pitch = context.modal_event.pitch
+    modal_event = context.modal_event
+    scale = modal_event.scale
+    pitch = modal_event.pitch
 
     sequential_event = make_sequential_event(instrument, scale, pitch, random)
     simultaneous_event = core_events.SimultaneousEvent(
@@ -40,13 +52,33 @@ def main(
         ]
     )
 
-    duration = context.modal_event.clock_event.duration
-    start_range = ranges.Range(duration * 0.3, duration * 0.35)
-    end_range = ranges.Range(duration * 0.65, duration * 0.7)
+    start_range, end_range = make_range_pair(
+        len(sequential_event), event_count_to_average_tone_duration, modal_event
+    )
 
     return timeline_interfaces.EventPlacement(
         simultaneous_event, start_range, end_range
     ).move_by(context.start)
+
+
+def make_range_pair(
+    event_count, event_count_to_average_tone_duration, modal_event_to_convert
+):
+    duration_in_seconds = modal_event_to_convert.clock_event.metrize(
+        mutate=False
+    ).duration.duration_in_floats
+
+    try:
+        average_tone_duration_in_seconds = event_count_to_average_tone_duration[
+            event_count
+        ]
+    except KeyError:
+        average_tone_duration_in_seconds = 10
+    duration = modal_event_to_convert.clock_event.duration
+
+    return project_converters.AverageNoteDurationToRangePair().convert(
+        average_tone_duration_in_seconds, event_count, duration_in_seconds, duration
+    )
 
 
 def make_sequential_event(instrument, scale, pitch, random):
@@ -121,7 +153,9 @@ def make_chord_tuple(
                 (chord_list[-1],), chord_tuple
             )
             chord_tuple = tuple(
-                cdelta.chord1 for cdelta in chord_difference_tuple if len(cdelta.only1) >= len(cdelta.intersection)
+                cdelta.chord1
+                for cdelta in chord_difference_tuple
+                if len(cdelta.only1) >= len(cdelta.intersection)
             )
         if chord_tuple:
             chord_list.append(chord_tuple[0])
