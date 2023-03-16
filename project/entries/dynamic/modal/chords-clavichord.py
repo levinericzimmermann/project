@@ -28,11 +28,13 @@ def main(
     random,
     activity_level,
     event_count_to_average_tone_duration={
-        1: 14,
+        1: 13,
         2: 11,
-        3: 9,
-        4: 7,
-        5: 6,
+        3: 9.8,
+        4: 8.8,
+        5: 7.5,
+        6: 6.75,
+        7: 5,
     },
     **kwargs
 ) -> timeline_interfaces.EventPlacement:
