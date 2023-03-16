@@ -36,11 +36,11 @@ def main(
     activity_level,
     scale,
     event_count_to_average_tone_duration={
-        1: 18,
-        2: 12,
-        3: 10,
+        1: 15,
+        2: 13.85,
+        3: 11.5,
         4: 9,
-        5: 9,
+        5: 7.85,
     },
     **kwargs,
 ) -> timeline_interfaces.EventPlacement:
@@ -88,7 +88,7 @@ def make_simultaneous_event(string_list_tuple, random, instrument):
     tag = instrument.name
 
     event_count = len(string_list_tuple)
-    duration_list = [random.choice([1.0, 1.5, 2.0, 2.5]) for _ in range(event_count)]
+    duration_list = [random.choice([1.75, 1.5, 2.0, 2.25]) for _ in range(event_count)]
     match random.integers(0, 3):
         case 1:
             duration_list[-1] *= 2
