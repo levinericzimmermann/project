@@ -9,6 +9,7 @@ from mutwo import core_parameters
 from mutwo import core_utilities
 from mutwo import music_events
 from mutwo import music_parameters
+from mutwo import project_converters
 from mutwo import project_parameters
 from mutwo import timeline_interfaces
 
@@ -48,6 +49,22 @@ def main(
     instrument = context.orchestration[0]
     string_list_tuple = find_string_list_tuple(pitch_tuple, instrument, random)
 
+    start_range, end_range = make_range_pair(
+        string_list_tuple, event_count_to_average_tone_duration, modal_event_to_convert
+    )
+
+    sim = make_simultaneous_event(string_list_tuple, random, instrument)
+
+    return timeline_interfaces.EventPlacement(
+        core_events.SimultaneousEvent([sim]),
+        start_range,
+        end_range,
+    ).move_by(context.start)
+
+
+def make_range_pair(
+    string_list_tuple, event_count_to_average_tone_duration, modal_event_to_convert
+):
     event_count = len(string_list_tuple)
 
     duration_in_seconds = modal_event_to_convert.clock_event.metrize(
@@ -60,34 +77,11 @@ def main(
         ]
     except KeyError:
         average_tone_duration_in_seconds = 10
-
-    expected_full_duration_in_seconds = average_tone_duration_in_seconds * event_count
-    needed_duration_percentage = expected_full_duration_in_seconds / duration_in_seconds
-    if needed_duration_percentage >= 1:
-        needed_duration_percentage = 0.95
-    remaining = 1 - needed_duration_percentage
-    remaining_half = remaining / 2
-    start_percentage, end_percentage = (
-        remaining_half,
-        remaining_half + needed_duration_percentage,
-    )
-
     duration = modal_event_to_convert.clock_event.duration
 
-    start_range = ranges.Range(
-        duration * start_percentage, duration * (start_percentage * 1.1)
+    return project_converters.AverageNoteDurationToRangePair().convert(
+        average_tone_duration_in_seconds, event_count, duration_in_seconds, duration
     )
-    end_range = ranges.Range(
-        duration * (end_percentage * 0.9), duration * end_percentage
-    )
-
-    sim = make_simultaneous_event(string_list_tuple, random, instrument)
-
-    return timeline_interfaces.EventPlacement(
-        core_events.SimultaneousEvent([sim]),
-        start_range,
-        end_range,
-    ).move_by(context.start)
 
 
 def make_simultaneous_event(string_list_tuple, random, instrument):
