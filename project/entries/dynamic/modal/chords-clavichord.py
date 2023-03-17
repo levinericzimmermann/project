@@ -101,6 +101,7 @@ def make_sequential_event(instrument, scale, pitch, random):
         main_pitch_tuple,
         pitch_count_tuple,
         chord_ambitus_tuple,
+        instrument,
         random,
     )
 
@@ -119,6 +120,7 @@ def make_chord_tuple(
     main_pitch_tuple,
     pitch_count_tuple,
     chord_ambitus_tuple,
+    instrument,
     random,
 ):
     chord_list = []
@@ -131,13 +133,13 @@ def make_chord_tuple(
         if is_chord_harmonic:
             min_interval = music_parameters.JustIntonationPitch("7/6")
             min_harmonicity = music_parameters.JustIntonationPitch(
-                "3/2"
+                "5/4"
             ).harmonicity_simplified_barlow
             max_harmonicity = None
         else:
             min_interval = music_parameters.JustIntonationPitch("10/9")
             min_harmonicity = music_parameters.JustIntonationPitch(
-                "5/4"
+                "7/4"
             ).harmonicity_simplified_barlow
             max_harmonicity = None
 
@@ -148,7 +150,8 @@ def make_chord_tuple(
             min_harmonicity,
             max_harmonicity,
             ambitus,
-            min_interval,
+            # instrument=instrument,
+            min_interval=min_interval,
         )
         if chord_list:
             chord_difference_tuple = project_generators.make_chord_difference_tuple(
@@ -206,12 +209,12 @@ def make_chord_ambitus_tuple(chord_count, random):
 
 ambitus_tuple = (
     music_parameters.OctaveAmbitus(
-        music_parameters.JustIntonationPitch("3/4"),
-        music_parameters.JustIntonationPitch("3/1"),
+        music_parameters.JustIntonationPitch("3/2"),
+        music_parameters.JustIntonationPitch("6/1"),
     ),
     music_parameters.OctaveAmbitus(
-        music_parameters.JustIntonationPitch("1/2"),
-        music_parameters.JustIntonationPitch("2/1"),
+        music_parameters.JustIntonationPitch("1/1"),
+        music_parameters.JustIntonationPitch("3/1"),
     ),
     music_parameters.OctaveAmbitus(
         music_parameters.JustIntonationPitch("1/1"),

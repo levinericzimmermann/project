@@ -17,7 +17,16 @@ __all__ = (
 
 
 Chord = collections.namedtuple(
-    "Chord", ("pitch_tuple", "pitch_count", "harmonicity", "ambitus", "fingering_tuple")
+    "Chord",
+    (
+        "pitch_tuple",
+        "pitch_count",
+        "harmonicity",
+        "ambitus",
+        "fingering_tuple",
+        "interval_tuple",
+        "neighbour_interval_tuple",
+    ),
 )
 
 ChordDifference = collections.namedtuple(
@@ -132,16 +141,18 @@ def _make_chord(
     max_interval,
 ) -> typing.Optional[Chord]:
     harmonicity_list = []
+    interval_list = []
     for p0, p1 in tuple(
         itertools.product(picked_pitch_tuple, partner_pitch_tuple)
     ) + tuple(itertools.combinations(partner_pitch_tuple, 2)):
         interval = _interval(p0, p1)
-        cents = interval.interval
-        if min_interval and min_interval > cents:
+        cents = abs(interval.interval)
+        if min_interval and min_interval.interval > cents:
             return
-        if max_interval and max_interval < cents:
+        if max_interval and max_interval.interval < cents:
             return
         harmonicity_list.append(_harmonicity(interval))
+        interval_list.append(interval)
     harmonicity = sum(harmonicity_list) / len(harmonicity_list)
     if max_harmonicity and harmonicity > max_harmonicity:
         return
@@ -163,12 +174,11 @@ def _make_chord(
         ambitus = music_parameters.OctaveAmbitus(
             pitch_tuple[0], pitch_tuple[0] + music_parameters.JustIntonationPitch("2/1")
         )
+    neighbour_interval_list = []
+    for p0, p1 in zip(pitch_tuple, pitch_tuple[1:]):
+        neighbour_interval_list.append(_interval(p1, p0))
     return Chord(
-        pitch_tuple,
-        pitch_count,
-        harmonicity,
-        ambitus,
-        fingering_tuple,
+        pitch_tuple, pitch_count, harmonicity, ambitus, fingering_tuple, tuple(interval_list), tuple(neighbour_interval_list)
     )
 
 
