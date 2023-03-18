@@ -195,9 +195,20 @@ class AeolianHarp(walkman.Hub):
         # Allow time travel for testing purposes
         self.traveller = None
         if jumptime:
+            # First parse our string to year/month/day/hour/minute/second format...
             jumptime = datetime.datetime.fromisoformat(jumptime)
+            # ...and then construct the real datetime object by combining the previously
+            # parsed information and our timezone information. We can't parse the timezone
+            # information directly to the isoformat, because its isoformat is ambigous (due
+            # to a different isoformat depending on summer/winter time).
             jumptime = datetime.datetime(
-                jumptime.year, jumptime.month, jumptime.day, tzinfo=LOCATION_INFO.tzinfo
+                jumptime.year,
+                jumptime.month,
+                jumptime.day,
+                jumptime.hour,
+                jumptime.minute,
+                jumptime.second,
+                tzinfo=LOCATION_INFO.tzinfo,
             )
             walkman.constants.LOGGER.info(f"Start time travel to {jumptime}.")
             self.traveller = time_machine.travel(jumptime)
