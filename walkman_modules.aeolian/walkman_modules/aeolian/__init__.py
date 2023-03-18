@@ -30,9 +30,6 @@ LOCATION_INFO = LocationInfo(
     latitude=51.4556432,
     longitude=7.0115552,
 )
-TZINFO_STRING = datetime.datetime(2000, 1, 1, tzinfo=LOCATION_INFO.tzinfo).isoformat()[
-    -6:
-]
 
 
 class Envelope(enum.IntEnum):
@@ -198,7 +195,10 @@ class AeolianHarp(walkman.Hub):
         # Allow time travel for testing purposes
         self.traveller = None
         if jumptime:
-            jumptime = datetime.datetime.fromisoformat(jumptime + "+00:00")
+            jumptime = datetime.datetime.fromisoformat(jumptime)
+            jumptime = datetime.datetime(
+                jumptime.year, jumptime.month, jumptime.day, tzinfo=LOCATION_INFO.tzinfo
+            )
             walkman.constants.LOGGER.info(f"Start time travel to {jumptime}.")
             self.traveller = time_machine.travel(jumptime)
             self.traveller.start()
