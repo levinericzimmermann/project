@@ -181,7 +181,6 @@ class AeolianHarp(walkman.Hub):
             )
             sequencer_list.append(sequencer)
         self.sequencer_tuple = tuple(sequencer_list)
-        self._reset_events()
 
     def _initialise(
         self,
@@ -194,9 +193,24 @@ class AeolianHarp(walkman.Hub):
         self.play_mode = play_mode
         # Allow time travel for testing purposes
         self.traveller = None
-        if jumptime:
+        self.jumptime = jumptime
+        # We need to be ensure all relevant start up code is executed.
+        # Usually this shouldn't be a be problem, because this patch isn't
+        # meant to be used with jumping between cues, we only need to start
+        # one cue and that's it. But still just to be double sure it's added
+        # here.
+        if self.is_playing:
+            self.stop()
+            self.play()
+
+    def _reset_events(self):
+        play_mode = getattr(self, "play_mode", "test")
+        getattr(self, f"_{play_mode}")()
+
+    def _play(self, duration: float, delay: float):
+        if self.jumptime:
             # First parse our string to year/month/day/hour/minute/second format...
-            jumptime = datetime.datetime.fromisoformat(jumptime)
+            jumptime = datetime.datetime.fromisoformat(self.jumptime)
             # ...and then construct the real datetime object by combining the previously
             # parsed information and our timezone information. We can't parse the timezone
             # information directly to the isoformat, because its isoformat is ambigous (due
@@ -213,29 +227,6 @@ class AeolianHarp(walkman.Hub):
             walkman.constants.LOGGER.info(f"Start time travel to {jumptime}.")
             self.traveller = time_machine.travel(jumptime)
             self.traveller.start()
-        self._reset_events()
-
-    def _reset_events(self):
-        play_mode = getattr(self, "play_mode", "test")
-        getattr(self, f"_{play_mode}")()
-
-    def _play(self, duration: float, delay: float):
-        super()._play(duration, delay)
-        for sequencer in self.sequencer_tuple:
-            sequencer.play()
-
-    def _stop(self, wait: float = 0):
-        super()._stop(wait)
-        self._is_playing = False
-        for sequencer in self.sequencer_tuple:
-            sequencer.stop(wait)
-
-        self._shutdown_scheduler()
-
-        if self.traveller:
-            walkman.constants.LOGGER.info(f"End time travel, return to present.")
-            self.traveller.stop()
-
         # The current basic sequencer implementation of walkman isn't
         # very clever and doesn't start the same event at the point where
         # it stopped, but it simply jumps to the next event.
@@ -244,12 +235,30 @@ class AeolianHarp(walkman.Hub):
         # won't be in sync anymore. So we simply re-initialize all sequencers
         # before playing again.
         self._reset_events()
+        super()._play(duration, delay)
+        for sequencer in self.sequencer_tuple:
+            sequencer.play()
+
+    def _stop(self, wait: float = 0):
+        self._shutdown_scheduler()
+
+        if self.traveller:
+            walkman.constants.LOGGER.info(f"End time travel, return to present.")
+            self.traveller.stop()
+
+        super()._stop(wait)
+        for sequencer in self.sequencer_tuple:
+            sequencer.event_iterator = iter([])
+            sequencer.stop(wait)
+
+        self._is_playing = False
 
     def _shutdown_scheduler(self):
         walkman.constants.LOGGER.info("Shutdown/cleanup scheduler")
         try:
             [j.remove() for j in self.scheduler.get_jobs()]
             self.scheduler.shutdown()
+            del self.scheduler
         except AttributeError:
             pass
 
