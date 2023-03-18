@@ -124,8 +124,6 @@ def make_sequential_event(instrument, scale, pitch, random, activity_level):
         activity_level,
     )
     if activity_level(9):
-        side_pitch_tuple = (None,) * chord_count
-    else:
         side_pitch_tuple = make_side_pitch_tuple(
             scale,
             pitch_tuple,
@@ -135,6 +133,8 @@ def make_sequential_event(instrument, scale, pitch, random, activity_level):
             chord_count,
             activity_level,
         )
+    else:
+        side_pitch_tuple = (None,) * chord_count
     fill_in_pitches = find_fill_in_pitches(
         main_pitch_tuple, side_pitch_tuple, pitch_tuple, add_fill_up_pitch_tuple_tuple
     )
