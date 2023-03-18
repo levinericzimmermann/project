@@ -25,12 +25,6 @@ def is_supported(context, scale, **kwargs):
     return scale.is_supported(context, **kwargs)
 
 
-# ENVELOPE_CYCLE = itertools.cycle(
-#     ("BASIC", "PLUCK_0", "PLUCK_1", "BASIC_QUIET", "BASIC_LOUD")
-# )
-ENVELOPE_CYCLE = itertools.cycle(("BASIC", "BASIC_QUIET"))
-
-
 def main(
     context,
     random,
@@ -57,7 +51,7 @@ def main(
         string_list_tuple, event_count_to_average_tone_duration, modal_event_to_convert
     )
 
-    sim = make_simultaneous_event(string_list_tuple, random, instrument)
+    sim = make_simultaneous_event(string_list_tuple, random, instrument, activity_level)
 
     return timeline_interfaces.EventPlacement(
         core_events.SimultaneousEvent([sim]),
@@ -88,7 +82,7 @@ def make_range_pair(
     )
 
 
-def make_simultaneous_event(string_list_tuple, random, instrument):
+def make_simultaneous_event(string_list_tuple, random, instrument, activity_level):
     tag = instrument.name
 
     event_count = len(string_list_tuple)
@@ -108,6 +102,14 @@ def make_simultaneous_event(string_list_tuple, random, instrument):
         tag=tag,
     )
 
+    if activity_level(6):
+        envelope = "BASIC"
+    else:
+        envelope = "PLUCK_1"  # works better than PLUCK_0
+    frequency_factor = 1
+    if envelope in ("BASIC", "BASIC_LOUD", "BASIC_QUIET"):
+        frequency_factor = 0.25
+
     absolute_time = core_parameters.DirectDuration(0)
     for string_list, duration, start in zip(
         string_list_tuple,
@@ -119,8 +121,8 @@ def make_simultaneous_event(string_list_tuple, random, instrument):
             note_like = music_events.NoteLike(
                 string.tuning, duration=duration, volume="p"
             )
-            note_like.frequency_factor = 1
-            note_like.envelope = next(ENVELOPE_CYCLE)
+            note_like.frequency_factor = frequency_factor
+            note_like.envelope = envelope
             seq.squash_in(start, note_like)
         absolute_time += duration
 
