@@ -18,11 +18,15 @@ class Violin(music_parameters.ContinuousPitchedStringInstrument):
             **_setdefault(kwargs, project_parameters.configurations.DEFAULT_VIOLIN_DICT)
         )
 
+
 class Clavichord(music_parameters.DiscreetPitchedStringInstrument):
     def __init__(self, **kwargs):
         super().__init__(
-            **_setdefault(kwargs, project_parameters.configurations.DEFAULT_CLAVICHORD_DICT)
+            **_setdefault(
+                kwargs, project_parameters.configurations.DEFAULT_CLAVICHORD_DICT
+            )
         )
+
 
 class AeolianHarp(music_parameters.DiscreetPitchedStringInstrument):
     # My aeolian harp is actually build of three independent instrument
@@ -114,12 +118,16 @@ class AeolianHarp(music_parameters.DiscreetPitchedStringInstrument):
                 string_list.append(music_parameters.String(string_index, pitch))
                 pitch_list.append(pitch)
                 string_index += 1
+        self.string_tuple_for_each_box = tuple(
+            string_list[i : i + self.BOX_STRING_COUNT]
+            for i in range(0, self.TOTAL_STRING_COUNT, self.BOX_STRING_COUNT)
+        )
         super().__init__(
             tuple(pitch_list),
             name="aeolian harp",
             short_name="a.h",
             string_tuple=tuple(string_list),
-            pitch_count_range=ranges.Range(1, self.TOTAL_STRING_COUNT + 1)
+            pitch_count_range=ranges.Range(1, self.TOTAL_STRING_COUNT + 1),
         )
 
     # Aeolian harp doesn't support harmonics!
