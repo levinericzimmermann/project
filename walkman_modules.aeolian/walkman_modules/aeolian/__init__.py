@@ -7,12 +7,12 @@ import typing
 
 from astral import LocationInfo
 from apscheduler.schedulers.background import BackgroundScheduler
+import time_machine
 
 import pyo
 import serial
 import walkman
 import walkmanio
-
 
 __all__ = ("String", "AeolianHarp", "Compressor")
 
@@ -30,6 +30,9 @@ LOCATION_INFO = LocationInfo(
     latitude=51.4556432,
     longitude=7.0115552,
 )
+TZINFO_STRING = datetime.datetime(2000, 1, 1, tzinfo=LOCATION_INFO.tzinfo).isoformat()[
+    -6:
+]
 
 
 class Envelope(enum.IntEnum):
@@ -183,9 +186,22 @@ class AeolianHarp(walkman.Hub):
         self.sequencer_tuple = tuple(sequencer_list)
         self._reset_events()
 
-    def _initialise(self, play_mode: str = "test", *args, **kwargs):
+    def _initialise(
+        self,
+        play_mode: str = "test",
+        jumptime: typing.Optional[str] = None,
+        *args,
+        **kwargs,
+    ):
         super()._initialise(*args, **kwargs)
         self.play_mode = play_mode
+        # Allow time travel for testing purposes
+        self.traveller = None
+        if jumptime:
+            jumptime = datetime.datetime.fromisoformat(jumptime + "+00:00")
+            walkman.constants.LOGGER.info(f"Start time travel to {jumptime}.")
+            self.traveller = time_machine.travel(jumptime)
+            self.traveller.start()
         self._reset_events()
 
     def _reset_events(self):
@@ -204,6 +220,10 @@ class AeolianHarp(walkman.Hub):
             sequencer.stop(wait)
 
         self._shutdown_scheduler()
+
+        if self.traveller:
+            walkman.constants.LOGGER.info(f"End time travel, return to present.")
+            self.traveller.stop()
 
         # The current basic sequencer implementation of walkman isn't
         # very clever and doesn't start the same event at the point where
@@ -231,9 +251,13 @@ class AeolianHarp(walkman.Hub):
         self.scheduler = BackgroundScheduler()
         astral_part_tuple = walkmanio.import_astral_part_tuple("etc/walkmansequences")
         now = datetime.datetime.now(LOCATION_INFO.tzinfo)
+        walkman.constants.LOGGER.info(f"Now it's {now}.")
         for d, sequence_tuple in astral_part_tuple:
             walkman.constants.LOGGER.warning(f"Activate astral part on {d}:")
             if d < now:  # Ignore past event
+                walkman.constants.LOGGER.info(
+                    f"\tPart is ignored (this is in the past)."
+                )
                 continue
             for s_index, sequence in enumerate(sequence_tuple):
                 try:

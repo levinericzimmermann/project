@@ -57,6 +57,7 @@ in
       numpy
       APScheduler
       astral
+      time-machine
     ];
     checkPhase = ''
       runHook preCheck
