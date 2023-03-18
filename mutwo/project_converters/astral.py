@@ -205,8 +205,8 @@ class AstralConstellationToOrchestration(core_converters.abc.Converter):
             music_parameters.JustIntonationPitch("1/1"),
             music_parameters.RepeatingScaleFamily(
                 pitch_tuple,
-                min_pitch_interval=music_parameters.JustIntonationPitch("1/2"),
-                max_pitch_interval=music_parameters.JustIntonationPitch("8/1"),
+                min_pitch_interval=music_parameters.JustIntonationPitch("5/24"),
+                max_pitch_interval=music_parameters.JustIntonationPitch("6/1"),
             ),
         ).pitch_tuple
         string_tuple = tuple(
@@ -271,7 +271,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
     def convert(
         self,
         astral_event: core_events.SimultaneousEvent[core_events.TaggedSequentialEvent],
-    ) -> tuple[clock_interfaces.Clock, ...]:
+    ) -> tuple[tuple[clock_interfaces.Clock, ...], music_parameters.Orchestration]:
         clock_list = []
 
         for absolute_time, moon_phase_event in zip(
@@ -294,7 +294,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
             clock_list.append(
                 self._make_clock(orchestration, clock_count, scale, duration)
             )
-        return tuple(clock_list)
+        return tuple(clock_list), orchestration
 
     def _make_clock(
         self,

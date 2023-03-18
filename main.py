@@ -11,6 +11,19 @@ from mutwo import diary_interfaces
 from mutwo import music_parameters
 from mutwo import project_converters
 
+astral_constellation_to_orchestration = (
+    project_converters.AstralConstellationToOrchestration(
+        project.constants.MOON_PHASE_TO_INTONATION,
+        project.constants.SUN_LIGHT_TO_PITCH_INDEX_TUPLE,
+        project.constants.MOON_LIGHT_TO_PITCH_INDEX_TUPLE,
+    )
+)
+astral_constellation_to_scale = project_converters.AstralConstellationToScale(
+    project.constants.MOON_PHASE_TO_INTONATION,
+    project.constants.SUN_LIGHT_TO_PITCH_INDEX_TUPLE,
+    project.constants.MOON_LIGHT_TO_PITCH_INDEX_TUPLE,
+)
+
 
 def make_part(location_info, d, day_light):
     if allowed_date_list and not any(
@@ -27,25 +40,17 @@ def make_part(location_info, d, day_light):
     astral_event = project_converters.DatetimeToSimultaneousEvent(
         location_info
     ).convert(d)
-    clock_tuple = project_converters.AstralEventToClockTuple(
-        project_converters.AstralConstellationToOrchestration(
-            project.constants.MOON_PHASE_TO_INTONATION,
-            project.constants.SUN_LIGHT_TO_PITCH_INDEX_TUPLE,
-            project.constants.MOON_LIGHT_TO_PITCH_INDEX_TUPLE,
-        ),
-        project_converters.AstralConstellationToScale(
-            project.constants.MOON_PHASE_TO_INTONATION,
-            project.constants.SUN_LIGHT_TO_PITCH_INDEX_TUPLE,
-            project.constants.MOON_LIGHT_TO_PITCH_INDEX_TUPLE,
-        ),
+    clock_tuple, orchestration = project_converters.AstralEventToClockTuple(
+        astral_constellation_to_orchestration,
+        astral_constellation_to_scale,
     ).convert(astral_event)
 
     # SPECIFIC
     sound(clock_tuple)
-    notate(day_light, astral_event, clock_tuple)
+    notate(day_light, astral_event, clock_tuple, orchestration)
 
 
-def notate(day_light, astral_event, clock_tuple):
+def notate(day_light, astral_event, clock_tuple, orchestration):
     if day_light == "sunset":
         print("\tnotate...")
         intonation_tuple = project.constants.MOON_PHASE_TO_INTONATION[
@@ -59,7 +64,9 @@ def notate(day_light, astral_event, clock_tuple):
                 max_pitch_interval=music_parameters.JustIntonationPitch("32/1"),
             ),
         )
-        NOTATION_PATH_LIST.append(project.render.notation(clock_tuple, d, scale))
+        NOTATION_PATH_LIST.append(
+            project.render.notation(clock_tuple, d, scale, orchestration)
+        )
 
 
 def sound(clock_tuple):
