@@ -11,43 +11,54 @@ channel_count           = 2
 
 {% set fade_in                  = 5 %}
 {% set fade_out                 = 8 %}
+{% set box_count                = 3 %}
 {% set string_count             = 3 %}
-{% set audio_input_count        = 1 %}
+{% set total_string_count       = string_count * box_count %}
 
-{% for pin_index in [0, 1, 2] %}
-    {% set string_index = loop.index - 1 %}
-    [configure.module.string.{{ string_index }}]
-    com_port                = "/dev/ttyACM0"
-    pin_index               = {{ pin_index }}
+{% for box_index in range(box_count) %}
+    {% for pin_index in range(string_count) %}
+        {% set string_index = (box_index * string_count) + pin_index %}
+        [configure.module.string.{{ string_index }}]
+        com_port                = "/dev/ttyACM{{ box_index }}"
+        pin_index               = {{ pin_index }}
+    {% endfor %}
+
+    # Each box has its own pickup
+    [configure.module.audio_input.{{ box_index }}]
+    input_channel_index     = {{ box_index }}
+    fade_in_duration        = {{ fade_in }}
+    fade_out_duration       = {{ fade_out }}
+
+    [configure.module.value.audio_input_{{ box_index }}_child_decibel]
+    # We have a very quiet signal
+    value                   = 50
+
+    [configure.module.compressor.{{ box_index }}]
+    audio_input             = "audio_input.{{ box_index }}"
 {% endfor %}
-
-# Pickup 1
-[configure.module.audio_input.0]
-input_channel_index     = 0
-fade_in_duration        = {{ fade_in }}
-fade_out_duration       = {{ fade_out }}
-
-[configure.module.compressor.0]
-audio_input             = "audio_input.0"
-
-[configure.module.value.audio_input_0_child_decibel]
-# We have a very quiet signal
-value                   = 50
 
 [configure.module.aeolian_harp.0]
-{% for string_index in range(string_count) %}
-audio_input_{{ string_index }}           = "string.{{ string_index }}"
-{% endfor %}
-
-{% for audio_input_index in range(audio_input_count) %}
-audio_input_{{ string_count + audio_input_index }} = "compressor.{{ audio_input_index }}"
+{% for box_index in range(box_count) %}
+    {% for pin_index in range(string_count) %}
+        {% set string_index = (box_index * string_count) + pin_index %}
+        audio_input_{{ string_index }}           = "string.{{ string_index }}"
+    {% endfor %}
+    audio_input_{{ total_string_count + box_index }} = "compressor.{{ box_index }}"
 {% endfor %}
 
     [configure.module.aeolian_harp.0.audio_input_index_to_pyo_object_index]
-    0 = 0
+    {% for box_index in range(box_count) %}
+    {{ box_index + total_string_count }} = {{ box_index }}
+    {% endfor %}
 
 [configure.module.mixer.strings]
-audio_input_0           = "aeolian_harp.0.0"
+{% for box_index in range(box_count) %}
+    audio_input_{{ box_index }}          = "aeolian_harp.0.{{ box_index }}"
+{% endfor %}
+{% for box_index in range(box_count) %}
+    [configure.module.mixer.strings.default_dict.audio_input_{{ box_index }}_channel_mapping]
+    0 = [{{ box_index }}]
+{% endfor %}
 
 [configure.module.butterworth_highpass_filter.strings]
 audio_input             = "mixer.strings"
@@ -72,7 +83,9 @@ value                   = 25
 audio_input_0           = "average.strings"
 
 [configure.module.mixer.pre_master.default_dict.audio_input_0_channel_mapping]
-0                       = [0, 1]
+{% for box_index in range(box_count) %}
+{{ box_index }}         = [{{ box_index }}]
+{% endfor %}
 
 [configure.module.value.mixer_pre_master_child_decibel]
 value                   = -3
