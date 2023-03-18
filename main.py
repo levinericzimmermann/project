@@ -47,7 +47,7 @@ def make_part(location_info, d, day_light):
 
 def notate(day_light, astral_event, clock_tuple):
     if day_light == "sunset":
-        print('\tnotate...')
+        print("\tnotate...")
         intonation_tuple = project.constants.MOON_PHASE_TO_INTONATION[
             astral_event["moon_phase"][0].moon_phase
         ]
@@ -63,7 +63,7 @@ def notate(day_light, astral_event, clock_tuple):
 
 
 def sound(clock_tuple):
-    print('\tsound...')
+    print("\tsound...")
     # For both - midi frontend and walkman frontend - we need
     # to convert our clocks to one simultaneous event. So we do
     # it here instead of having it inside the midi converter.
@@ -110,7 +110,10 @@ if __name__ == "__main__":
     )
 
     with diary_interfaces.open():
-        april = tuple(datetime.datetime(2023, 4, d) for d in range(1, 31))
+        april = tuple(
+            datetime.datetime(2023, 4, d, tzinfo=location_info.tzinfo)
+            for d in range(1, 31)
+        )
         for day in april:
             print(f"RENDER '{day}'!")
             s = sun.sun(
