@@ -205,8 +205,8 @@ class AstralConstellationToOrchestration(core_converters.abc.Converter):
             music_parameters.JustIntonationPitch("1/1"),
             music_parameters.RepeatingScaleFamily(
                 pitch_tuple,
-                min_pitch_interval=music_parameters.JustIntonationPitch("1/4"),
-                max_pitch_interval=music_parameters.JustIntonationPitch("2/1"),
+                min_pitch_interval=music_parameters.JustIntonationPitch("1/2"),
+                max_pitch_interval=music_parameters.JustIntonationPitch("8/1"),
             ),
         ).pitch_tuple
         string_tuple = tuple(
@@ -305,13 +305,25 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
     ) -> clock_interfaces.Clock:
         duration = duration.duration
 
+        # XXX: faster render for tests
+        # duration *= 0.5
+
         # We take exactly 4 durations, because a gatra consist
         # of 4 events. So the structure repeats after each gatra.
         # So one gatra/phrase takes around 4, 5 minutes (this
         # is a basic melodic phrase).
-        ev_duration_cycle = itertools.cycle((5, 7, 6, 8))
+        default_pattern = (3, 6, 4, 7)
+        odd_pattern = (2, 2, 3, 4)
+        # ev_duration_cycle = itertools.cycle(([odd_pattern] * 5))
+        ev_duration_cycle = itertools.cycle((default_pattern * 3) + odd_pattern)
 
-        tempo_cycle = itertools.cycle((4, 4.2, 3.8, 4.1, 4.3, 4.05, 3.9))
+        # If the tempo is faster, there is less space
+        # and the likelihood that clavichord and aeolian
+        # harp are overlapping is higher.
+        avg_t = 3.75  # XXX: Tempo > 3.75 breaks the notation, Idk why,
+        #  but we can simply vary bar size instead of tempo.
+        # tempo_cycle = itertools.cycle(([avg_t] * 7) + [8, 7])
+        tempo_cycle = itertools.cycle(([avg_t] * 7))
 
         clock_event_list = []
         clock_duration = 0
@@ -320,7 +332,9 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
 
             # If we use a higher tempo the score is longer and more verbose.
             # With a too low tempo the score is too dense / almost unreadable.
-            tempo = core_parameters.DirectTempoPoint(next(tempo_cycle))  # 4/1 == 60 seconds
+            tempo = core_parameters.DirectTempoPoint(
+                next(tempo_cycle)
+            )  # 4/1 == 60 seconds
 
             # We add the tempo straight to the clock events,
             # this has two advantages:
