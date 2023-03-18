@@ -101,6 +101,15 @@ def aeolian_harp_converter():
                                 if p not in note_like.pitch_list:
                                     note_like.pitch_list.append(p)
                     new_sequential_event.append(note_like)
+                new_sequential_event.set_parameter(
+                    "pitch_list",
+                    lambda pl: [
+                        p - music_parameters.JustIntonationPitch("2/1") for p in pl
+                    ],
+                )
+                for e in new_sequential_event:
+                    if hasattr(e, "notation_indicator_collection"):
+                        e.notation_indicator_collection.clef.name = "alto"
                 event_placement.event[tag] = core_events.TaggedSimultaneousEvent(
                     [new_sequential_event], tag=tag
                 )
@@ -229,6 +238,23 @@ def get_clavichord_tuning():
     return ", ".join(diff_list)
 
 
+def get_aeolian_harp_tuning(orchestration):
+    aeolian_harp = orchestration.AEOLIAN_HARP
+    tuning = []
+    for box_index, string_tuple in enumerate(aeolian_harp.string_tuple_for_each_box):
+        tuning_part = []
+        for string in string_tuple:
+            p = string.tuning
+            pname = p.get_closest_pythagorean_pitch_name()
+            dev = round(p.cent_deviation_from_closest_western_pitch_class, 2)
+            ratio = (p + music_parameters.JustIntonationPitch("2/1")).ratio
+            pitch_data = f"{pname} ({ratio}): {dev}"
+            tuning_part.append(pitch_data)
+        tuning_part = ", ".join(tuning_part)
+        tuning.append(f"b{box_index + 1} [{tuning_part}]")
+    return "; ".join(tuning)
+
+
 SCALE = None
 SCALE_TRANSPOSED = music_parameters.Scale(
     music_parameters.WesternPitch("a", 4),
@@ -243,7 +269,7 @@ SCALE_TRANSPOSED = music_parameters.Scale(
 )
 
 
-def notation(clock_tuple, d, scale):
+def notation(clock_tuple, d, scale, orchestration):
     global SCALE
     SCALE = scale
     formatted_time = f"{d.year}.{d.month}.{d.day}, {d.hour}:{d.minute}"
@@ -252,7 +278,9 @@ def notation(clock_tuple, d, scale):
         f'{formatted_time}, essen"'
         r"} }"
     )
+    aeolian_harp_tuning = get_aeolian_harp_tuning(orchestration)
     subtitle = rf'\markup {{ \fontsize #-2 \typewriter \medium {{ "{get_clavichord_tuning()}" }} }}'
+    composer = rf'\markup {{ \fontsize #-2 \typewriter \medium {{ "{aeolian_harp_tuning}" }} }}'
     abjad_score_to_abjad_score_block = clock_converters.AbjadScoreToAbjadScoreBlock()
     instrument_note_like_to_pitched_note_like = (
         project_converters.InstrumentNoteLikeToPitchedNoteLike(
@@ -333,6 +361,7 @@ def notation(clock_tuple, d, scale):
         abjad_score_block_list,
         title=title,
         subtitle=subtitle,
+        composer=composer,
         # tagline=rf'\markup {{ \typewriter {{ "{formatted_time}" }} }}',
     )
 
