@@ -99,7 +99,13 @@ def make_sequential_event(instrument, scale, pitch, random, activity_level):
     chord_count = random.choice(chord_count_pick_tuple)
     side_pitch_direction = (-1, 1)[activity_level(5)]
     octave_delta = random.choice([1, 1, 1, 2]) * side_pitch_direction
-    main_pitch_octave_scale_position = random.choice([0, -1, 1])
+    if side_pitch_direction > 0:
+        valid_pitch_octave_scale_position_choice = [0, -1]
+    else:
+        valid_pitch_octave_scale_position_choice = [0, 1]
+    main_pitch_octave_scale_position = random.choice(
+        valid_pitch_octave_scale_position_choice
+    )
     add_fill_up_pitch_tuple_tuple = tuple(
         random.choice([(True, True), (False, True), (True, False), (False, False)])
         for _ in range(chord_count)
