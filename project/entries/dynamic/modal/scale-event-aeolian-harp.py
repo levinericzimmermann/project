@@ -47,7 +47,8 @@ def main(
     pitch_tuple = scale(context, **kwargs)
     modal_event_to_convert = context.modal_event
     instrument = context.orchestration[0]
-    string_list_tuple = find_string_list_tuple(pitch_tuple, instrument, random)
+    add_partner = activity_level(7)
+    string_list_tuple = find_string_list_tuple(pitch_tuple, instrument, random, add_partner)
 
     start_range, end_range = make_range_pair(
         string_list_tuple, event_count_to_average_tone_duration, modal_event_to_convert
@@ -125,7 +126,7 @@ def make_simultaneous_event(string_list_tuple, random, instrument):
 
 
 def find_string_list_tuple(
-    pitch_tuple, instrument, random
+    pitch_tuple, instrument, random, add_partner
 ) -> tuple[list[music_parameters.String], ...]:
     string_list_list = []
     for pitch in pitch_tuple:
@@ -134,13 +135,14 @@ def find_string_list_tuple(
             if string.tuning == pitch:
                 picked_string_list.append(string)
         string_count = len(picked_string_list)
-        match string_count:
-            case 0:
-                warnings.warn(f"{__name__}: found no string for pitch {pitch}")
-            case 1:
-                picked_string_list.append(
-                    find_partner(pitch, picked_string_list[0], instrument, random)
-                )
+        if add_partner:
+            match string_count:
+                case 0:
+                    warnings.warn(f"{__name__}: found no string for pitch {pitch}")
+                case 1:
+                    picked_string_list.append(
+                        find_partner(pitch, picked_string_list[0], instrument, random)
+                    )
         string_list_list.append(picked_string_list)
     return tuple(string_list_list)
 
