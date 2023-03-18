@@ -22,10 +22,12 @@ def make_part(location_info, d, day_light):
         return
     if allowed_day_light_list and day_light not in allowed_day_light_list:
         return
+
+    # COMMON
     astral_event = project_converters.DatetimeToSimultaneousEvent(
         location_info
     ).convert(d)
-    clock_tuple  = project_converters.AstralEventToClockTuple(
+    clock_tuple = project_converters.AstralEventToClockTuple(
         project_converters.AstralConstellationToOrchestration(
             project.constants.MOON_PHASE_TO_INTONATION,
             project.constants.SUN_LIGHT_TO_PITCH_INDEX_TUPLE,
@@ -38,6 +40,30 @@ def make_part(location_info, d, day_light):
         ),
     ).convert(astral_event)
 
+    # SPECIFIC
+    sound(clock_tuple)
+    notate(day_light, astral_event, clock_tuple)
+
+
+def notate(day_light, astral_event, clock_tuple):
+    if day_light == "sunset":
+        print('\tnotate...')
+        intonation_tuple = project.constants.MOON_PHASE_TO_INTONATION[
+            astral_event["moon_phase"][0].moon_phase
+        ]
+        scale = music_parameters.Scale(
+            music_parameters.JustIntonationPitch("1/1"),
+            music_parameters.RepeatingScaleFamily(
+                intonation_tuple,
+                min_pitch_interval=music_parameters.JustIntonationPitch("1/16"),
+                max_pitch_interval=music_parameters.JustIntonationPitch("32/1"),
+            ),
+        )
+        NOTATION_PATH_LIST.append(project.render.notation(clock_tuple, d, scale))
+
+
+def sound(clock_tuple):
+    print('\tsound...')
     # For both - midi frontend and walkman frontend - we need
     # to convert our clocks to one simultaneous event. So we do
     # it here instead of having it inside the midi converter.
@@ -61,20 +87,6 @@ def make_part(location_info, d, day_light):
 
     project.render.midi(simultaneous_event)
     project.render.walkman(simultaneous_event, d)
-
-    if day_light == "sunset":
-        intonation_tuple = project.constants.MOON_PHASE_TO_INTONATION[
-            astral_event["moon_phase"][0].moon_phase
-        ]
-        scale = music_parameters.Scale(
-            music_parameters.JustIntonationPitch("1/1"),
-            music_parameters.RepeatingScaleFamily(
-                intonation_tuple,
-                min_pitch_interval=music_parameters.JustIntonationPitch("1/16"),
-                max_pitch_interval=music_parameters.JustIntonationPitch("32/1"),
-            ),
-        )
-        NOTATION_PATH_LIST.append(project.render.notation(clock_tuple, d, scale))
 
 
 NOTATION_PATH_LIST = []
