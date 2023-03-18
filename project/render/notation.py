@@ -277,9 +277,23 @@ def notation(clock_tuple, d, scale):
             if clock_line:
                 # Remove first + last event placement of clavichord
                 clock_line.sort()
-                clock_line._event_placement_list = clock_line._event_placement_list[
-                    1:-1
+                prohibited_event_placement_index_list = []
+                for i, ep in enumerate(clock_line._event_placement_list):
+                    if "clavichord" in ep.event:
+                        prohibited_event_placement_index_list.append(i)
+                        break
+                for i, ep in enumerate(reversed(clock_line._event_placement_list)):
+                    if "clavichord" in ep.event:
+                        prohibited_event_placement_index_list.append(
+                            len(clock_line._event_placement_list) - 1 - i
+                        )
+                        break
+                clock_line._event_placement_list = [
+                    ep
+                    for i, ep in enumerate(clock_line._event_placement_list)
+                    if i not in prohibited_event_placement_index_list
                 ]
+
                 # ####
                 clock_line._clock_event = instrument_note_like_to_pitched_note_like(
                     clock_line.clock_event
