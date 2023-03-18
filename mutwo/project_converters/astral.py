@@ -313,9 +313,9 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         # So one gatra/phrase takes around 4, 5 minutes (this
         # is a basic melodic phrase).
         default_pattern = (3, 6, 4, 7)
-        odd_pattern = (2, 2, 3, 4)
+        odd_pattern = (3, 5, 3, 6, 2, 4, 2, 4, 2, 2, 3, 4, 3, 5, 4, 6)
         # ev_duration_cycle = itertools.cycle(([odd_pattern] * 5))
-        ev_duration_cycle = itertools.cycle((default_pattern * 3) + odd_pattern)
+        ev_duration_cycle = itertools.cycle((default_pattern * 2) + odd_pattern)
 
         # If the tempo is faster, there is less space
         # and the likelihood that clavichord and aeolian
