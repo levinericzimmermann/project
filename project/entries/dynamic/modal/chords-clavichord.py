@@ -87,8 +87,14 @@ def make_range_pair(
 
 
 def make_sequential_event(instrument, scale, pitch, random, activity_level):
-    # chord_count = random.choice([1, 2, 3, 4])
-    chord_count = random.choice([1, 2, 3, 4, 5])
+    scale_degree = scale.pitch_to_scale_degree(pitch)
+
+    if scale_degree == 0:
+        chord_count_pick_tuple = (1, 2, 3, 4, 5)
+    else:
+        chord_count_pick_tuple = (1, 2, 3)
+
+    chord_count = random.choice(chord_count_pick_tuple)
     side_pitch_direction = (-1, 1)[activity_level(5)]
     octave_delta = random.choice([1, 1, 1, 2]) * side_pitch_direction
     main_pitch_octave_scale_position = random.choice([0, -1, 1])
@@ -98,7 +104,6 @@ def make_sequential_event(instrument, scale, pitch, random, activity_level):
     )
 
     pitch_tuple = instrument.pitch_tuple
-    scale_degree = scale.pitch_to_scale_degree(pitch)
 
     is_chord_harmonic_tuple = make_is_chord_harmonic_tuple(chord_count)
     main_pitch_tuple = make_main_pitch_tuple(
