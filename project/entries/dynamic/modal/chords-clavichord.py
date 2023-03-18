@@ -117,7 +117,7 @@ def make_sequential_event(instrument, scale, pitch, random, activity_level):
         pitch_tuple,
         activity_level,
     )
-    if activity_level(8):
+    if activity_level(9):
         side_pitch_tuple = (None,) * chord_count
     else:
         side_pitch_tuple = make_side_pitch_tuple(
