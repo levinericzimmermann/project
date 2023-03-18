@@ -320,7 +320,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         # If the tempo is faster, there is less space
         # and the likelihood that clavichord and aeolian
         # harp are overlapping is higher.
-        avg_t = 3.75  # XXX: Tempo > 3.75 breaks the notation, Idk why,
+        avg_t = 3.7  # XXX: Tempo > 3.75 breaks the notation, Idk why,
         #  but we can simply vary bar size instead of tempo.
         # tempo_cycle = itertools.cycle(([avg_t] * 7) + [8, 7])
         tempo_cycle = itertools.cycle(([avg_t] * 7))
