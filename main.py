@@ -115,12 +115,13 @@ if __name__ == "__main__":
             for d in range(1, 31)
         )
         for day in april:
-            print(f"RENDER '{day}'!")
+            print(f"RENDER '{day.isoformat()}'!")
             s = sun.sun(
                 location_info.observer, date=day, dawn_dusk_depression=Depression.CIVIL
             )
             for day_light in ("dawn", "sunrise", "sunset", "dusk"):
                 d = s[day_light]
+                print(f"\t'{d}'")
                 make_part(location_info, d, day_light)
 
     project.render.merge_notation(NOTATION_PATH_LIST)
