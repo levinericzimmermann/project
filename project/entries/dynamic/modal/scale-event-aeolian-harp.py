@@ -25,9 +25,10 @@ def is_supported(context, scale, **kwargs):
     return scale.is_supported(context, **kwargs)
 
 
-ENVELOPE_CYCLE = itertools.cycle(
-    ("BASIC", "PLUCK_0", "PLUCK_1", "BASIC_QUIET", "BASIC_LOUD")
-)
+# ENVELOPE_CYCLE = itertools.cycle(
+#     ("BASIC", "PLUCK_0", "PLUCK_1", "BASIC_QUIET", "BASIC_LOUD")
+# )
+ENVELOPE_CYCLE = itertools.cycle(("BASIC", "BASIC_QUIET"))
 
 
 def main(
@@ -48,7 +49,9 @@ def main(
     modal_event_to_convert = context.modal_event
     instrument = context.orchestration[0]
     add_partner = activity_level(7)
-    string_list_tuple = find_string_list_tuple(pitch_tuple, instrument, random, add_partner)
+    string_list_tuple = find_string_list_tuple(
+        pitch_tuple, instrument, random, add_partner
+    )
 
     start_range, end_range = make_range_pair(
         string_list_tuple, event_count_to_average_tone_duration, modal_event_to_convert
