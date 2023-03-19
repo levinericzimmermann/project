@@ -36,7 +36,7 @@ def clock_event_to_abjad_staff_group():
                 abjad.attach(
                     abjad.LilyPondLiteral(
                         r"\override Staff.StaffSymbol.line-count = #0 "
-                        r"\stopStaff \omit Staff.Clef \omit Staff.NoteHead"
+                        r"\stopStaff \omit Staff.Clef \omit Staff.NoteHead "
                         r"\hide Staff.BarLine "
                     ),
                     first_leaf,
@@ -128,7 +128,8 @@ def aeolian_harp_converter():
     return {
         "aeolian harp": EventPlacementToAbjadStaffGroup(
             complex_event_to_abjad_container,
-            staff_count=2,
+            staff_count=1,
+            placement_mode="floating",
         ),
     }
 
@@ -184,13 +185,7 @@ def clavichord_converter():
                 event_placement.event[
                     clavichord_tag
                 ] = core_events.TaggedSimultaneousEvent(
-                    # Don't print staves without any pitches!
-                    [
-                        s
-                        for s in (right, left)
-                        if any(s.get_parameter("pitch_list", filter_undefined=True))
-                    ],
-                    tag=clavichord_tag,
+                    [right, left], tag=clavichord_tag
                 )
             return super().convert(event_placement, *args, **kwargs)
 
@@ -208,6 +203,7 @@ def clavichord_converter():
         clavichord_tag: EventPlacementToAbjadStaffGroup(
             complex_event_to_abjad_container,
             staff_count=2,
+            placement_mode="floating",
         ),
     }
 
