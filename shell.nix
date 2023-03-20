@@ -1,4 +1,4 @@
-{ sources ? import ./nix/sources.nix, pkgs ? import <nixpkgs> {} }:
+{ sources ? import ./nix/sources.nix, rsources ? import (sources.mutwo-nix.outPath + "/nix/sources.nix"), pkgs ? import rsources.nixpkgs {}}:
 
 let
 
