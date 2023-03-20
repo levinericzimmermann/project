@@ -2,8 +2,8 @@
 
 let
 
-  mutwo-midi = import (sources.mutwo-nix.outPath + "/mutwo.midi/default.nix");
-  mutwo-diary = import (sources.mutwo-nix.outPath + "/mutwo.diary/default.nix");
+  mutwo-midi = import (sources.mutwo-nix.outPath + "/mutwo.midi/default.nix") {};
+  mutwo-diary = import (sources.mutwo-nix.outPath + "/mutwo.diary/default.nix") {};
 
   walkman-aeolian = import ./walkman_modules.aeolian { };
 
