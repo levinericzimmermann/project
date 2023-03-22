@@ -216,28 +216,7 @@ class AstralConstellationToOrchestration(core_converters.abc.Converter):
             AEOLIAN_HARP=project_parameters.AeolianHarp(
                 self._moon_phase_to_intonation[moon_phase]
             ),
-            CLAVICHORD=self._make_clavichord(
-                self._moon_phase_to_intonation[moon_phase]
-            ),
-        )
-
-    def _make_clavichord(
-        self, pitch_tuple: tuple[music_parameters.abc.Pitch, ...]
-    ) -> music_parameters.DiscreetPitchedStringInstrument:
-        pitch_tuple = music_parameters.Scale(
-            music_parameters.JustIntonationPitch("1/1"),
-            music_parameters.RepeatingScaleFamily(
-                pitch_tuple,
-                min_pitch_interval=music_parameters.JustIntonationPitch("5/24"),
-                max_pitch_interval=music_parameters.JustIntonationPitch("6/1"),
-            ),
-        ).pitch_tuple
-        string_tuple = tuple(
-            music_parameters.String(i, p) for i, p in enumerate(pitch_tuple)
-        )
-        return project_parameters.Clavichord(
-            pitch_tuple=pitch_tuple,
-            string_tuple=string_tuple,
+            GUITAR=project_parameters.Guitar(),
         )
 
 
@@ -405,7 +384,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         ev_duration_cycle = itertools.cycle((default_pattern * 2) + odd_pattern)
 
         # If the tempo is faster, there is less space
-        # and the likelihood that clavichord and aeolian
+        # and the likelihood that guitar and aeolian
         # harp are overlapping is higher.
         avg_t = 3.7  # XXX: Tempo > 3.75 breaks the notation, Idk why,
         #  but we can simply vary bar size instead of tempo.
@@ -481,14 +460,14 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         modal_0_sequential_event_to_clock_line = clock_converters.Modal0SequentialEventToClockLine(
             (
                 diary_converters.Modal0SequentialEventToEventPlacementTuple(
-                    orchestration.get_subset("AEOLIAN_HARP"),
+                    orchestration=orchestration.get_subset("AEOLIAN_HARP"),
                     # Turn off modal1 mode converter for better performance
                     # (this is very expensive and we don't want to use any
                     #  modal1 context based entries here anyway).
                     add_mod1=False,
                 ),
                 diary_converters.Modal0SequentialEventToEventPlacementTuple(
-                    orchestration.get_subset("CLAVICHORD"),
+                    orchestration=orchestration.get_subset("GUITAR"),
                     add_mod1=True,
                 ),
             )

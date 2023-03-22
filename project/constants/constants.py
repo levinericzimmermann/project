@@ -14,9 +14,7 @@ SKIP_CHECK = False
 SKIP_CHECK_CLOCK = False
 
 # a' frequency
-# Because my clavichord is tuned to a=415Hz (and that's also how I'd
-# like to read the music) we use a very low base pitch.
-A_FREQUENCY = 415.3047
+A_FREQUENCY = 440
 A_3_FREQUENCY = A_FREQUENCY / 2
 # we tune to 'a'
 music_parameters.configurations.DEFAULT_CONCERT_PITCH = A_3_FREQUENCY

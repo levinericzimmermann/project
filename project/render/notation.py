@@ -138,105 +138,35 @@ def aeolian_harp_converter():
 
 
 @run
-def clavichord_converter():
+def guitar_converter():
     class EventPlacementToAbjadStaffGroup(
         clock_converters.EventPlacementToAbjadStaffGroup
     ):
         def convert(self, event_placement, *args, **kwargs):
-            event = event_placement.event[clavichord_tag]
-            if isinstance(event, core_events.TaggedSimultaneousEvent):
-                # sounding -> written
-                event.set_parameter(
-                    "pitch_list",
-                    lambda pitch_list: [
-                        sounding_clavichord_pitch_to_written_clavichord_pitch(pitch)
-                        for pitch in pitch_list
-                    ]
-                    if pitch_list
-                    else None,
-                )
-                # split staves
-                border = music_parameters.WesternPitch("c", 4)
-                right = event.set_parameter(
-                    "pitch_list",
-                    lambda pitch_list: [p for p in pitch_list if p >= border]
-                    if pitch_list
-                    else None,
-                    mutate=False,
-                )[0]
-                left = event.set_parameter(
-                    "pitch_list",
-                    lambda pitch_list: [p for p in pitch_list if p < border]
-                    if pitch_list
-                    else None,
-                    mutate=False,
-                )[0]
-
-                for note_like in right:
-                    if notation_indicator_collection := getattr(
-                        note_like, "notation_indicator_collection", None
-                    ):
-                        notation_indicator_collection.clef.name = "treble"
-
-                for note_like in left:
-                    if notation_indicator_collection := getattr(
-                        note_like, "notation_indicator_collection", None
-                    ):
-                        notation_indicator_collection.clef.name = "bass"
-                        break
-
-                event_placement.event[
-                    clavichord_tag
-                ] = core_events.TaggedSimultaneousEvent(
-                    [right, left], tag=clavichord_tag
-                )
-
+            event = event_placement.event[guitar_tag]
+            if isinstance(event, core_events.SimultaneousEvent) and event and event[0]:
+                for e in event[0]:
+                    if hasattr(e, "notation_indicator_collection"):
+                        e.notation_indicator_collection.clef.name = "G_8"
             return super().convert(event_placement, *args, **kwargs)
 
-    complex_event_to_abjad_container = (
-        clock_generators.make_complex_event_to_abjad_container(
-            sequential_event_to_abjad_staff_kwargs=dict(
-                mutwo_volume_to_abjad_attachment_dynamic=None,
-                write_multimeasure_rests=False,
-            ),
-        )
+    complex_event_to_abjad_container = clock_generators.make_complex_event_to_abjad_container(
+        sequential_event_to_abjad_staff_kwargs=dict(
+            mutwo_pitch_to_abjad_pitch=abjad_converters.MutwoPitchToHEJIAbjadPitch(),
+            mutwo_volume_to_abjad_attachment_dynamic=None,
+            write_multimeasure_rests=False,
+        ),
     )
 
-    clavichord_tag = "clavichord"
+    guitar_tag = "guitar"
 
     return {
-        clavichord_tag: EventPlacementToAbjadStaffGroup(
+        guitar_tag: EventPlacementToAbjadStaffGroup(
             complex_event_to_abjad_container,
-            staff_count=2,
+            staff_count=1,
             placement_mode="floating",
         ),
     }
-
-
-def sounding_clavichord_pitch_to_written_clavichord_pitch(p):
-    try:
-        scale_position = SCALE.pitch_to_scale_position(p)
-    except ValueError:
-        print(f"Can't find pitch {p.ratio}")
-        return music_parameters.WesternPitch()
-    p = SCALE_TRANSPOSED.scale_position_to_pitch(scale_position)
-    if p.pitch_class_name == "bs":  # stupid rounding conversion?
-        p = music_parameters.WesternPitch("c", p.octave + 1)
-    p = music_parameters.WesternPitch(p.pitch_class_name, p.octave - 1)
-    return p
-
-
-def get_clavichord_tuning():
-    diff_list = []
-    for scale_degree in range(7):
-        sounding, written = (
-            s.scale_position_to_pitch((scale_degree, 0))
-            for s in (SCALE, SCALE_TRANSPOSED)
-        )
-        diff = round(written.get_pitch_interval(sounding).interval, 2)
-        r = f"{sounding.ratio.numerator}/{sounding.ratio.denominator}"
-        diff_list.append(f"{written.pitch_class_name} ({r}): {diff}")
-    return ", ".join(diff_list)
 
 
 def get_aeolian_harp_tuning(orchestration):
@@ -280,15 +210,14 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
         r"} }"
     )
     aeolian_harp_tuning = get_aeolian_harp_tuning(orchestration)
-    subtitle = rf'\markup {{ \fontsize #-2 \typewriter \medium {{ "{get_clavichord_tuning()}" }} }}'
-    composer = rf'\markup {{ \fontsize #-2 \typewriter \medium {{ "{aeolian_harp_tuning}" }} }}'
+    subtitle = rf'\markup {{ \fontsize #-2 \typewriter \medium {{ "{aeolian_harp_tuning}" }} }}'
     abjad_score_to_abjad_score_block = clock_converters.AbjadScoreToAbjadScoreBlock()
     instrument_note_like_to_pitched_note_like = (
         project_converters.InstrumentNoteLikeToPitchedNoteLike(
             project.constants.CLOCK_INSTRUMENT_TO_PITCH_DICT
         )
     )
-    tag_to_abjad_staff_group_converter = clavichord_converter
+    tag_to_abjad_staff_group_converter = guitar_converter
     tag_to_abjad_staff_group_converter.update(aeolian_harp_converter)
 
     clock_to_abjad_score = clock_converters.ClockToAbjadScore(
@@ -304,15 +233,15 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
             clock.end_clock_line,
         ):
             if clock_line:
-                # Remove first + last event placement of clavichord
+                # Remove first + last event placement of guitar
                 clock_line.sort()
                 prohibited_event_placement_index_list = []
                 for i, ep in enumerate(clock_line._event_placement_list):
-                    if "clavichord" in ep.event:
+                    if "guitar" in ep.event:
                         prohibited_event_placement_index_list.append(i)
                         break
                 for i, ep in enumerate(reversed(clock_line._event_placement_list)):
-                    if "clavichord" in ep.event:
+                    if "guitar" in ep.event:
                         prohibited_event_placement_index_list.append(
                             len(clock_line._event_placement_list) - 1 - i
                         )
@@ -329,7 +258,7 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
                 )
         abjad_score = clock_to_abjad_score.convert(
             clock,
-            tag_tuple=("clavichord", "aeolian harp"),
+            tag_tuple=("guitar", "aeolian harp"),
         )
 
         # We get lilypond error for harp:
@@ -362,7 +291,6 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
         abjad_score_block_list,
         title=title,
         subtitle=subtitle,
-        composer=composer,
         # tagline=rf'\markup {{ \typewriter {{ "{formatted_time}" }} }}',
     )
 
