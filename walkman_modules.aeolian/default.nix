@@ -1,11 +1,10 @@
-{ sources ? import ./nix/sources.nix, pkgs ? import <nixpkgs> {} }:
-
+{ sources ? import ./nix/sources.nix, rsources ? import (sources.mutwo-nix.outPath + "/nix/sources.nix"), pkgs ? import rsources.nixpkgs {}}:
 with pkgs.python310Packages;
 
 
 let
 
-  walkman  = import (sources.walkman.outPath + "/default.nix");
+  walkman = import (sources.mutwo-nix.outPath + "/walkman/default.nix") {};
 
   astral = pkgs.python310Packages.buildPythonPackage rec {
     pname = "astral";
@@ -22,7 +21,7 @@ let
       freezegun
     ];
   
-    checkInputs = with pkgs.python310Packages; [
+    nativeCheckInputs = with pkgs.python310Packages; [
       pytest
     ];
   
