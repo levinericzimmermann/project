@@ -278,8 +278,8 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
 
         sun_light = astral_event["sun_light"].get_parameter("sun_light", flat=True)[0]
 
-        for absolute_time, moon_phase_event in zip(
-            astral_event["moon_phase"].absolute_time_tuple, astral_event["moon_phase"]
+        for absolute_time, moon_light_event in zip(
+            astral_event["moon_light"].absolute_time_tuple, astral_event["moon_light"]
         ):
             astral_constellation = {
                 a: astral_event[a].get_event_at(absolute_time).get_parameter(a)
@@ -289,7 +289,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
             orchestration = self._astral_constellation_to_orchestration(
                 **astral_constellation
             )
-            duration = moon_phase_event.duration
+            duration = moon_light_event.duration
 
             clock = None
 
