@@ -19,6 +19,7 @@ from mutwo import core_converters
 from mutwo import core_events
 from mutwo import core_parameters
 from mutwo import diary_converters
+from mutwo import diary_interfaces
 from mutwo import music_events
 from mutwo import music_parameters
 from mutwo import project_converters
@@ -59,6 +60,7 @@ class DatetimeToSimultaneousEvent(DatetimeConverter):
         timedelta = d_end - d
         dur = timedelta.total_seconds()
         tag, si = core_events.TaggedSequentialEvent, core_events.SimpleEvent
+        moon_phase, moon_phase_index = self._d_to_moon_phase(d)
         sim = core_events.SimultaneousEvent(
             [
                 tag(
@@ -67,7 +69,11 @@ class DatetimeToSimultaneousEvent(DatetimeConverter):
                 ),
                 self._make_moonlight_event(d, d_end, dur),
                 tag(
-                    [si(dur).set_parameter("moon_phase", self._d_to_moon_phase(d))],
+                    [
+                        si(dur)
+                        .set_parameter("moon_phase", moon_phase)
+                        .set_parameter("moon_phase_index", moon_phase_index)
+                    ],
                     tag="moon_phase",
                 ),
             ]
@@ -174,7 +180,7 @@ class DatetimeToMoonPhase(DatetimeConverter):
         # If you’re in the southern hemisphere it looks different than if you were in the northern hemisphere."
         # (reference: https://astral.readthedocs.io/en/latest/index.html?highlight=phase#phase)
         phase_index = moon.phase(d)
-        return self._datetime_to_moon_phase[phase_index]
+        return self._datetime_to_moon_phase[phase_index], phase_index
 
 
 class AstralConstellationToOrchestration(core_converters.abc.Converter):
@@ -189,7 +195,7 @@ class AstralConstellationToOrchestration(core_converters.abc.Converter):
         self._moon_light_to_pitch_index_tuple = moon_light_to_pitch_index_tuple
 
     def convert(
-        self, sun_light, moon_phase, moon_light
+        self, sun_light, moon_phase, moon_light, **kwargs
     ) -> music_parameters.Orchestration:
         return music_parameters.Orchestration(
             AEOLIAN_HARP=project_parameters.AeolianHarp(
@@ -231,7 +237,9 @@ class AstralConstellationToScale(core_converters.abc.Converter):
         self._sun_light_to_pitch_index_tuple = sun_light_to_pitch_index_tuple
         self._moon_light_to_pitch_index_tuple = moon_light_to_pitch_index_tuple
 
-    def convert(self, sun_light, moon_phase, moon_light) -> music_parameters.Scale:
+    def convert(
+        self, sun_light, moon_phase, moon_light, **kwargs
+    ) -> music_parameters.Scale:
         intonation = self._moon_phase_to_intonation[moon_phase]
         pitch_list = [
             intonation[i] for i in self._sun_light_to_pitch_index_tuple[sun_light]
@@ -269,6 +277,9 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
             astral_constellation_to_orchestration
         )
         self._astral_constellation_to_scale = astral_constellation_to_scale
+        self._context_tuple_to_event_placement_tuple = (
+            diary_converters.ContextTupleToEventPlacementTuple()
+        )
 
     def convert(
         self,
@@ -281,10 +292,14 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         for absolute_time, moon_light_event in zip(
             astral_event["moon_light"].absolute_time_tuple, astral_event["moon_light"]
         ):
-            astral_constellation = {
-                a: astral_event[a].get_event_at(absolute_time).get_parameter(a)
-                for a in "moon_phase sun_light moon_light".split(" ")
-            }
+            astral_constellation = {}
+            for a in "moon_phase sun_light moon_light".split(" "):
+                ev = astral_event[a].get_event_at(absolute_time)
+                parameter_tuple: tuple[str, ...] = (a,)
+                if a == "moon_phase":
+                    parameter_tuple = (a, "moon_phase_index")
+                for parameter in parameter_tuple:
+                    astral_constellation[parameter] = ev.get_parameter(parameter)
             scale = self._astral_constellation_to_scale(**astral_constellation)
             orchestration = self._astral_constellation_to_orchestration(
                 **astral_constellation
@@ -305,7 +320,12 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
                         orchestration, scale, duration
                     )
                 case project_parameters.SunLight.NIGHTLIGHT:
-                    clock = self._make_clock_nightlight(orchestration, scale, duration)
+                    clock = self._make_clock_nightlight(
+                        orchestration,
+                        scale,
+                        duration,
+                        astral_constellation["moon_phase_index"],
+                    )
 
             if clock:
                 clock_list.append(clock)
@@ -335,8 +355,19 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         orchestration: music_parameters.Orchestration,
         scale: music_parameters.Scale,
         duration,
+        moon_phase_index,
     ):
-        return self._make_empty_clock(duration, orchestration)
+        main_clock_line = self._make_empty_clock_line(duration)
+        moon_context_tuple = (
+            diary_interfaces.MoonContext(0, duration, orchestration, moon_phase_index),
+        )
+        event_placement_tuple = self._context_tuple_to_event_placement_tuple.convert(
+            moon_context_tuple
+        )
+        for e in event_placement_tuple:
+            main_clock_line.register(e)
+        clock = clock_interfaces.Clock(main_clock_line)
+        return clock
 
     def _make_clock_evening_twilight(
         self,
@@ -455,11 +486,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         return clock
 
     def _make_empty_clock(self, duration, orchestration):
-        main_clock_line = clock_interfaces.ClockLine(
-            clock_events.ClockEvent(
-                [core_events.SequentialEvent([core_events.SimpleEvent(duration)])]
-            )
-        )
+        main_clock_line = self._make_empty_clock_line(duration)
         main_clock_line.register(
             timeline_interfaces.EventPlacement(
                 core_events.SimultaneousEvent(
@@ -485,3 +512,10 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         )
         clock = clock_interfaces.Clock(main_clock_line)
         return clock
+
+    def _make_empty_clock_line(self, duration):
+        return clock_interfaces.ClockLine(
+            clock_events.ClockEvent(
+                [core_events.SequentialEvent([core_events.SimpleEvent(duration)])]
+            )
+        )
