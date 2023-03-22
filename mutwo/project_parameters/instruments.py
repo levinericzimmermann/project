@@ -9,13 +9,20 @@ from mutwo import project_parameters
 from mutwo.music_parameters.instruments.general import _setdefault
 
 
-__all__ = ("Violin", "Clavichord", "AeolianHarp")
+__all__ = ("Guitar", "Violin", "Clavichord", "AeolianHarp")
 
 
 class Violin(music_parameters.ContinuousPitchedStringInstrument):
     def __init__(self, **kwargs):
         super().__init__(
             **_setdefault(kwargs, project_parameters.configurations.DEFAULT_VIOLIN_DICT)
+        )
+
+
+class Guitar(music_parameters.ContinuousPitchedStringInstrument):
+    def __init__(self, **kwargs):
+        super().__init__(
+            **_setdefault(kwargs, project_parameters.configurations.DEFAULT_GUITAR_DICT)
         )
 
 

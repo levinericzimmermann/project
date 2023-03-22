@@ -31,6 +31,41 @@ DEFAULT_VIOLIN_DICT = dict(
     ),
 )
 
+DEFAULT_GUITAR_DICT = dict(
+    name="guitar",
+    short_name="gt.",
+    pitch_ambitus=music_parameters.OctaveAmbitus(
+        music_parameters.WesternPitch("e", 2),
+        music_parameters.WesternPitch("b", 5),
+    ),
+    string_tuple=(
+        music_parameters.String(
+            0,
+            music_parameters.WesternPitch("e", 2),
+        ),
+        music_parameters.String(
+            1,
+            music_parameters.WesternPitch("a", 2),
+        ),
+        music_parameters.String(
+            2,
+            music_parameters.WesternPitch("d", 3),
+        ),
+        music_parameters.String(
+            3,
+            music_parameters.WesternPitch("g", 3),
+        ),
+        music_parameters.String(
+            4,
+            music_parameters.WesternPitch("b", 3),
+        ),
+        music_parameters.String(
+            5,
+            music_parameters.WesternPitch("e", 4),
+        ),
+    ),
+)
+
 DEFAULT_CLAVICHORD_DICT = dict(
     name="clavichord",
     short_name="clav.",
