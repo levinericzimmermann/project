@@ -60,7 +60,7 @@ class DatetimeToSimultaneousEvent(DatetimeConverter):
         timedelta = d_end - d
         dur = timedelta.total_seconds()
         tag, si = core_events.TaggedSequentialEvent, core_events.SimpleEvent
-        moon_phase, moon_phase_index = self._d_to_moon_phase(d)
+        moon_phase, moon_phase_index = self._d_to_moon_phase(d, sun_light)
         sim = core_events.SimultaneousEvent(
             [
                 tag(
@@ -174,10 +174,25 @@ class DatetimeToMoonPhase(DatetimeConverter):
             {m.range: m for m in project_parameters.MoonPhase}
         )
 
-    def convert(self, d: datetime.datetime):
+    def convert(self, d: datetime.datetime, sun_light: project_parameters.SunLight):
+        # We adjust the datetime to ensure that we have the same moon_phase
+        # for all sun light parts of the given day.
+        d = datetime.datetime(d.year, d.month, d.day, 0, 0, tzinfo=d.tzinfo)
+        # But we also adjust a
+        # delta of -1 for morning twilight and daylight, because I always
+        # retune the instruments before I play (so before evening twilight),
+        # therefore during the morning and during the moon the tuning must
+        # still be the same as it was during the previous day.
+        if sun_light in (
+            project_parameters.SunLight.MORNING_TWILIGHT,
+            project_parameters.SunLight.DAYLIGHT,
+        ):
+            d -= datetime.timedelta(days=1)
         # "The moon phase does not depend on your location.
-        # However what the moon actually looks like to you does depend on your location.
-        # If you’re in the southern hemisphere it looks different than if you were in the northern hemisphere."
+        # However what the moon actually looks like to you
+        # does depend on your location.
+        # If you’re in the southern hemisphere it looks different
+        # than if you were in the northern hemisphere."
         # (reference: https://astral.readthedocs.io/en/latest/index.html?highlight=phase#phase)
         phase_index = moon.phase(d)
         return self._datetime_to_moon_phase[phase_index], phase_index
