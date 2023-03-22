@@ -111,7 +111,7 @@ def make_sequential_event(instrument, scale, pitch, random, activity_level):
         for _ in range(chord_count)
     )
 
-    pitch_tuple = instrument.pitch_tuple
+    pitch_tuple = tuple(p for p in scale.pitch_tuple if p in instrument)
 
     is_chord_harmonic_tuple = make_is_chord_harmonic_tuple(chord_count)
     main_pitch_tuple = make_main_pitch_tuple(
