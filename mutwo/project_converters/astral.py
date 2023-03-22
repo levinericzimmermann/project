@@ -139,9 +139,17 @@ class DatetimeToMoonLight(DatetimeConverter):
         # Moon never raises on this date at this location
         except ValueError:
             mrise = d_end
-        mset = moon.moonset(self._location_info.observer, date=d)
+        try:
+            mset = moon.moonset(self._location_info.observer, date=d)
+        # Moon never sets on this date at this location
+        except ValueError:
+            mset = d_end
         d2 = d + datetime.timedelta(days=1)
-        next_mset = moon.moonset(self._location_info.observer, date=d2)
+        try:
+            next_mset = moon.moonset(self._location_info.observer, date=d2)
+        # Moon never sets on this date at this location
+        except ValueError:
+            next_mset = d_end
         try:
             next_mrise = moon.moonrise(self._location_info.observer, date=d2)
         # Moon never raises on this date at this location
