@@ -7,6 +7,7 @@ situation + related moonlight and moonphase data.
 import datetime
 import itertools
 import typing
+import warnings
 
 from astral import sun, moon, LocationInfo, Depression
 import ranges
@@ -22,6 +23,7 @@ from mutwo import music_events
 from mutwo import music_parameters
 from mutwo import project_converters
 from mutwo import project_parameters
+from mutwo import timeline_interfaces
 
 __all__ = (
     "DatetimeToSimultaneousEvent",
@@ -274,6 +276,8 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
     ) -> tuple[tuple[clock_interfaces.Clock, ...], music_parameters.Orchestration]:
         clock_list = []
 
+        sun_light = astral_event["sun_light"].get_parameter("sun_light", flat=True)[0]
+
         for absolute_time, moon_phase_event in zip(
             astral_event["moon_phase"].absolute_time_tuple, astral_event["moon_phase"]
         ):
@@ -285,21 +289,58 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
             orchestration = self._astral_constellation_to_orchestration(
                 **astral_constellation
             )
-            clock_count = len(astral_event["moon_light"])
             duration = moon_phase_event.duration
-            # XXX: fast POC, improve ASAP
-            # => for now we only have one algorithm to create a clock.
-            # => but actually the algorithm MUST change depending on the
-            #    sun light.
-            clock_list.append(
-                self._make_clock(orchestration, clock_count, scale, duration)
-            )
+
+            clock = None
+
+            match sun_light:
+                case project_parameters.SunLight.MORNING_TWILIGHT:
+                    clock = self._make_clock_morning_twilight(
+                        orchestration, scale, duration
+                    )
+                case project_parameters.SunLight.DAYLIGHT:
+                    clock = self._make_clock_daylight(orchestration, scale, duration)
+                case project_parameters.SunLight.EVENING_TWILIGHT:
+                    clock = self._make_clock_evening_twilight(
+                        orchestration, scale, duration
+                    )
+                case project_parameters.SunLight.NIGHTLIGHT:
+                    clock = self._make_clock_nightlight(orchestration, scale, duration)
+
+            if clock:
+                clock_list.append(clock)
+            else:
+                warnings.warn(f"NO CLOCK CREATED FOR '{sun_light}'!")
+
         return tuple(clock_list), orchestration
 
-    def _make_clock(
+    def _make_clock_morning_twilight(
         self,
         orchestration: music_parameters.Orchestration,
-        clock_count: int,
+        scale: music_parameters.Scale,
+        duration,
+    ):
+        return self._make_empty_clock(duration, orchestration)
+
+    def _make_clock_daylight(
+        self,
+        orchestration: music_parameters.Orchestration,
+        scale: music_parameters.Scale,
+        duration,
+    ):
+        return self._make_empty_clock(duration, orchestration)
+
+    def _make_clock_nightlight(
+        self,
+        orchestration: music_parameters.Orchestration,
+        scale: music_parameters.Scale,
+        duration,
+    ):
+        return self._make_empty_clock(duration, orchestration)
+
+    def _make_clock_evening_twilight(
+        self,
+        orchestration: music_parameters.Orchestration,
         scale: music_parameters.Scale,
         duration,
     ) -> clock_interfaces.Clock:
@@ -410,5 +451,37 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
             modal_sequential_event
         )
 
+        clock = clock_interfaces.Clock(main_clock_line)
+        return clock
+
+    def _make_empty_clock(self, duration, orchestration):
+        main_clock_line = clock_interfaces.ClockLine(
+            clock_events.ClockEvent(
+                [core_events.SequentialEvent([core_events.SimpleEvent(duration)])]
+            )
+        )
+        main_clock_line.register(
+            timeline_interfaces.EventPlacement(
+                core_events.SimultaneousEvent(
+                    [
+                        core_events.TaggedSimultaneousEvent(
+                            [
+                                core_events.SequentialEvent(
+                                    [
+                                        core_events.SimpleEvent(1)
+                                        for _ in range(
+                                            project_parameters.AeolianHarp.TOTAL_STRING_COUNT
+                                        )
+                                    ]
+                                )
+                            ],
+                            tag="aeolian harp",
+                        )
+                    ]
+                ),
+                0,
+                duration,
+            )
+        )
         clock = clock_interfaces.Clock(main_clock_line)
         return clock
