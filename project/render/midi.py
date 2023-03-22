@@ -1,5 +1,3 @@
-import concurrent.futures
-
 from mutwo import clock_converters
 from mutwo import midi_converters
 from mutwo import music_converters
@@ -8,7 +6,7 @@ from mutwo import project_converters
 import project
 
 
-def midi(simultaneous_event):
+def midi(simultaneous_event, executor):
     grace_notes_converter = music_converters.GraceNotesConverter()
     playing_indicators_converter = music_converters.PlayingIndicatorsConverter(
         (
@@ -25,12 +23,14 @@ def midi(simultaneous_event):
         # distribute_midi_channels=True, midi_channel_count_per_track=1
     )
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-        for event in simultaneous_event:
-            event = grace_notes_converter(playing_indicators_converter(event))
-            for s_index, seq in enumerate(event):
-                executor.submit(
-                    event_to_midi_file.convert,
-                    seq,
-                    f"builds/{project.constants.TITLE}_{event.tag}_{s_index}.mid",
-                )
+    future_list = []
+
+    for event in simultaneous_event:
+        event = grace_notes_converter(playing_indicators_converter(event))
+        for s_index, seq in enumerate(event):
+            future_list.append(executor.submit(
+                event_to_midi_file.convert,
+                seq,
+                f"builds/{project.constants.TITLE}_{event.tag}_{s_index}.mid",
+            ))
+    return tuple(future_list)

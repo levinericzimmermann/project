@@ -48,6 +48,7 @@ def clock_event_to_abjad_staff_group():
                 PostProcessClockSequentialEvent(),
             ),
             mutwo_volume_to_abjad_attachment_dynamic=None,
+            write_multimeasure_rests=False,
         ),
         duration_line=True,
         # duration_line=False,
@@ -78,13 +79,13 @@ def aeolian_harp_converter():
                     first_leaf,
                 )
 
-    tag = "aeolian harp"
+    atag = "aeolian harp"
 
     class EventPlacementToAbjadStaffGroup(
         clock_converters.EventPlacementToAbjadStaffGroup
     ):
         def convert(self, event_placement, *args, **kwargs):
-            event = event_placement.event[tag]
+            event = event_placement.event[atag]
             if isinstance(event, core_events.SimultaneousEvent):
                 absolute_time_list = [event.duration]
                 for e in event:
@@ -110,9 +111,10 @@ def aeolian_harp_converter():
                 for e in new_sequential_event:
                     if hasattr(e, "notation_indicator_collection"):
                         e.notation_indicator_collection.clef.name = "alto"
-                event_placement.event[tag] = core_events.TaggedSimultaneousEvent(
-                    [new_sequential_event], tag=tag
+                event_placement.event[atag] = core_events.TaggedSimultaneousEvent(
+                    [new_sequential_event], tag=atag
                 )
+
             return super().convert(event_placement, *args, **kwargs)
 
     complex_event_to_abjad_container = clock_generators.make_complex_event_to_abjad_container(
@@ -122,6 +124,7 @@ def aeolian_harp_converter():
             post_process_abjad_container_routine_sequence=(
                 PostProcessClockSequentialEvent(),
             ),
+            write_multimeasure_rests=False,
         )
     )
 
@@ -187,12 +190,14 @@ def clavichord_converter():
                 ] = core_events.TaggedSimultaneousEvent(
                     [right, left], tag=clavichord_tag
                 )
+
             return super().convert(event_placement, *args, **kwargs)
 
     complex_event_to_abjad_container = (
         clock_generators.make_complex_event_to_abjad_container(
             sequential_event_to_abjad_staff_kwargs=dict(
                 mutwo_volume_to_abjad_attachment_dynamic=None,
+                write_multimeasure_rests=False,
             ),
         )
     )
@@ -265,7 +270,7 @@ SCALE_TRANSPOSED = music_parameters.Scale(
 )
 
 
-def notation(clock_tuple, d, scale, orchestration):
+def notation(clock_tuple, d, scale, orchestration, path, executor):
     global SCALE
     SCALE = scale
     formatted_time = f"{d.year}.{d.month}.{d.day}, {d.hour}:{d.minute}"
@@ -362,9 +367,7 @@ def notation(clock_tuple, d, scale, orchestration):
     )
 
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ekme-heji.ily"')
-    path = f"builds/notations/{project.constants.TITLE}_{d.year}_{d.month}_{d.day}.pdf"
-    abjad.persist.as_pdf(lilypond_file, path)
-    return path
+    return executor.submit(abjad.persist.as_pdf, lilypond_file, path)
 
 
 def merge_notation(path_list: list[str]):

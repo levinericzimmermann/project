@@ -1,4 +1,6 @@
+from concurrent.futures import ThreadPoolExecutor
 import datetime
+import time
 
 # First import project to activate constant + patches
 import project
@@ -25,7 +27,7 @@ astral_constellation_to_scale = project_converters.AstralConstellationToScale(
 )
 
 
-def make_part(location_info, d, day_light):
+def make_part(location_info, d, day_light, executor):
     if allowed_date_list and not any(
         [
             d.day == d2.day and d.month == d2.month and d.year == d2.year
@@ -46,30 +48,48 @@ def make_part(location_info, d, day_light):
     ).convert(astral_event)
 
     # SPECIFIC
-    sound(clock_tuple)
-    notate(day_light, astral_event, clock_tuple, orchestration)
+    future_list = list(sound(clock_tuple, executor))
 
-
-def notate(day_light, astral_event, clock_tuple, orchestration):
     if day_light == "sunset":
-        print("\tnotate...")
-        intonation_tuple = project.constants.MOON_PHASE_TO_INTONATION[
-            astral_event["moon_phase"][0].moon_phase
-        ]
-        scale = music_parameters.Scale(
-            music_parameters.JustIntonationPitch("1/1"),
-            music_parameters.RepeatingScaleFamily(
-                intonation_tuple,
-                min_pitch_interval=music_parameters.JustIntonationPitch("1/16"),
-                max_pitch_interval=music_parameters.JustIntonationPitch("32/1"),
-            ),
+        notation_path = (
+            f"builds/notations/{project.constants.TITLE}_{d.year}_{d.month}_{d.day}.pdf"
         )
-        NOTATION_PATH_LIST.append(
-            project.render.notation(clock_tuple, d, scale, orchestration)
+        NOTATION_PATH_LIST.append(notation_path)
+        future_list.append(
+            notate(
+                day_light,
+                astral_event,
+                clock_tuple,
+                orchestration,
+                notation_path,
+                executor,
+            )
         )
 
+    return tuple(future_list)
 
-def sound(clock_tuple):
+
+def notate(
+    day_light, astral_event, clock_tuple, orchestration, notation_path, executor
+):
+    print("\tnotate...")
+    intonation_tuple = project.constants.MOON_PHASE_TO_INTONATION[
+        astral_event["moon_phase"][0].moon_phase
+    ]
+    scale = music_parameters.Scale(
+        music_parameters.JustIntonationPitch("1/1"),
+        music_parameters.RepeatingScaleFamily(
+            intonation_tuple,
+            min_pitch_interval=music_parameters.JustIntonationPitch("1/16"),
+            max_pitch_interval=music_parameters.JustIntonationPitch("32/1"),
+        ),
+    )
+    return project.render.notation(
+        clock_tuple, d, scale, orchestration, notation_path, executor
+    )
+
+
+def sound(clock_tuple, executor):
     print("\tsound...")
     # For both - midi frontend and walkman frontend - we need
     # to convert our clocks to one simultaneous event. So we do
@@ -92,18 +112,24 @@ def sound(clock_tuple):
     )
     simultaneous_event.metrize()
 
-    project.render.midi(simultaneous_event)
     project.render.walkman(simultaneous_event, d)
+
+    return project.render.midi(simultaneous_event, executor)
 
 
 NOTATION_PATH_LIST = []
 
-# allowed_date_list = [
-#     datetime.datetime(2023, 4, 28),
-#     datetime.datetime(2023, 4, 29),
-#     datetime.datetime(2023, 4, 30),
-# ]
-allowed_date_list = [datetime.datetime(2023, 4, 30)]
+allowed_date_list = [
+    # datetime.datetime(2023, 4, 23),
+    # datetime.datetime(2023, 4, 24),
+    # datetime.datetime(2023, 4, 25),
+    # datetime.datetime(2023, 4, 26),
+    # datetime.datetime(2023, 4, 27),
+    datetime.datetime(2023, 4, 28),
+    datetime.datetime(2023, 4, 29),
+    datetime.datetime(2023, 4, 30),
+]
+# allowed_date_list = [datetime.datetime(2023, 4, 30)]
 allowed_day_light_list = ["sunset"]
 
 if __name__ == "__main__":
@@ -116,19 +142,27 @@ if __name__ == "__main__":
         longitude=7.0115552,
     )
 
-    with diary_interfaces.open():
-        april = tuple(
-            datetime.datetime(2023, 4, d, tzinfo=location_info.tzinfo)
-            for d in range(1, 31)
-        )
-        for day in april:
-            print(f"RENDER '{day.isoformat()}'!")
-            s = sun.sun(
-                location_info.observer, date=day, dawn_dusk_depression=Depression.CIVIL
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        future_list = []
+        with diary_interfaces.open():
+            april = tuple(
+                datetime.datetime(2023, 4, d, tzinfo=location_info.tzinfo)
+                for d in range(1, 31)
             )
-            for day_light in ("dawn", "sunrise", "sunset", "dusk"):
-                d = s[day_light]
-                print(f"\t'{d}'")
-                make_part(location_info, d, day_light)
+            for day in april:
+                print(f"RENDER '{day.isoformat()}'!")
+                s = sun.sun(
+                    location_info.observer,
+                    date=day,
+                    dawn_dusk_depression=Depression.CIVIL,
+                )
+                for day_light in ("dawn", "sunrise", "sunset", "dusk"):
+                    d = s[day_light]
+                    print(f"\t'{d}'")
+                    if future_tuple := make_part(location_info, d, day_light, executor):
+                        future_list.extend(future_tuple)
+        while any([f.running() for f in future_list]):
+            time.sleep(0.5)
 
+    print("concatenate", NOTATION_PATH_LIST)
     project.render.merge_notation(NOTATION_PATH_LIST)
