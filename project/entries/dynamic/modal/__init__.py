@@ -104,6 +104,16 @@ diary_interfaces.DynamicEntry.from_file(
     relevance=100,
 )
 
+
+diary_interfaces.DynamicEntry.from_file(
+    "chords-guitar",
+    diary_interfaces.ModalContext1.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/chords-guitar.py",
+    relevance=100,
+)
+
 diary_interfaces.DynamicEntry.from_file(
     "scale-event-aeolian-harp",
     diary_interfaces.ModalContext0.identifier,
