@@ -7,7 +7,6 @@ from mutwo import core_events
 from mutwo import music_events
 from mutwo import music_parameters
 from mutwo import project_converters
-from mutwo import project_generators
 from mutwo import project_parameters
 from mutwo import timeline_interfaces
 
@@ -98,16 +97,16 @@ def make_sequential_event(instrument, scale, pitch, random, activity_level):
 
     chord_count = random.choice(chord_count_pick_tuple)
     side_pitch_direction = (-1, 1)[activity_level(5)]
-    octave_delta = random.choice([1, 1, 1, 2]) * side_pitch_direction
+    octave_delta = 1
     if side_pitch_direction > 0:
-        valid_pitch_octave_scale_position_choice = [0, -1]
+        valid_pitch_octave_scale_position_choice = [-2, -3]
     else:
-        valid_pitch_octave_scale_position_choice = [0, 1]
+        valid_pitch_octave_scale_position_choice = [-2, -1]
     main_pitch_octave_scale_position = random.choice(
         valid_pitch_octave_scale_position_choice
     )
     add_fill_up_pitch_tuple_tuple = tuple(
-        random.choice([(True, True), (False, True), (True, False), (False, False)])
+        random.choice([(False, True), (True, False), (False, False)])
         for _ in range(chord_count)
     )
 
@@ -360,15 +359,25 @@ def find_champion2(
     for ptuple in itertools.product(*candidate_pitch_tuple_tuple):
         if any([predefinedp in ptuple for predefinedp in predefined_pitch_list]):
             continue
-        f_local = sum(
-            [
-                (p0 - p1).harmonicity_simplified_barlow
-                for p0, p1 in itertools.combinations(predefined_pitch_list + ptuple, 2)
-            ]
-        )
+
+        harmonicity_list = []
+        is_allowed = True
+        for p0, p1 in itertools.combinations(predefined_pitch_list + ptuple, 2):
+            interval = p0 - p1
+            harmonicity_list.append(interval.harmonicity_simplified_barlow)
+            # No seconds, because they are difficult to play :)
+            if abs(interval.interval) < 300:
+                is_allowed = False
+                break
+
+        if not is_allowed:
+            continue
+
+        f_local = sum(harmonicity_list)
         if c is None or f_local > f:
             f = f_local
             c = ptuple
+
     if c is None:
         return tuple([])
     return c
