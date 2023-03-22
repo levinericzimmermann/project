@@ -106,6 +106,7 @@ def make_simultaneous_event(string_list_tuple, random, instrument, activity_leve
         envelope = "BASIC"
     else:
         envelope = "PLUCK_1"  # works better than PLUCK_0
+
     frequency_factor = 1
     if envelope in ("BASIC", "BASIC_LOUD", "BASIC_QUIET"):
         frequency_factor = 0.25
