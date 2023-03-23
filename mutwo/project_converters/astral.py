@@ -224,12 +224,7 @@ class AstralConstellationToOrchestration(core_converters.abc.Converter):
             AEOLIAN_HARP=project_parameters.AeolianHarp(
                 self._moon_phase_to_intonation[moon_phase]
             ),
-            GUITAR=project_parameters.Guitar(
-                pitch_ambitus=music_parameters.OctaveAmbitus(
-                    music_parameters.WesternPitch("e", 2),
-                    music_parameters.WesternPitch("a", 4),
-                ),
-            ),
+            GUITAR=project_parameters.Guitar(moon_phase),
         )
 
 

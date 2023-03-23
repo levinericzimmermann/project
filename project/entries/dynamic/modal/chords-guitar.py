@@ -1,6 +1,5 @@
 import bisect
 import itertools
-import ranges
 
 from mutwo import clock_events
 from mutwo import core_events
@@ -45,7 +44,7 @@ def main(
     pitch = modal_event.pitch
 
     sequential_event = make_sequential_event(
-        instrument, scale, pitch, random, activity_level
+        instrument, scale, pitch, random, activity_level, instrument
     )
     simultaneous_event = core_events.SimultaneousEvent(
         [
@@ -85,7 +84,7 @@ def make_range_pair(
     )
 
 
-def make_sequential_event(instrument, scale, pitch, random, activity_level):
+def make_sequential_event(instrument, scale, pitch, random, activity_level, guitar):
     scale_degree = scale.pitch_to_scale_degree(pitch)
 
     if scale_degree == 0:
@@ -110,7 +109,7 @@ def make_sequential_event(instrument, scale, pitch, random, activity_level):
         for _ in range(chord_count)
     )
 
-    pitch_tuple = tuple(p for p in scale.pitch_tuple if p in instrument)
+    pitch_tuple = instrument.pitch_tuple
 
     is_chord_harmonic_tuple = make_is_chord_harmonic_tuple(chord_count)
     main_pitch_tuple = make_main_pitch_tuple(
@@ -121,6 +120,7 @@ def make_sequential_event(instrument, scale, pitch, random, activity_level):
         octave_delta,
         pitch_tuple,
         activity_level,
+        guitar,
     )
     if activity_level(8):
         side_pitch_tuple = make_side_pitch_tuple(
@@ -131,11 +131,16 @@ def make_sequential_event(instrument, scale, pitch, random, activity_level):
             octave_delta,
             chord_count,
             activity_level,
+            guitar,
         )
     else:
         side_pitch_tuple = (None,) * chord_count
     fill_in_pitches = find_fill_in_pitches(
-        main_pitch_tuple, side_pitch_tuple, pitch_tuple, add_fill_up_pitch_tuple_tuple
+        main_pitch_tuple,
+        side_pitch_tuple,
+        pitch_tuple,
+        add_fill_up_pitch_tuple_tuple,
+        guitar,
     )
 
     chord_tuple = make_chord_tuple(
@@ -165,6 +170,7 @@ def make_main_pitch_tuple(
     octave_delta,
     pitch_tuple,
     activity_level,
+    instrument,
 ) -> tuple[music_parameters.JustIntonationPitch, ...]:
     scale_degree_count = len(set(scale.scale_degree_tuple))
     assert scale_degree_count == 5
@@ -183,7 +189,10 @@ def make_main_pitch_tuple(
         p = scale.scale_position_to_pitch(
             (next(main_pitch_cycle), main_pitch_octave_scale_position)
         )
-        main_pitch_list.append(p)
+        if p in pitch_tuple:
+            main_pitch_list.append(p)
+        elif pitch_variant_tuple := instrument.get_pitch_variant_tuple(p):
+            main_pitch_list.append(pitch_variant_tuple[0])
 
     if chord_count > 2:
         add_variation(main_pitch_list, octave_delta, pitch_tuple, -1, 1)
@@ -199,7 +208,10 @@ def make_side_pitch_tuple(
     octave_delta,
     chord_count,
     activity_level,
+    guitar,
 ):
+    if not main_pitch_tuple:
+        return tuple([])
     assert octave_delta != 0
     side_pitch_octave_scale_position = main_pitch_octave_scale_position + octave_delta
     filtered_pitch_list = []
@@ -216,7 +228,9 @@ def make_side_pitch_tuple(
         )
     ):
         return tuple(None for _ in main_pitch_tuple)
-    c = find_champion(main_pitch_tuple[-1], filtered_pitch_tuple)
+    c = find_champion(main_pitch_tuple[-1], filtered_pitch_tuple, guitar)
+    if c is None:
+        return tuple([None for _ in main_pitch_tuple])
     side_pitch_list = list(
         reversed([c if i % 2 == 0 else None for i, _ in enumerate(main_pitch_tuple)])
     )
@@ -248,10 +262,9 @@ def make_side_pitch_tuple(
                 candidate_tuple = pitch_tuple[index_tuple[0] : index_tuple[1]]
             if not candidate_tuple:
                 candidate_tuple = (pitch_tuple[s1_index],)
-            side_pitch_list[i] = find_champion(m0, candidate_tuple)
-
-    for p in side_pitch_list:
-        assert p
+            champion = find_champion(m0, candidate_tuple, guitar)
+            if champion is not None:
+                side_pitch_list[i] = champion
 
     if activity_level(3):
         add_variation(side_pitch_list, octave_delta, pitch_tuple, 1, -1)
@@ -262,25 +275,33 @@ def make_side_pitch_tuple(
 def find_champion(
     partner,
     candidate_tuple,
+    guitar,
     prohibited_interval_tuple=(music_parameters.JustIntonationPitch("1/1"),),
 ):
     assert candidate_tuple
     c, f = None, 0
     for p in candidate_tuple:
+        if not is_valid_harmony((p, partner), guitar):
+            continue
         interval = p - partner
         if interval.normalize(mutate=False) in prohibited_interval_tuple:
             continue
         if (local_f := interval.harmonicity_simplified_barlow) > f or c is None:
             c, f = p, local_f
-    # This means all of our pitches were inside the prohibited_interval_tuple.
-    # Let's try it again and be less strict.
     if c is None:
-        return find_champion(partner, candidate_tuple, tuple([]))
+        # This means all of our pitches were inside the prohibited_interval_tuple.
+        # Let's try it again and be less strict.
+        if prohibited_interval_tuple:
+            return find_champion(partner, candidate_tuple, guitar, tuple([]))
     return c
 
 
 def find_fill_in_pitches(
-    main_pitch_tuple, side_pitch_tuple, pitch_tuple, add_fill_up_pitch_tuple_tuple
+    main_pitch_tuple,
+    side_pitch_tuple,
+    pitch_tuple,
+    add_fill_up_pitch_tuple_tuple,
+    guitar,
 ):
     pitch_count = len(pitch_tuple)
 
@@ -343,7 +364,7 @@ def find_fill_in_pitches(
         pitch_to_choose_tuple_list = [t for t in pitch_to_choose_tuple_list if t]
 
         fill_up_pitch_list.append(
-            find_champion2((main_pitch, side_pitch), pitch_to_choose_tuple_list)
+            find_champion2((main_pitch, side_pitch), pitch_to_choose_tuple_list, guitar)
         )
 
     return tuple(fill_up_pitch_list)
@@ -352,6 +373,7 @@ def find_fill_in_pitches(
 def find_champion2(
     predefined_pitch_list,
     candidate_pitch_tuple_tuple,
+    guitar,
 ):
     if not candidate_pitch_tuple_tuple:
         return tuple()
@@ -360,18 +382,13 @@ def find_champion2(
         if any([predefinedp in ptuple for predefinedp in predefined_pitch_list]):
             continue
 
+        harmony = predefined_pitch_list + ptuple
+        if not is_valid_harmony(harmony, guitar):
+            continue
         harmonicity_list = []
-        is_allowed = True
-        for p0, p1 in itertools.combinations(predefined_pitch_list + ptuple, 2):
+        for p0, p1 in itertools.combinations(harmony, 2):
             interval = p0 - p1
             harmonicity_list.append(interval.harmonicity_simplified_barlow)
-            # No seconds, because they are difficult to play :)
-            if abs(interval.interval) < 300:
-                is_allowed = False
-                break
-
-        if not is_allowed:
-            continue
 
         f_local = sum(harmonicity_list)
         if c is None or f_local > f:
@@ -384,6 +401,8 @@ def find_champion2(
 
 
 def add_variation(pitch_list, octave_delta, pitch_tuple, direction0, direction1):
+    if not pitch_list:
+        return
     if octave_delta > 0:
         octave_delta_direction = direction0
     else:
@@ -415,3 +434,15 @@ def make_is_chord_harmonic_tuple(chord_count):
     return tuple(
         reversed(tuple(next(is_chord_harmonic_cycle) for _ in range(chord_count)))
     )
+
+
+def is_valid_harmony(harmony, guitar):
+    string_set = set([])
+    for p in harmony:
+        for string_index, frets in enumerate(guitar.frets_tuple):
+            if p in frets:
+                if string_index in string_set:
+                    return False
+                string_set.add(string_index)
+                break
+    return True

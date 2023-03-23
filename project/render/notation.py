@@ -1,4 +1,5 @@
 import subprocess
+import warnings
 
 import abjad
 
@@ -9,6 +10,7 @@ from mutwo import core_events
 from mutwo import music_events
 from mutwo import music_parameters
 from mutwo import project_converters
+from mutwo import project_parameters
 
 import project
 
@@ -139,22 +141,64 @@ def aeolian_harp_converter():
 
 @run
 def guitar_converter():
+    class PostProcessClockSequentialEvent(
+        abjad_converters.ProcessAbjadContainerRoutine
+    ):
+        def __call__(
+            self,
+            complex_event_to_convert: core_events.abc.ComplexEvent,
+            container_to_process: abjad.Container,
+        ):
+            leaf_sequence = abjad.select.leaves(container_to_process)
+            try:
+                first_leaf = leaf_sequence[0]
+            except IndexError:
+                pass
+            else:
+                abjad.attach(
+                    abjad.LilyPondLiteral(r'\accidentalStyle "forget"'),
+                    first_leaf,
+                )
+
     class EventPlacementToAbjadStaffGroup(
         clock_converters.EventPlacementToAbjadStaffGroup
     ):
         def convert(self, event_placement, *args, **kwargs):
             event = event_placement.event[guitar_tag]
             if isinstance(event, core_events.SimultaneousEvent) and event and event[0]:
+                event.set_parameter("pitch_list", set_pitch_list)
                 for e in event[0]:
                     if hasattr(e, "notation_indicator_collection"):
                         e.notation_indicator_collection.clef.name = "G_8"
             return super().convert(event_placement, *args, **kwargs)
+
+    def set_pitch_list(pitch_list):
+        new_pitch_list = []
+        for pitch in pitch_list:
+            fret_index = None
+            for string_index, frets in enumerate(GUITAR.frets_tuple):
+                if pitch in frets:
+                    fret_index = frets.index(pitch)
+                    break
+            if fret_index is None:
+                warnings.warn(
+                    f"COULDN'T FIND PITCH {pitch.ratio} IN GUITAR!\n"
+                    f"Available pitches are {GUITAR.pitch_tuple}."
+                )
+                continue
+            new_pitch_list.append(
+                project_parameters.Guitar.ORIGINAL_FRETS_TUPLE[string_index][fret_index]
+            )
+        return new_pitch_list
 
     complex_event_to_abjad_container = clock_generators.make_complex_event_to_abjad_container(
         sequential_event_to_abjad_staff_kwargs=dict(
             mutwo_pitch_to_abjad_pitch=abjad_converters.MutwoPitchToHEJIAbjadPitch(),
             mutwo_volume_to_abjad_attachment_dynamic=None,
             write_multimeasure_rests=False,
+            post_process_abjad_container_routine_sequence=(
+                PostProcessClockSequentialEvent(),
+            ),
         ),
     )
 
@@ -199,8 +243,12 @@ SCALE_TRANSPOSED = music_parameters.Scale(
     ),
 )
 
+GUITAR = None
+
 
 def notation(clock_tuple, d, scale, orchestration, path, executor):
+    global GUITAR
+    GUITAR = orchestration.GUITAR
     global SCALE
     SCALE = scale
     formatted_time = f"{d.year}.{d.month}.{d.day}, {d.hour}:{d.minute}"
@@ -210,7 +258,7 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
         r"} }"
     )
     aeolian_harp_tuning = get_aeolian_harp_tuning(orchestration)
-    subtitle = rf'\markup {{ \fontsize #-2 \typewriter \medium {{ "{aeolian_harp_tuning}" }} }}'
+    subtitle = rf'\markup {{ \fontsize #-4 \typewriter \medium {{ "{aeolian_harp_tuning}" }} }}'
     abjad_score_to_abjad_score_block = clock_converters.AbjadScoreToAbjadScoreBlock()
     instrument_note_like_to_pitched_note_like = (
         project_converters.InstrumentNoteLikeToPitchedNoteLike(
@@ -237,15 +285,21 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
                 clock_line.sort()
                 prohibited_event_placement_index_list = []
                 for i, ep in enumerate(clock_line._event_placement_list):
-                    if "guitar" in ep.event:
-                        prohibited_event_placement_index_list.append(i)
-                        break
+                    try:
+                        ep.event["guitar"]
+                    except KeyError:
+                        continue
+                    prohibited_event_placement_index_list.append(i)
+                    break
                 for i, ep in enumerate(reversed(clock_line._event_placement_list)):
-                    if "guitar" in ep.event:
-                        prohibited_event_placement_index_list.append(
-                            len(clock_line._event_placement_list) - 1 - i
-                        )
-                        break
+                    try:
+                        ep.event["guitar"]
+                    except KeyError:
+                        continue
+                    prohibited_event_placement_index_list.append(
+                        len(clock_line._event_placement_list) - 1 - i
+                    )
+                    break
                 clock_line._event_placement_list = [
                     ep
                     for i, ep in enumerate(clock_line._event_placement_list)
@@ -286,11 +340,11 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
         score_system_basic_distance=1,
         markup_system_padding=1,
         markup_system_basic_distance=1,
-        staff_height=20,
+        staff_height=18,
     ).convert(
         abjad_score_block_list,
         title=title,
-        subtitle=subtitle,
+        # subtitle=subtitle,
         # tagline=rf'\markup {{ \typewriter {{ "{formatted_time}" }} }}',
     )
 

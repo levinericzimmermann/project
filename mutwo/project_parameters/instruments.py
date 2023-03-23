@@ -19,10 +19,119 @@ class Violin(music_parameters.ContinuousPitchedStringInstrument):
         )
 
 
-class Guitar(music_parameters.ContinuousPitchedStringInstrument):
-    def __init__(self, **kwargs):
+def _get_guitar_tuning_dict(FRET_INTERVAL_TUPLE):
+    s = music_parameters.String
+    j = music_parameters.JustIntonationPitch
+    w = music_parameters.WesternPitch
+
+    p3 = (
+        s(0, j("3/8"), w("e", 2)),
+        s(1, j("1/2"), w("a", 2)),
+        s(2, j("2/3"), w("d", 3)),
+        s(3, j("8/9"), w("g", 3)),
+        s(4, j("9/8"), w("b", 4)),
+        s(5, j("3/2"), w("e", 4)),
+    )
+    p5_1 = (
+        s(0, j("2/5") - FRET_INTERVAL_TUPLE[1], w("e", 2)),
+        s(1, j("1/2"), w("a", 2)),
+        s(2, j("2/3"), w("d", 3)),
+        s(3, j("8/9"), w("g", 3)),
+        s(4, j("10/9"), w("b", 4)),
+        s(5, j("3/2"), w("e", 4)),
+    )
+    p5_2 = (
+        s(0, j("2/5") - FRET_INTERVAL_TUPLE[1], w("e", 2)),
+        s(1, j("5/9") - FRET_INTERVAL_TUPLE[2], w("a", 2)),
+        s(2, j("2/3"), w("d", 3)),
+        s(3, j("8/9"), w("g", 3)),
+        s(4, j("10/9"), w("b", 4)),
+        s(5, j("8/5") - FRET_INTERVAL_TUPLE[1], w("e", 4)),
+    )
+    p7_1 = (
+        s(0, j("3/8"), w("e", 2)),
+        s(1, j("7/12") - FRET_INTERVAL_TUPLE[2], w("a", 2)),
+        s(2, j("2/3"), w("d", 3)),
+        s(3, j("8/9"), w("g", 3)),
+        s(4, j("9/8"), w("b", 4)),
+        s(5, j("12/7") - FRET_INTERVAL_TUPLE[1], w("e", 4)),
+    )
+    p7_2 = (
+        s(0, j("3/8"), w("e", 2)),
+        s(1, j("7/12") - FRET_INTERVAL_TUPLE[2], w("a", 2)),
+        s(2, j("2/3"), w("d", 3)),
+        s(3, j("7/8"), w("g", 3)),
+        s(4, j("8/7"), w("b", 4)),
+        s(5, j("12/7") - FRET_INTERVAL_TUPLE[1], w("e", 4)),
+    )
+
+    return {
+        m: tuple(
+            s(
+                st.index,
+                st.tuning - music_parameters.JustIntonationPitch("2/1"),
+                st.tuning_original,
+            )
+            for st in pt
+        )
+        for m, pt in {
+            project_parameters.MoonPhase.NEW: p7_2,
+            project_parameters.MoonPhase.WAXING_CRESCENT: p7_1,
+            project_parameters.MoonPhase.QUARTER_0: p3,
+            project_parameters.MoonPhase.WAXING_GIBBOUS: p5_1,
+            project_parameters.MoonPhase.FULL: p5_2,
+            project_parameters.MoonPhase.WANING_GIBBOUS: p5_1,
+            project_parameters.MoonPhase.QUARTER_1: p3,
+            project_parameters.MoonPhase.WANING_CRESCENT: p7_1,
+        }.items()
+    }
+
+
+def _get_guitar_fret_tuple_dict(MOON_PHASE_TO_STRING_TUNING_TUPLE, FRET_INTERVAL_TUPLE):
+    moon_phase_to_frets_tuple = {}
+    for moon_phase, string_tuple in MOON_PHASE_TO_STRING_TUNING_TUPLE.items():
+        frets_list = []
+        for string in string_tuple:
+            frets = []
+            for interval in FRET_INTERVAL_TUPLE:
+                frets.append(interval + string.tuning)
+            frets_list.append(tuple(frets))
+        moon_phase_to_frets_tuple[moon_phase] = tuple(frets_list)
+    return moon_phase_to_frets_tuple
+
+
+class Guitar(music_parameters.DiscreetPitchedStringInstrument):
+    FRET_INTERVAL_TUPLE = tuple(
+        music_parameters.JustIntonationPitch(r)
+        for r in ("1/1", "256/243", "9/8", "32/27", "81/64")
+    )
+    MOON_PHASE_TO_STRING_TUNING_TUPLE = _get_guitar_tuning_dict(FRET_INTERVAL_TUPLE)
+    MOON_PHASE_TO_FRETS_TUPLE = _get_guitar_fret_tuple_dict(
+        MOON_PHASE_TO_STRING_TUNING_TUPLE, FRET_INTERVAL_TUPLE
+    )
+
+    w = music_parameters.WesternPitch
+
+    ORIGINAL_FRETS_TUPLE = (
+        (w("e", 2), w("f", 2), w("fs", 2), w("g", 2), w("gs", 2)),
+        (w("a", 2), w("as", 2), w("b", 2), w("c", 3), w("cs", 3)),
+        (w("d", 3), w("ds", 3), w("e", 3), w("f", 3), w("fs", 3)),
+        (w("g", 3), w("gs", 3), w("a", 3), w("as", 3), w("b", 3)),
+        (w("b", 3), w("c", 4), w("cs", 4), w("d", 4), w("ds", 4)),
+        (w("e", 4), w("f", 4), w("fs", 4), w("g", 4), w("gs", 4)),
+    )
+
+    def __init__(self, moon_phase):
+        frets_tuple = self.MOON_PHASE_TO_FRETS_TUPLE[moon_phase]
+        pitch_list = []
+        for frets in frets_tuple:
+            pitch_list.extend(frets)
+        self.frets_tuple = frets_tuple
         super().__init__(
-            **_setdefault(kwargs, project_parameters.configurations.DEFAULT_GUITAR_DICT)
+            pitch_tuple=tuple(pitch_list),
+            name="guitar",
+            short_name="gt.",
+            string_tuple=self.MOON_PHASE_TO_STRING_TUNING_TUPLE[moon_phase],
         )
 
 
