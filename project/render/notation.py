@@ -213,23 +213,6 @@ def guitar_converter():
     }
 
 
-def get_aeolian_harp_tuning(orchestration):
-    aeolian_harp = orchestration.AEOLIAN_HARP
-    tuning = []
-    for box_index, string_tuple in enumerate(aeolian_harp.string_tuple_for_each_box):
-        tuning_part = []
-        for string in string_tuple:
-            p = string.tuning
-            pname = p.get_closest_pythagorean_pitch_name()
-            dev = round(p.cent_deviation_from_closest_western_pitch_class, 2)
-            ratio = (p + music_parameters.JustIntonationPitch("2/1")).ratio
-            pitch_data = f"{pname} ({ratio}): {dev}"
-            tuning_part.append(pitch_data)
-        tuning_part = ", ".join(tuning_part)
-        tuning.append(f"b{box_index + 1} [{tuning_part}]")
-    return "; ".join(tuning)
-
-
 SCALE = None
 SCALE_TRANSPOSED = music_parameters.Scale(
     music_parameters.WesternPitch("a", 4),
@@ -251,14 +234,21 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
     GUITAR = orchestration.GUITAR
     global SCALE
     SCALE = scale
-    formatted_time = f"{d.year}.{d.month}.{d.day}, {d.hour}:{d.minute}"
+
+    hour = f'{d.hour}'
+    minute = f'{d.minute}'
+    if len(hour) == 1:
+        hour = f"0{hour}"
+    if len(minute) == 1:
+        minute = f"0{minute}"
+
+    formatted_time = f"{d.year}.{d.month}.{d.day}, {hour}:{minute}"
+
     title = (
         r'\markup { \fontsize #-4 \medium \typewriter { "10.1, evening twilight, '
         f'{formatted_time}, essen"'
         r"} }"
     )
-    aeolian_harp_tuning = get_aeolian_harp_tuning(orchestration)
-    subtitle = rf'\markup {{ \fontsize #-4 \typewriter \medium {{ "{aeolian_harp_tuning}" }} }}'
     abjad_score_to_abjad_score_block = clock_converters.AbjadScoreToAbjadScoreBlock()
     instrument_note_like_to_pitched_note_like = (
         project_converters.InstrumentNoteLikeToPitchedNoteLike(
@@ -357,8 +347,6 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
     ).convert(
         abjad_score_block_list,
         title=title,
-        # subtitle=subtitle,
-        # tagline=rf'\markup {{ \typewriter {{ "{formatted_time}" }} }}',
     )
 
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ekme-heji.ily"')
