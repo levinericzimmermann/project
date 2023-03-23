@@ -329,7 +329,8 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
             # Setting a lower 'moment' decreases the likelihood that we catch
             # the following lilypond error:
             #   Drawing systems...lilypond: skyline.cc:100: Building::Building(Real, Real, Real, Real): Assertion `start_height == end_height' failed.
-            moment=4,  # 1/16 is one second
+            moment=2,  # 1/16 is one second
+            staff_size=19.25,
         )
         abjad_score_block_list.append(abjad_score_block)
 
@@ -340,7 +341,19 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
         score_system_basic_distance=1,
         markup_system_padding=1,
         markup_system_basic_distance=1,
-        staff_height=18,
+        staff_height=12,
+        top_margin=0.1,
+        bottom_margin=0.1,
+        left_margin=0.2,
+        foot_separation=0.1,
+        head_separation=0.1,
+        line_width=29.5,
+        before_title_space=0.01,
+        after_title_space=0.01,
+        page_top_space=0.01,
+        between_title_space=0.01,
+        print_page_number=False,
+        page_breaking=r"#ly:minimal-breaking",
     ).convert(
         abjad_score_block_list,
         title=title,
