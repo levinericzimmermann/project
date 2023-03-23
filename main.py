@@ -51,6 +51,8 @@ def make_part(location_info, d, day_light, executor):
     future_list = list(sound(clock_tuple, executor))
 
     if day_light == "sunset":
+        future_list.append(project.render.illustration(orchestration, d, executor))
+
         notation_path = (
             f"builds/notations/{project.constants.TITLE}_{d.year}_{d.month}_{d.day}.pdf"
         )
@@ -120,17 +122,21 @@ def sound(clock_tuple, executor):
 NOTATION_PATH_LIST = []
 
 allowed_date_list = [
-    # datetime.datetime(2023, 4, 23),
+    datetime.datetime(2023, 4, 1),  # moon phase index 10.61 :)
+    datetime.datetime(2023, 4, 23),
     # datetime.datetime(2023, 4, 24),
     # datetime.datetime(2023, 4, 25),
     # datetime.datetime(2023, 4, 26),
     # datetime.datetime(2023, 4, 27),
-    datetime.datetime(2023, 4, 28),
-    datetime.datetime(2023, 4, 29),
-    datetime.datetime(2023, 4, 30),
+    # datetime.datetime(2023, 4, 28),
+    # datetime.datetime(2023, 4, 29),
+    # datetime.datetime(2023, 4, 30),  # moon phase index 9.98 :)
 ]
 # allowed_date_list = [datetime.datetime(2023, 4, 30)]
-allowed_day_light_list = ["sunset"]
+allowed_day_light_list = [
+        "sunset"
+        # "dusk",
+]
 
 if __name__ == "__main__":
     # Duplicated in walkman_modules.aeolian_harp
@@ -141,6 +147,9 @@ if __name__ == "__main__":
         latitude=51.4556432,
         longitude=7.0115552,
     )
+
+    # import logging
+    # logging.setLevel(logging.DEBUG)
 
     with ThreadPoolExecutor(max_workers=8) as executor:
         future_list = []
