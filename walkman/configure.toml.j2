@@ -7,7 +7,7 @@ audio                   = "jack"
 midi                    = "jack"
 sampling_rate           = 44100
 buffer_size             = 512
-channel_count           = 2
+channel_count           = 4
 
 {% set fade_in                  = 5 %}
 {% set fade_out                 = 8 %}
@@ -60,6 +60,11 @@ channel_count           = 2
     0 = [{{ box_index }}]
 {% endfor %}
 
+[configure.module.mixer.strings.channel_mapping]
+{% for box_index in range(box_count) %}
+    {{ box_index }}          = {{ box_index }}
+{% endfor %}
+
 [configure.module.butterworth_highpass_filter.strings]
 audio_input             = "mixer.strings"
 
@@ -82,9 +87,9 @@ value                   = 25
 [configure.module.mixer.pre_master]
 audio_input_0           = "average.strings"
 
-[configure.module.mixer.pre_master.default_dict.audio_input_0_channel_mapping]
+[configure.module.mixer.pre_master.channel_mapping]
 {% for box_index in range(box_count) %}
-{{ box_index }}         = [{{ box_index }}]
+    {{ box_index }}          = {{ box_index }}
 {% endfor %}
 
 [configure.module.value.mixer_pre_master_child_decibel]
@@ -93,6 +98,11 @@ value                   = -3
 [configure.module.mixer.master]
 send_to_physical_output = true
 audio_input_0           = "mixer.pre_master"
+
+[configure.module.mixer.master.channel_mapping]
+{% for box_index in range(box_count) %}
+    {{ box_index }}          = {{ box_index }}
+{% endfor %}
 
 [configure.module.value.mixer_master_child_decibel]
 value                   = 14
