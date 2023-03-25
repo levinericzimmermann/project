@@ -3,6 +3,7 @@ from math import pi
 import subprocess
 
 import cairo
+import jinja2
 
 from mutwo import core_events
 
@@ -50,9 +51,9 @@ def draw_moon(filename, movement):
 
     if reverse:
         t_filename = ".rotated.png"
-        subprocess.call(['convert', filename, '-distort', 'SRT', '-180', t_filename])
+        subprocess.call(["convert", filename, "-distort", "SRT", "-180", t_filename])
         os.remove(filename)
-        subprocess.call(['mv', t_filename, filename])
+        subprocess.call(["mv", t_filename, filename])
 
 
 def _drawa0(cr, color0, movement, xc, yc, radius):
@@ -113,11 +114,30 @@ def _drawa2(cr, movement, color0):
         cr.restore()
 
 
+def call_latex(tex_path: str):
+    subprocess.call(["lualatex", "--output-directory=etc/mooncycle/", tex_path])
+
+
+J2ENVIRONMENT = jinja2.Environment(loader=jinja2.FileSystemLoader("etc/templates"))
+
+
 if __name__ == "__main__":
     penvelope = core_events.Envelope([[0, 0], [15, 1], [16, -1], [30, 0]])
     m = 15
     for i in range(30):
-        path = f"etc/mooncycle/m{i}.png"
+        path = f"etc/mooncycle/m{i}"
+        img_path = f"{path}.png"
+        pdf_path = f"{path}.pdf"
         p = penvelope.value_at(i)
-        print(p)
-        draw_moon(path, p)
+        draw_moon(img_path, p)
+        for landscape in (True, False):
+            tex_path = path
+            if landscape:
+                tex_path = f"{path}_landscape"
+            tex_path = f"{tex_path}.tex"
+            template = J2ENVIRONMENT.get_template("moon.tex.j2").render(
+                path=img_path, landscape=landscape
+            )
+            with open(tex_path, "w") as b:
+                b.write(template)
+            call_latex(tex_path)
