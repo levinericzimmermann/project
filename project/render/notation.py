@@ -235,8 +235,8 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
     global SCALE
     SCALE = scale
 
-    hour = f'{d.hour}'
-    minute = f'{d.minute}'
+    hour = f"{d.hour}"
+    minute = f"{d.minute}"
     if len(hour) == 1:
         hour = f"0{hour}"
     if len(minute) == 1:
@@ -353,8 +353,8 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
     return executor.submit(abjad.persist.as_pdf, lilypond_file, path)
 
 
-def merge_notation(path_list: list[str]):
-    command = (
-        ["pdftk"] + path_list + ["output", f"builds/{project.constants.TITLE}.pdf"]
-    )
+def merge_notation(suffix: str, path_list: list[str]):
+    path = f"builds/{project.constants.TITLE}_{suffix}.pdf"
+    print(f"Merge '{path_list}' to '{path}'")
+    command = ["pdftk"] + path_list + ["output", path]
     subprocess.call(command)

@@ -25,54 +25,71 @@ astral_constellation_to_scale = project_converters.AstralConstellationToScale(
     project.constants.SUN_LIGHT_TO_PITCH_INDEX_TUPLE,
     project.constants.MOON_LIGHT_TO_PITCH_INDEX_TUPLE,
 )
+astral_event_to_clock_tuple = project_converters.AstralEventToClockTuple(
+    astral_constellation_to_orchestration,
+    astral_constellation_to_scale,
+).convert
 
 
-def make_part(location_info, d, day_light, executor):
-    if allowed_date_list and not any(
-        [
-            d.day == d2.day and d.month == d2.month and d.year == d2.year
-            for d2 in allowed_date_list
-        ]
-    ):
-        return
-    if allowed_day_light_list and day_light not in allowed_day_light_list:
-        return
+def run_if_allowed(func):
+    def wrapper(d, day_light, *args, **kwargs):
+        if allowed_date_list and not any(
+            [
+                d.day == d2.day and d.month == d2.month and d.year == d2.year
+                for d2 in allowed_date_list
+            ]
+        ):
+            return
+        if allowed_day_light_list and day_light not in allowed_day_light_list:
+            return
+        return func(d, day_light, *args, **kwargs)
 
-    # COMMON
+    return wrapper
+
+
+@run_if_allowed
+def get_day_light_data(d, day_light, location_info):
+    print(f"RENDER '{day.isoformat()}'!")
     astral_event = project_converters.DatetimeToSimultaneousEvent(
         location_info
     ).convert(d)
-    clock_tuple, orchestration = project_converters.AstralEventToClockTuple(
-        astral_constellation_to_orchestration,
-        astral_constellation_to_scale,
-    ).convert(astral_event)
-
-    # SPECIFIC
-    future_list = list(sound(clock_tuple, executor))
-
-    if day_light == "sunset":
-        future_list.append(project.render.illustration(orchestration, d, executor))
-
-        notation_path = (
-            f"builds/notations/{project.constants.TITLE}_{d.year}_{d.month}_{d.day}.pdf"
-        )
-        NOTATION_PATH_LIST.append(notation_path)
-        future_list.append(
-            notate(
-                day_light,
-                astral_event,
-                clock_tuple,
-                orchestration,
-                notation_path,
-                executor,
-            )
-        )
-
-    return tuple(future_list)
+    clock_tuple, orchestration = astral_event_to_clock_tuple(astral_event)
+    return (d, day_light, astral_event, clock_tuple, orchestration)
 
 
-def notate(
-    day_light, astral_event, clock_tuple, orchestration, notation_path, executor
+def _illustrate(
+    d, day_light, astral_event, clock_tuple, orchestration, notation_path, executor
+):
+    project.render.illustration(orchestration, d, executor)
+
+
+def notate(day_light_list, executor):
+    day_light_to_notate_tuple = ("sunset",)
+    future_list = []
+    day_light_to_notation_path_list = {
+        day_light: [] for day_light in day_light_to_notate_tuple
+    }
+    for data in day_light_list:
+        if (day_light := data[1]) in day_light_to_notate_tuple:
+            print(day_light)
+            notation_path_list = day_light_to_notation_path_list[day_light]
+            d = data[0]
+            notation_path = f"builds/notations/{project.constants.TITLE}_{d.year}_{d.month}_{d.day}_{day_light}.pdf"
+            if future := _notate(*data, notation_path, executor):
+                future_list.append(future)
+                notation_path_list.append(notation_path)
+
+    while any([f.running() for f in future_list]):
+        time.sleep(0.1)
+
+    for day_light, notation_path_list in day_light_to_notation_path_list.items():
+        if notation_path_list:
+            project.render.merge_notation(day_light, notation_path_list)
+
+
+@run_if_allowed
+def _notate(
+    d, day_light, astral_event, clock_tuple, orchestration, notation_path, executor
 ):
     print("\tnotate...")
     intonation_tuple = project.constants.MOON_PHASE_TO_INTONATION[
@@ -91,7 +108,13 @@ def notate(
     )
 
 
-def sound(clock_tuple, executor):
+def sound(day_light_list, executor):
+    for data in day_light_list:
+        _sound(*data, executor)
+
+
+@run_if_allowed
+def _sound(d, day_light, astral_event, clock_tuple, orchestration, executor):
     print("\tsound...")
     # For both - midi frontend and walkman frontend - we need
     # to convert our clocks to one simultaneous event. So we do
@@ -119,11 +142,9 @@ def sound(clock_tuple, executor):
     return project.render.midi(simultaneous_event, executor)
 
 
-NOTATION_PATH_LIST = []
-
 allowed_date_list = [
     datetime.datetime(2023, 4, 1),  # moon phase index 10.61 :)
-    datetime.datetime(2023, 4, 23),
+    # datetime.datetime(2023, 4, 23),
     # datetime.datetime(2023, 4, 24),
     # datetime.datetime(2023, 4, 25),
     # datetime.datetime(2023, 4, 26),
@@ -134,8 +155,8 @@ allowed_date_list = [
 ]
 # allowed_date_list = [datetime.datetime(2023, 4, 30)]
 allowed_day_light_list = [
-        "sunset"
-        # "dusk",
+    "sunset"
+    # "dusk",
 ]
 
 if __name__ == "__main__":
@@ -152,26 +173,23 @@ if __name__ == "__main__":
     # logging.setLevel(logging.DEBUG)
 
     with ThreadPoolExecutor(max_workers=8) as executor:
-        future_list = []
         with diary_interfaces.open():
             april = tuple(
                 datetime.datetime(2023, 4, d, tzinfo=location_info.tzinfo)
                 for d in range(1, 31)
             )
+            day_light_list = []
             for day in april:
-                print(f"RENDER '{day.isoformat()}'!")
                 s = sun.sun(
                     location_info.observer,
                     date=day,
                     dawn_dusk_depression=Depression.CIVIL,
                 )
                 for day_light in ("dawn", "sunrise", "sunset", "dusk"):
-                    d = s[day_light]
-                    print(f"\t'{d}'")
-                    if future_tuple := make_part(location_info, d, day_light, executor):
-                        future_list.extend(future_tuple)
-        while any([f.running() for f in future_list]):
-            time.sleep(0.5)
+                    if day_light_data := get_day_light_data(
+                        s[day_light], day_light, location_info
+                    ):
+                        day_light_list.append(day_light_data)
 
-    print("concatenate", NOTATION_PATH_LIST)
-    project.render.merge_notation(NOTATION_PATH_LIST)
+            notate(day_light_list, executor)
+            sound(day_light_list, executor)
