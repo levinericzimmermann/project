@@ -1,3 +1,5 @@
+import os
+import hashlib
 import subprocess
 import warnings
 
@@ -350,7 +352,14 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
     )
 
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ekme-heji.ily"')
-    return executor.submit(abjad.persist.as_pdf, lilypond_file, path)
+
+    def render_and_rotate(lilypond_file, path):
+        temp_path = hashlib.md5(path.encode()).hexdigest()
+        temp_path = f".{temp_path}.pdf"
+        abjad.persist.as_pdf(lilypond_file, temp_path)
+        subprocess.call(["pdftk", temp_path, "cat", "1left", "output", path])
+
+    return executor.submit(render_and_rotate, lilypond_file, path)
 
 
 def merge_notation(suffix: str, path_list: list[str]):
