@@ -1,6 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
 import datetime
-import time
 
 # First import project to activate constant + patches
 import project
@@ -100,6 +99,13 @@ def notate(day_light_list, executor):
             notation_path = f"builds/notations/{project.constants.TITLE}_{d.year}_{d.month}_{d.day}_{day_light}.pdf"
             if future := _notate(*data, notation_path, executor):
                 future_list.append(future)
+                astral_event = data[2]
+                moon_phase_index = astral_event["moon_phase"].get_parameter(
+                    "moon_phase_index", flat=1
+                )[0]
+                notation_path_list.append(
+                    f"etc/mooncycle/m{moon_phase_index}_landscape.pdf"
+                )
                 notation_path_list.append(notation_path)
 
     wait(future_list)
@@ -165,12 +171,14 @@ def _sound(d, day_light, astral_event, clock_tuple, orchestration, executor):
 
 
 def wait(future_list):
-    while any([f.running() for f in future_list]):
-        time.sleep(0.1)
+    [f.result() for f in future_list]
 
 
 allowed_date_list = [
     datetime.datetime(2023, 4, 1),  # moon phase index 10.61 :)
+    datetime.datetime(2023, 4, 2),
+    datetime.datetime(2023, 4, 3),
+    datetime.datetime(2023, 4, 4),
     # datetime.datetime(2023, 4, 23),
     # datetime.datetime(2023, 4, 24),
     # datetime.datetime(2023, 4, 25),
