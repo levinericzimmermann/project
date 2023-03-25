@@ -28,10 +28,12 @@ let
     '';
   };
 
+  # There is a regression in upstream package,
   python94 = pkgs.python310.buildEnv.override {
     extraLibs = with pkgs; [
       python310Packages.ipython
       python310Packages.ortools
+      python310Packages.astropy
       mutwo-midi
       mutwo-diary
       # diy ebow live
@@ -48,8 +50,8 @@ in
           python94
           lilypond-with-fonts
           # For generating books
-          texlive.combined.scheme-full
+          # texlive.combined.scheme-full
           # Concatenating notes
-          pdftk
+          # pdftk
       ];
   }

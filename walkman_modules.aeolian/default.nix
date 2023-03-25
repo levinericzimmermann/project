@@ -21,7 +21,7 @@ let
       freezegun
     ];
   
-    nativeCheckInputs = with pkgs.python310Packages; [
+    checkInputs = with pkgs.python310Packages; [
       pytest
     ];
   

@@ -23,6 +23,7 @@ from mutwo import diary_interfaces
 from mutwo import music_events
 from mutwo import music_parameters
 from mutwo import project_converters
+from mutwo import project_generators
 from mutwo import project_parameters
 from mutwo import timeline_interfaces
 
@@ -181,6 +182,7 @@ class DatetimeToMoonPhase(DatetimeConverter):
         self._datetime_to_moon_phase = ranges.RangeDict(
             {m.range: m for m in project_parameters.MoonPhase}
         )
+        self.lunar_phase_calculator = project_generators.LunarPhaseCalculator()
 
     def convert(self, d: datetime.datetime, sun_light: project_parameters.SunLight):
         # We adjust the datetime to ensure that we have the same moon_phase
@@ -196,13 +198,7 @@ class DatetimeToMoonPhase(DatetimeConverter):
             project_parameters.SunLight.DAYLIGHT,
         ):
             d -= datetime.timedelta(days=1)
-        # "The moon phase does not depend on your location.
-        # However what the moon actually looks like to you
-        # does depend on your location.
-        # If you’re in the southern hemisphere it looks different
-        # than if you were in the northern hemisphere."
-        # (reference: https://astral.readthedocs.io/en/latest/index.html?highlight=phase#phase)
-        phase_index = moon.phase(d)
+        phase_index = self.lunar_phase_calculator(d, self._location_info)
         return self._datetime_to_moon_phase[phase_index], phase_index
 
 

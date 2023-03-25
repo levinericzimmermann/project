@@ -195,6 +195,7 @@ if __name__ == "__main__":
         latitude=51.4556432,
         longitude=7.0115552,
     )
+    location_info.elevation = 100
 
     # import logging
     # logging.setLevel(logging.DEBUG)
