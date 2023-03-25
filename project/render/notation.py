@@ -237,20 +237,6 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
     global SCALE
     SCALE = scale
 
-    hour = f"{d.hour}"
-    minute = f"{d.minute}"
-    if len(hour) == 1:
-        hour = f"0{hour}"
-    if len(minute) == 1:
-        minute = f"0{minute}"
-
-    formatted_time = f"{d.year}.{d.month}.{d.day}, {hour}:{minute}"
-
-    title = (
-        r'\markup { \fontsize #-4 \medium \typewriter { "10.1, evening twilight, '
-        f'{formatted_time}, essen"'
-        r"} }"
-    )
     abjad_score_to_abjad_score_block = clock_converters.AbjadScoreToAbjadScoreBlock()
     instrument_note_like_to_pitched_note_like = (
         project_converters.InstrumentNoteLikeToPitchedNoteLike(
@@ -348,7 +334,6 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
         page_breaking=r"#ly:minimal-breaking",
     ).convert(
         abjad_score_block_list,
-        title=title,
     )
 
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ekme-heji.ily"')
