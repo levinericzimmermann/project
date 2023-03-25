@@ -1,0 +1,58 @@
+\documentclass[12pt,a4paper,british]{article}
+
+\renewcommand*\ttdefault{cmvtt}
+\renewcommand{\familydefault}{\ttdefault}
+
+\usepackage[OT2,T1]{fontenc}
+
+\renewcommand\labelitemi{---}
+
+
+\usepackage{graphicx}
+\usepackage[
+    a4paper,
+    bindingoffset=0.5cm,
+    left=1cm,
+    right=1cm,
+    top=1cm,
+    bottom=1cm,
+    footskip=.25in
+]{geometry}
+
+\frenchspacing              % Better looking spacings after periods
+\pagestyle{empty}           % No pagenumbers/headers/footers
+
+
+
+\begin{document}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%               START PAGE
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{center}
+    \vspace*{5cm}
+
+    { \Huge 10.1: aeolian harp tuning list }
+    
+    \vspace{0.2cm}
+
+\end{center}
+
+\newpage
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%               CONTENT
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{% for tuning in data %}
+
+{{ tuning }}\\
+
+\vspace{1cm}
+
+{% endfor %}
+
+
+\end{document}

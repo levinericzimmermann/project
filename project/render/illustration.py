@@ -1,15 +1,16 @@
+import subprocess
+
 import abjad
 
 from mutwo import abjad_converters
 from mutwo import core_events
 from mutwo import music_events
+from mutwo import music_parameters
+
+import project
 
 
-def illustration(orchestration, d, executor):
-    return _illustrate_guitar_tuning(orchestration, d, executor)
-
-
-def _illustrate_guitar_tuning(orchestration, d, executor):
+def illustrate_guitar_tuning(orchestration, d, path, executor):
     try:
         guitar = orchestration.GUITAR
     except AttributeError:
@@ -66,6 +67,57 @@ def _illustrate_guitar_tuning(orchestration, d, executor):
     return executor.submit(
         abjad.persist.as_png,
         lilypond_file,
-        f"builds/guitar_tuning_{d.month}_{d.day}.png",
+        path,
         resolution=400,
     )
+
+
+def illustrate_aeolian_harp_tuning(d, orchestration):
+    return _get_aeolian_harp_tuning(d, orchestration)
+
+
+def _get_aeolian_harp_tuning(d, orchestration):
+    aeolian_harp = orchestration.AEOLIAN_HARP
+    tuning = []
+    for box_index, string_tuple in enumerate(aeolian_harp.string_tuple_for_each_box):
+        tuning_part = []
+        for string in string_tuple:
+            p = string.tuning
+            pname = p.get_closest_pythagorean_pitch_name()
+            dev = round(p.cent_deviation_from_closest_western_pitch_class, 2)
+            ratio = (p + music_parameters.JustIntonationPitch("2/1")).ratio
+            pitch_data = f"{pname} ({ratio}): {dev}"
+            tuning_part.append(pitch_data)
+        tuning_part = ", ".join(tuning_part)
+        tuning_part = rf"{{ \large box{box_index + 1} }} [{tuning_part}]"
+        tuning.append(tuning_part)
+    tuning = "\n\n".join(tuning)
+    day = rf"{{\large {d.year}/{d.month}/{d.day} }}"
+    separator = r"\vspace{0.5cm}"
+    tuning = f"{day}\n\n{separator}\n{tuning}"
+    return tuning
+
+
+def merge_guitar_tuning(guitar_tuning_path_list):
+    print(f"Concatenate '{guitar_tuning_path_list}'.")
+    tex_path = "builds/guitar_tuning.tex"
+    template = project.constants.J2ENVIRONMENT.get_template(
+        "guitar_tuning.tex.j2"
+    ).render(data=guitar_tuning_path_list)
+    with open(tex_path, "w") as b:
+        b.write(template)
+    call_latex(tex_path)
+
+
+def merge_aeolian_harp_tuning(aeolian_harp_tuning_list):
+    tex_path = "builds/aeolian_harp_tuning.tex"
+    template = project.constants.J2ENVIRONMENT.get_template(
+        "aeolian_harp_tuning.tex.j2"
+    ).render(data=aeolian_harp_tuning_list)
+    with open(tex_path, "w") as b:
+        b.write(template)
+    call_latex(tex_path)
+
+
+def call_latex(tex_path: str):
+    subprocess.call(["lualatex", "--output-directory=builds/", tex_path])

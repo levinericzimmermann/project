@@ -57,10 +57,34 @@ def get_day_light_data(d, day_light, location_info):
     return (d, day_light, astral_event, clock_tuple, orchestration)
 
 
-def _illustrate(
-    d, day_light, astral_event, clock_tuple, orchestration, notation_path, executor
+def illustrate(day_light_list, executor):
+    guitar_tuning_path_list = []
+    guitar_tuning_future_list = []
+    aeolian_harp_tuning_list = []
+    for data in day_light_list:
+        # It's sufficient to illustrate this once.
+        if data[1] in ("sunset",):
+            d = data[0]
+            guitar_tuning_path = f"builds/guitar_tuning_{d.month}_{d.day}.png"
+            if future := _illustrate_guitar_tuning(*data, guitar_tuning_path, executor):
+                guitar_tuning_future_list.append(future)
+                guitar_tuning_path_list.append(guitar_tuning_path)
+                aeolian_harp_tuning_list.append(
+                    project.render.illustrate_aeolian_harp_tuning(d, data[4])
+                )
+
+    project.render.merge_aeolian_harp_tuning(aeolian_harp_tuning_list)
+
+    wait(guitar_tuning_future_list)
+    if guitar_tuning_path_list:
+        project.render.merge_guitar_tuning(guitar_tuning_path_list)
+
+
+@run_if_allowed
+def _illustrate_guitar_tuning(
+    d, day_light, astral_event, clock_tuple, orchestration, path, executor
 ):
-    project.render.illustration(orchestration, d, executor)
+    return project.render.illustrate_guitar_tuning(orchestration, d, path, executor)
 
 
 def notate(day_light_list, executor):
@@ -71,7 +95,6 @@ def notate(day_light_list, executor):
     }
     for data in day_light_list:
         if (day_light := data[1]) in day_light_to_notate_tuple:
-            print(day_light)
             notation_path_list = day_light_to_notation_path_list[day_light]
             d = data[0]
             notation_path = f"builds/notations/{project.constants.TITLE}_{d.year}_{d.month}_{d.day}_{day_light}.pdf"
@@ -79,8 +102,7 @@ def notate(day_light_list, executor):
                 future_list.append(future)
                 notation_path_list.append(notation_path)
 
-    while any([f.running() for f in future_list]):
-        time.sleep(0.1)
+    wait(future_list)
 
     for day_light, notation_path_list in day_light_to_notation_path_list.items():
         if notation_path_list:
@@ -142,6 +164,11 @@ def _sound(d, day_light, astral_event, clock_tuple, orchestration, executor):
     return project.render.midi(simultaneous_event, executor)
 
 
+def wait(future_list):
+    while any([f.running() for f in future_list]):
+        time.sleep(0.1)
+
+
 allowed_date_list = [
     datetime.datetime(2023, 4, 1),  # moon phase index 10.61 :)
     # datetime.datetime(2023, 4, 23),
@@ -191,5 +218,6 @@ if __name__ == "__main__":
                     ):
                         day_light_list.append(day_light_data)
 
+            illustrate(day_light_list, executor)
             notate(day_light_list, executor)
             sound(day_light_list, executor)

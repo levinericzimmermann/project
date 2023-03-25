@@ -1,3 +1,4 @@
+import jinja2
 import ranges
 
 from mutwo import abjad_converters
@@ -53,3 +54,6 @@ CLOCK_INSTRUMENT_TO_PITCH_DICT = {
     ORCHESTRATION_CLOCK.CLOCK_I3: music_parameters.WesternPitch("d", 4),
     ORCHESTRATION_CLOCK.CLOCK_I4: music_parameters.WesternPitch("e", 4),
 }
+
+
+J2ENVIRONMENT = jinja2.Environment(loader=jinja2.FileSystemLoader("etc/templates"))
