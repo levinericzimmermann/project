@@ -117,10 +117,7 @@ if __name__ == "__main__":
     penvelope = core_events.Envelope([[0, 0], [15, 1], [16, -1], [30, 0]])
     m = 15
     for i in range(30):
-        fi = i
-        if fi < 10:
-            fi = f"0{fi}"
-        path = f"etc/mooncycle/m{fi}.png"
+        path = f"etc/mooncycle/m{i}.png"
         p = penvelope.value_at(i)
         print(p)
         draw_moon(path, p)
