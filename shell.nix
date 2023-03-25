@@ -40,6 +40,10 @@ let
       walkman-aeolian
       # markov chain
       yamm
+      # moon drawings :)
+      python310Packages.pycairo
+      # rotate moon drawing
+      imagemagick
     ];
   };
 
