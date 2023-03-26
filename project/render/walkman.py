@@ -34,8 +34,8 @@ def walkman(simultaneous_event, d):
                 strong, weak = e0, e1
             else:
                 strong, weak = e1, e0
-            # try 7 seconds
-            diff = min((weak.duration * fractions.Fraction(1, 2), 7))
+            # try 5.5 seconds
+            diff = min((weak.duration * fractions.Fraction(1, 2), 5.5))
             strong.duration += diff
             weak.duration -= diff
         sequence_list.append(mutwo2walkman(s, is_string=False))
