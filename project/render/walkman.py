@@ -7,12 +7,20 @@ import walkmanio
 
 
 def walkman(simultaneous_event, d):
-    mutwo2walkman = project_converters.SequentialEventToWalkmanEventTuple()
-    sequence_list = []
     try:
-        for s in simultaneous_event["aeolian harp"]:
-            sequence_list.append(mutwo2walkman(s))
+        e = simultaneous_event["aeolian harp"]
     except KeyError:
         warnings.warn(f"No aeolian harp event found for {d}!")
         return
+
+    mutwo2walkman = project_converters.SequentialEventToWalkmanEventTuple()
+
+    sequence_list = []
+    for s in e:
+        sequence_list.append(mutwo2walkman(s))
+
+    for start in range(0, 9, 3):
+        s = e[start:start + 3].chordify()
+        sequence_list.append(mutwo2walkman(s, is_string=False))
+
     walkmanio.export(project.constants.WALKMAN_DATA_PATH, d, tuple(sequence_list))

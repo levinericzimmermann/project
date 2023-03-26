@@ -171,11 +171,12 @@ class String(walkman.Module):
 
 class AeolianHarp(walkman.Hub):
     TOTAL_STRING_COUNT = 9
+    BOX_COUNT = 3
 
     def _setup_pyo_object(self, *args, **kwargs):
         super()._setup_pyo_object(*args, **kwargs)
         sequencer_list = []
-        for string_index in range(self.TOTAL_STRING_COUNT):
+        for string_index in range(self.TOTAL_STRING_COUNT + self.BOX_COUNT):
             sequencer = walkman.Sequencer(
                 getattr(self, f"audio_input_{string_index}"),
             )
@@ -194,7 +195,7 @@ class AeolianHarp(walkman.Hub):
         # Allow time travel for testing purposes
         self.traveller = None
         self.jumptime = jumptime
-        # We need to be ensure all relevant start up code is executed.
+        # We need to ensure all relevant start up code is executed.
         # Usually this shouldn't be a be problem, because this patch isn't
         # meant to be used with jumping between cues, we only need to start
         # one cue and that's it. But still just to be double sure it's added

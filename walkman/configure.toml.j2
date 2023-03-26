@@ -32,12 +32,6 @@ channel_count           = 4
     [configure.module.value.audio_input_{{ box_index }}_child_decibel]
     # We have a very quiet signal
     value                   = 50
-
-    [configure.module.gate.{{ box_index }}]
-    audio_input             = "audio_input.{{ box_index }}"
-
-    [configure.module.compressor.{{ box_index }}]
-    audio_input             = "gate.{{ box_index }}"
 {% endfor %}
 
 [configure.module.aeolian_harp.0]
@@ -46,7 +40,8 @@ channel_count           = 4
         {% set string_index = (box_index * string_count) + pin_index %}
         audio_input_{{ string_index }}           = "string.{{ string_index }}"
     {% endfor %}
-    audio_input_{{ total_string_count + box_index }} = "compressor.{{ box_index }}"
+    # audio_input_{{ total_string_count + box_index }} = "compressor.{{ box_index }}"
+    audio_input_{{ total_string_count + box_index }} = "audio_input.{{ box_index }}"
 {% endfor %}
 
     [configure.module.aeolian_harp.0.audio_input_index_to_pyo_object_index]
@@ -54,9 +49,14 @@ channel_count           = 4
     {{ box_index + total_string_count }} = {{ box_index }}
     {% endfor %}
 
+{% for box_index in range(box_count) %}
+    [configure.module.compressor.{{ box_index }}]
+    audio_input                          = "aeolian_harp.0.{{ box_index }}"
+{% endfor %}
+
 [configure.module.mixer.strings]
 {% for box_index in range(box_count) %}
-    audio_input_{{ box_index }}          = "aeolian_harp.0.{{ box_index }}"
+    audio_input_{{ box_index }}          = "compressor.{{ box_index }}"
 {% endfor %}
 {% for box_index in range(box_count) %}
     [configure.module.mixer.strings.default_dict.audio_input_{{ box_index }}_channel_mapping]
