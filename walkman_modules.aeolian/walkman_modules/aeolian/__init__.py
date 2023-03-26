@@ -237,8 +237,6 @@ class AeolianHarp(walkman.Hub):
         # before playing again.
         self._reset_events()
         super()._play(duration, delay)
-        for sequencer in self.sequencer_tuple:
-            sequencer.play()
 
     def _stop(self, wait: float = 0):
         self._shutdown_scheduler()
@@ -305,11 +303,9 @@ class AeolianHarp(walkman.Hub):
                 f"Try to execute schedule event on seq ({index}) {sequencer.module}..."
             )
             if self.is_playing:
-                for s in self.sequencer_tuple:
-                    s.stop()
+                sequencer.stop()
                 sequencer.event_iterator = iter(sequence)
-                for s in self.sequencer_tuple:
-                    s.play()
+                sequencer.play()
                 walkman.constants.LOGGER.info(
                     f"Successfully started sequencer {index}."
                 )
