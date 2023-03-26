@@ -14,7 +14,7 @@ import serial
 import walkman
 import walkmanio
 
-__all__ = ("String", "AeolianHarp", "Compressor")
+__all__ = ("String", "AeolianHarp", "Compressor", "Gate")
 
 BAUDRATE = 230400
 READ_TIMEOUT = 0.1
@@ -362,3 +362,27 @@ class Compressor(
     @functools.cached_property
     def _pyo_object(self) -> pyo.PyoObject:
         return self.compressor
+
+
+class Gate(
+    walkman.ModuleWithDecibel,
+    audio_input=walkman.Catch(walkman.constants.EMPTY_MODULE_INSTANCE_NAME),
+    thresh=walkman.AutoSetup(walkman.Value, module_kwargs={"value": -50}),
+    risetime=walkman.AutoSetup(walkman.Value, module_kwargs={"value": 3}),
+    falltime=walkman.AutoSetup(walkman.Value, module_kwargs={"value": 1}),
+):
+    def _setup_pyo_object(self):
+        super()._setup_pyo_object()
+        self.gate = pyo.Gate(
+            self.audio_input.pyo_object,
+            mul=self.amplitude_signal_to,
+            thresh=self.thresh.pyo_object_or_float,
+            risetime=self.risetime.pyo_object_or_float,
+            falltime=self.falltime.pyo_object_or_float,
+            lookahead=20,
+        ).stop()
+        self.internal_pyo_object_list.append(self.gate)
+
+    @functools.cached_property
+    def _pyo_object(self) -> pyo.PyoObject:
+        return self.gate

@@ -33,8 +33,11 @@ channel_count           = 4
     # We have a very quiet signal
     value                   = 50
 
-    [configure.module.compressor.{{ box_index }}]
+    [configure.module.gate.{{ box_index }}]
     audio_input             = "audio_input.{{ box_index }}"
+
+    [configure.module.compressor.{{ box_index }}]
+    audio_input             = "gate.{{ box_index }}"
 {% endfor %}
 
 [configure.module.aeolian_harp.0]
@@ -69,20 +72,20 @@ channel_count           = 4
 audio_input             = "mixer.strings"
 
 [configure.module.value.butterworth_highpass_filter_strings_child_frequency]
-value                   = 100
+value                   = 200
 
 [configure.module.butterworth_lowpass_filter.strings]
 audio_input             = "butterworth_highpass_filter.strings"
 
 [configure.module.value.butterworth_lowpass_filter_strings_child_frequency]
-value                   = 17000
+value                   = 14000
 
 [configure.module.average.strings]
 audio_input             = "butterworth_lowpass_filter.strings"
 
 [configure.module.value.average_strings_child_size]
 # Higher value -> less noise, but also less clear signal
-value                   = 25
+value                   = 30
 
 [configure.module.mixer.pre_master]
 audio_input_0           = "average.strings"
