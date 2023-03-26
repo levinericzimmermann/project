@@ -1,4 +1,3 @@
-import itertools
 import warnings
 
 import ranges
@@ -31,11 +30,11 @@ def main(
     activity_level,
     scale,
     event_count_to_average_tone_duration={
-        1: 16,
-        2: 14.85,
-        3: 12.5,
-        4: 10,
-        5: 9,
+        1: 21,
+        2: 19.85,
+        3: 17.5,
+        4: 15,
+        5: 14,
     },
     **kwargs,
 ) -> timeline_interfaces.EventPlacement:
@@ -86,7 +85,7 @@ def make_simultaneous_event(string_list_tuple, random, instrument, activity_leve
     tag = instrument.name
 
     event_count = len(string_list_tuple)
-    duration_list = [random.choice([1.75, 1.5, 2.0, 2.25]) for _ in range(event_count)]
+    duration_list = [random.choice([1.75, 1.5, 2.0, 2.25, 3.25, 3]) for _ in range(event_count)]
     match random.integers(0, 3):
         case 1:
             duration_list[-1] *= 2
@@ -103,13 +102,22 @@ def make_simultaneous_event(string_list_tuple, random, instrument, activity_leve
     )
 
     if activity_level(6):
-        envelope = "BASIC"
+        if activity_level(4):
+            envelope = "BASIC"
+        else:
+            envelope = "BASIC_QUIET"
     else:
-        envelope = "PLUCK_1"  # works better than PLUCK_0
+        if activity_level(5):
+            envelope = "PLUCK_1"
+        else:
+            envelope = "PLUCK_0"
 
     frequency_factor = 1
     if envelope in ("BASIC", "BASIC_LOUD", "BASIC_QUIET"):
-        frequency_factor = 0.25
+        frequency_factor = random.choice([0.5, 0.25])
+    if envelope in ("PLUCK_0", "PLUCK_1"):
+        if activity_level(3):
+            frequency_factor = 2
 
     absolute_time = core_parameters.DirectDuration(0)
     for string_list, duration, start in zip(
