@@ -58,10 +58,10 @@ const char        msgDelimiterEnd         = '\n';
 
 unsigned long     currentTime;
 
-// 3 seconds
-const unsigned long fadeInDuration = 3000000;
 // 4 seconds
-const unsigned long fadeOutDuration = 4000000;
+const unsigned long fadeInDuration = 4000000;
+// 5 seconds
+const unsigned long fadeOutDuration = 5000000;
 
 double fallFactorArray[3] = { 0.9935, 0.9935, 0.9935 };
 double riseFactorArray[3] = { 1.0065, 1.0065, 1.0065 };
