@@ -1,0 +1,134 @@
+<!DOCTYPE patchbay>
+<patchbay name="walkman-scarlette-and-reaper" version="0.9.7">
+ <output-sockets>
+  <socket client="Built\-in\ Audio\ Analog\ Stereo" name="Built-in Audio Analog Stereo" exclusive="off" type="jack-audio">
+   <plug>capture_FL</plug>
+   <plug>capture_FR</plug>
+   <plug>monitor_FL</plug>
+   <plug>monitor_FR</plug>
+  </socket>
+  <socket client="Scarlett\ 18i20\ Multichannel" name="Scarlett 18i20 Multichannel" exclusive="off" type="jack-audio">
+   <plug>capture_AUX0</plug>
+   <plug>capture_AUX1</plug>
+   <plug>capture_AUX2</plug>
+   <plug>capture_AUX3</plug>
+   <plug>capture_AUX4</plug>
+   <plug>capture_AUX5</plug>
+   <plug>capture_AUX6</plug>
+   <plug>capture_AUX7</plug>
+   <plug>capture_AUX8</plug>
+   <plug>capture_AUX9</plug>
+   <plug>capture_AUX10</plug>
+   <plug>capture_AUX11</plug>
+   <plug>capture_AUX12</plug>
+   <plug>capture_AUX13</plug>
+   <plug>monitor_AUX0</plug>
+   <plug>monitor_AUX1</plug>
+   <plug>monitor_AUX2</plug>
+   <plug>monitor_AUX3</plug>
+   <plug>monitor_AUX4</plug>
+   <plug>monitor_AUX5</plug>
+   <plug>monitor_AUX6</plug>
+   <plug>monitor_AUX7</plug>
+   <plug>monitor_AUX8</plug>
+   <plug>monitor_AUX9</plug>
+   <plug>monitor_AUX10</plug>
+   <plug>monitor_AUX11</plug>
+   <plug>monitor_AUX12</plug>
+   <plug>monitor_AUX13</plug>
+   <plug>monitor_AUX14</plug>
+   <plug>monitor_AUX15</plug>
+  </socket>
+  <socket client="walkman_4" name="walkman_4" exclusive="off" type="jack-audio">
+   <plug>output_1</plug>
+   <plug>output_2</plug>
+   <plug>output_3</plug>
+   <plug>output_4</plug>
+  </socket>
+  <socket client="REAPER" name="REAPER" exclusive="off" type="jack-audio">
+   <plug>out1</plug>
+   <plug>out2</plug>
+  </socket>
+  <socket client="Scarlett\ 18i20\ Multichannel" name="Scarlett 18i20 Multichannel 2" exclusive="off" type="jack-audio">
+   <plug>capture_AUX3</plug>
+  </socket>
+  <socket client="Midi\-Bridge" name="Midi-Bridge" exclusive="off" type="jack-midi">
+   <plug>Midi\ Through\:\(capture_0\)\ Midi\ Through\ Port\-0</plug>
+   <plug>Scarlett\ 18i20\ USB\ 1\:\(capture_0\)\ Scarlett\ 18i20\ USB\ MIDI\ 1</plug>
+  </socket>
+  <socket client="walkman_4" name="walkman_4" exclusive="off" type="jack-midi">
+   <plug>output</plug>
+  </socket>
+  <socket client="Midi\ Through" name="Midi Through" exclusive="off" type="alsa-midi">
+   <plug>Midi\ Through\ Port\-0</plug>
+  </socket>
+  <socket client="Scarlett\ 18i20\ USB" name="Scarlett 18i20 USB" exclusive="off" type="alsa-midi">
+   <plug>Scarlett\ 18i20\ USB\ MIDI\ 1</plug>
+  </socket>
+ </output-sockets>
+ <input-sockets>
+  <socket client="Built\-in\ Audio\ Analog\ Stereo" name="Built-in Audio Analog Stereo" exclusive="off" type="jack-audio">
+   <plug>playback_FL</plug>
+   <plug>playback_FR</plug>
+  </socket>
+  <socket client="Scarlett\ 18i20\ Multichannel" name="Scarlett 18i20 Multichannel" exclusive="off" type="jack-audio">
+   <plug>playback_AUX0</plug>
+   <plug>playback_AUX1</plug>
+   <plug>playback_AUX2</plug>
+   <plug>playback_AUX3</plug>
+   <plug>playback_AUX4</plug>
+   <plug>playback_AUX5</plug>
+   <plug>playback_AUX6</plug>
+   <plug>playback_AUX7</plug>
+   <plug>playback_AUX8</plug>
+   <plug>playback_AUX9</plug>
+   <plug>playback_AUX10</plug>
+   <plug>playback_AUX11</plug>
+   <plug>playback_AUX12</plug>
+   <plug>playback_AUX13</plug>
+   <plug>playback_AUX14</plug>
+   <plug>playback_AUX15</plug>
+  </socket>
+  <socket client="walkman_4" name="walkman_4" exclusive="off" type="jack-audio">
+   <plug>input_1</plug>
+   <plug>input_2</plug>
+   <plug>input_3</plug>
+   <plug>input_4</plug>
+  </socket>
+  <socket client="REAPER" name="REAPER" exclusive="off" type="jack-audio">
+   <plug>in1</plug>
+   <plug>in2</plug>
+   <plug>in3</plug>
+   <plug>in4</plug>
+  </socket>
+  <socket client="REAPER" name="REAPER 2" exclusive="off" type="jack-audio">
+   <plug>in4</plug>
+  </socket>
+  <socket client="Scarlett\ 18i20\ Multichannel" name="Scarlett 18i20 Multichannel 2" exclusive="off" type="jack-audio">
+   <plug>playback_AUX3</plug>
+  </socket>
+  <socket client="Midi\-Bridge" name="Midi-Bridge" exclusive="off" type="jack-midi">
+   <plug>Midi\ Through\:\(playback_0\)\ Midi\ Through\ Port\-0</plug>
+   <plug>Scarlett\ 18i20\ USB\ 1\:\(playback_0\)\ Scarlett\ 18i20\ USB\ MIDI\ 1</plug>
+  </socket>
+  <socket client="walkman_4" name="walkman_4" exclusive="off" type="jack-midi">
+   <plug>input</plug>
+  </socket>
+  <socket client="Midi\ Through" name="Midi Through" exclusive="off" type="alsa-midi">
+   <plug>Midi\ Through\ Port\-0</plug>
+  </socket>
+  <socket client="Scarlett\ 18i20\ USB" name="Scarlett 18i20 USB" exclusive="off" type="alsa-midi">
+   <plug>Scarlett\ 18i20\ USB\ MIDI\ 1</plug>
+  </socket>
+ </input-sockets>
+ <slots/>
+ <cables>
+  <cable input="walkman_4" output="Scarlett 18i20 Multichannel" type="jack-audio"/>
+  <cable input="Scarlett 18i20 Multichannel" output="walkman_4" type="jack-audio"/>
+  <cable input="REAPER" output="walkman_4" type="jack-audio"/>
+  <cable input="Built-in Audio Analog Stereo" output="REAPER" type="jack-audio"/>
+  <cable input="REAPER 2" output="Scarlett 18i20 Multichannel 2" type="jack-audio"/>
+  <cable input="Scarlett 18i20 Multichannel 2" output="Scarlett 18i20 Multichannel 2" type="jack-audio"/>
+ </cables>
+</patchbay>
+
