@@ -4,6 +4,7 @@ import typing
 from mutwo import core_events
 from mutwo import core_parameters
 from mutwo import core_utilities
+from mutwo import music_events
 
 
 # New features
@@ -41,6 +42,42 @@ def SimultaneousEvent_repeat(
 
 core_events.SequentialEvent.repeat = SequentialEvent_repeat
 core_events.SimultaneousEvent.repeat = SimultaneousEvent_repeat
+
+
+def SimultaneousEvent_chordify(self) -> core_events.SequentialEvent:
+    def slice_tuple_to_event(
+        slice_tuple: tuple[core_events.abc.Event],
+    ) -> music_events.NoteLike:
+        flat_event_list = []
+        for ev in slice_tuple:
+            if isinstance(
+                ev, (core_events.SequentialEvent, core_events.SimultaneousEvent)
+            ):
+                if ev:
+                    # XXX: somehow some events have two children. I assume this
+                    # is due to floating point errors (i'd expect them to only
+                    # have one child). for now we just don't care about it and
+                    # finger crossed everything goes well..
+                    duration_tuple = tuple(c.duration for c in ev)
+                    picked_child = ev[duration_tuple.index(max(duration_tuple))]
+                    flat_event_list.append(picked_child)
+            else:
+                flat_event_list.append(ev)
+
+        n = music_events.NoteLike(duration=slice_tuple[0].duration)
+        for e in flat_event_list:
+            try:
+                pitch_list = e.pitch_list
+            except AttributeError:
+                continue
+            n.pitch_list.extend(pitch_list)
+
+        return n
+
+    return self.sequentialize(slice_tuple_to_event)
+
+
+core_events.SimultaneousEvent.chordify = SimultaneousEvent_chordify
 
 
 # Patches
