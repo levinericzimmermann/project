@@ -83,7 +83,7 @@ diary_interfaces.DynamicEntry.from_file(
     timeline_interfaces.EventPlacement,
     skip_check=project.constants.SKIP_CHECK,
     file_path=f"{path}/silence.py",
-    relevance=20,
+    relevance=18,
 )
 
 diary_interfaces.DynamicEntry.from_file(
@@ -122,4 +122,14 @@ diary_interfaces.DynamicEntry.from_file(
     abbreviation_to_path_dict=dict(scale=scale.path),
     file_path=f"{path}/scale-event-aeolian-harp.py",
     relevance=100,
+)
+
+
+diary_interfaces.DynamicEntry.from_file(
+    "dyad-aeolian-harp",
+    diary_interfaces.ModalContext0.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/dyad-aeolian-harp.py",
+    relevance=40,
 )
