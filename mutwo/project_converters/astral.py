@@ -382,15 +382,15 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         # of 4 events. So the structure repeats after each gatra.
         # So one gatra/phrase takes around 4, 5 minutes (this
         # is a basic melodic phrase).
-        default_pattern = (3, 6, 4, 7)
-        odd_pattern = (3, 5, 3, 6, 2, 4, 2, 4, 2, 2, 3, 4, 3, 5, 4, 6)
+        default_pattern = (4, 5, 4, 6)
+        odd_pattern = (3, 2, 2, 6, 3, 5, 4, 6)
         # ev_duration_cycle = itertools.cycle(([odd_pattern] * 5))
         ev_duration_cycle = itertools.cycle((default_pattern * 2) + odd_pattern)
 
         # If the tempo is faster, there is less space
         # and the likelihood that guitar and aeolian
         # harp are overlapping is higher.
-        avg_t = 3.7  # XXX: Tempo > 3.75 breaks the notation, Idk why,
+        avg_t = 2.4  # XXX: Tempo > 3.75 breaks the notation, Idk why,
         #  but we can simply vary bar size instead of tempo.
         # tempo_cycle = itertools.cycle(([avg_t] * 7) + [8, 7])
         tempo_cycle = itertools.cycle(([avg_t] * 7))
