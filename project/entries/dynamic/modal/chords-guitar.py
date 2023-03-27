@@ -42,9 +42,10 @@ def main(
     modal_event = context.modal_event
     scale = modal_event.scale
     pitch = modal_event.pitch
+    energy = context.energy
 
     sequential_event = make_sequential_event(
-        instrument, scale, pitch, random, activity_level, instrument
+        instrument, scale, pitch, random, activity_level, instrument, energy
     )
     simultaneous_event = core_events.SimultaneousEvent(
         [
@@ -84,15 +85,27 @@ def make_range_pair(
     )
 
 
-def make_sequential_event(instrument, scale, pitch, random, activity_level, guitar):
+def make_sequential_event(instrument, scale, pitch, random, activity_level, guitar, energy):
     scale_degree = scale.pitch_to_scale_degree(pitch)
 
     if scale_degree == 0:
         # With scale degree == 0 we always repeat the same pitch,
         # 5 times is a bit too much here.
-        chord_count_pick_tuple = (1, 2, 3)
+        if energy > 8:
+            chord_count_pick_tuple = (3, 4)
+        elif energy > 4:
+            chord_count_pick_tuple = (2, 3)
+        else:
+            chord_count_pick_tuple = (1, 2, 3)
     else:
-        chord_count_pick_tuple = (1, 2, 3, 4, 5)
+        if energy >= 7:
+            chord_count_pick_tuple = (4, 5)
+        elif energy >= 6:
+            chord_count_pick_tuple = (3, 4, 5)
+        elif energy >= 4:
+            chord_count_pick_tuple = (2, 3, 4, 5)
+        else:
+            chord_count_pick_tuple = (1, 2, 3, 4)
 
     chord_count = random.choice(chord_count_pick_tuple)
     side_pitch_direction = (-1, 1)[activity_level(5)]
@@ -122,7 +135,7 @@ def make_sequential_event(instrument, scale, pitch, random, activity_level, guit
         activity_level,
         guitar,
     )
-    if activity_level(8):
+    if energy > 7 or activity_level(8):
         side_pitch_tuple = make_side_pitch_tuple(
             scale,
             pitch_tuple,
