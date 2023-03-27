@@ -102,14 +102,6 @@ def make_simultaneous_event(
             duration_list[-1] *= 1.5
     summed_duration = sum(duration_list)
 
-    sim = core_events.TaggedSimultaneousEvent(
-        [
-            core_events.SequentialEvent([core_events.SimpleEvent(summed_duration)])
-            for _ in range(instrument.TOTAL_STRING_COUNT)
-        ],
-        tag=tag,
-    )
-
     if activity_level(6):
         if activity_level(4):
             envelope = "BASIC"
@@ -129,6 +121,7 @@ def make_simultaneous_event(
             frequency_factor = 2
 
     string_list_list = list(string_list_tuple)
+
     if energy < 6:
         if activity_level(5):
             if activity_level(8):
@@ -140,6 +133,14 @@ def make_simultaneous_event(
             rest_duration = random.choice([0.5, 0.75])
             duration_list.insert(rest_insert_index, rest_duration)
             string_list_list.insert(rest_insert_index, [])
+
+    sim = core_events.TaggedSimultaneousEvent(
+        [
+            core_events.SequentialEvent([core_events.SimpleEvent(summed_duration)])
+            for _ in range(instrument.TOTAL_STRING_COUNT)
+        ],
+        tag=tag,
+    )
 
     absolute_time = core_parameters.DirectDuration(0)
     for string_list, duration, start in zip(
