@@ -413,10 +413,10 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         is_second = False
         while clock_duration < duration:
             if is_first:
-                ev_duration = 7
+                ev_duration, energy = 7, 1
                 is_first, is_second = False, True
             elif is_second:
-                ev_duration = 5
+                ev_duration, energy = 5, 1
                 is_second = False
             else:
                 ev_duration, energy = next(pattern_cycle)
@@ -451,7 +451,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
             energy_list.append(energy)
 
         clock_event_list = clock_event_list[:-1]
-        energy_list = energy_list[-1]
+        energy_list = energy_list[:-1]
         # Reverse again, we want our last "bar" to be rather long, but
         # we don't care about the quality of the first bar, this
         # is why we turned this around, see above.
