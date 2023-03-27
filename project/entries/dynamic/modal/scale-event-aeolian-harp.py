@@ -44,7 +44,7 @@ def main(
     energy = context.energy
     add_partner = activity_level(7)
     string_list_tuple = find_string_list_tuple(
-        pitch_tuple, instrument, random, add_partner
+        pitch_tuple, instrument, random, add_partner, energy
     )
 
     start_range, end_range = make_range_pair(
@@ -160,7 +160,7 @@ def make_simultaneous_event(
 
 
 def find_string_list_tuple(
-    pitch_tuple, instrument, random, add_partner
+    pitch_tuple, instrument, random, add_partner, energy
 ) -> tuple[list[music_parameters.String], ...]:
     string_list_list = []
     for pitch in pitch_tuple:
@@ -178,6 +178,21 @@ def find_string_list_tuple(
                         find_partner(pitch, picked_string_list[0], instrument, random)
                     )
         string_list_list.append(picked_string_list)
+    if energy > 7 and random.random() > 0.15:
+        string_list = string_list_list[-1]
+        champion, fitness = None, 0
+        for string in instrument.string_tuple:
+            if string not in string_list and [
+                string.tuning != s.tuning for s in string_list
+            ]:
+                lfitness = sum(
+                    (string.tuning - s.tuning).harmonicity_simplified_barlow
+                    for s in string_list
+                )
+                if lfitness > fitness or champion is None:
+                    champion, fitness = string, lfitness
+        if champion is not None:
+            string_list.append(champion)
     return tuple(string_list_list)
 
 
