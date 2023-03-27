@@ -1,4 +1,4 @@
-import os
+import copy
 import hashlib
 import subprocess
 import warnings
@@ -137,6 +137,7 @@ def aeolian_harp_converter():
             complex_event_to_abjad_container,
             staff_count=1,
             placement_mode="floating",
+            max_denominator=100000,
         ),
     }
 
@@ -211,6 +212,7 @@ def guitar_converter():
             complex_event_to_abjad_container,
             staff_count=1,
             placement_mode="floating",
+            max_denominator=100000,
         ),
     }
 
@@ -253,6 +255,9 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
 
     abjad_score_block_list = []
     for clock in clock_tuple:
+        # XXX: Copy clock, to ensure the fix below with unwritable clock line
+        # isn't propagated to sound generation!
+        clock = copy.deepcopy(clock)
         for clock_line in (
             clock.main_clock_line,
             clock.start_clock_line,
@@ -288,6 +293,17 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
                 clock_line._clock_event = instrument_note_like_to_pitched_note_like(
                     clock_line.clock_event
                 )
+
+            # If we have an empty clock line, it's duration is the value in seconds.
+            # In this case abjad won't be able to quantize it, most likely.
+            # So we simplify this.
+            if clock_line and clock_line.clock_event:
+                if clock_line.clock_event.duration.duration.denominator > 64:
+                    # XXX: old_duration = clock_line.clock_event.duration
+                    # XXX: We could override the tempo now, to ensure the duration is correct.
+                    # But this isn't necessary here, because we don't need to render it to sound,
+                    clock_line.clock_event.duration = 1
+
         abjad_score = clock_to_abjad_score.convert(
             clock,
             tag_tuple=("guitar", "aeolian harp"),
@@ -342,7 +358,7 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
         temp_path = hashlib.md5(path.encode()).hexdigest()
         temp_path = f".{temp_path}.pdf"
         abjad.persist.as_pdf(lilypond_file, temp_path)
-        subprocess.call(["pdftk", temp_path, "cat", "1left", "output", path])
+        subprocess.call(["pdftk", temp_path, "cat", "1right", "output", path])
 
     return executor.submit(render_and_rotate, lilypond_file, path)
 

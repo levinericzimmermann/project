@@ -401,7 +401,7 @@ def find_champion2(
 
 
 def add_variation(pitch_list, octave_delta, pitch_tuple, direction0, direction1):
-    if not pitch_list:
+    if not pitch_list or not pitch_list[0]:
         return
     if octave_delta > 0:
         octave_delta_direction = direction0
