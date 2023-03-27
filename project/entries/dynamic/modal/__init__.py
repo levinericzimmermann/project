@@ -124,7 +124,6 @@ diary_interfaces.DynamicEntry.from_file(
     relevance=100,
 )
 
-
 diary_interfaces.DynamicEntry.from_file(
     "dyad-aeolian-harp",
     diary_interfaces.ModalContext0.identifier,
@@ -132,4 +131,13 @@ diary_interfaces.DynamicEntry.from_file(
     skip_check=project.constants.SKIP_CHECK,
     file_path=f"{path}/dyad-aeolian-harp.py",
     relevance=40,
+)
+
+diary_interfaces.DynamicEntry.from_file(
+    "repeating-tone-aeolian-harp",
+    diary_interfaces.ModalContext0.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/repeating-tone-aeolian-harp.py",
+    relevance=90,
 )
