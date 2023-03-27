@@ -29,6 +29,22 @@ astral_event_to_clock_tuple = project_converters.AstralEventToClockTuple(
     astral_constellation_to_scale,
 ).convert
 
+# Duplicated in walkman_modules.aeolian_harp
+location_info = LocationInfo(
+    name="Essen",
+    region="NRW",
+    timezone="Europe/Berlin",
+    latitude=51.4556432,
+    longitude=7.0115552,
+)
+location_info.elevation = 100
+
+# NOTE: must be defined statically, otherwise moon phase index
+# isn't stable!
+datetime_to_simultaneous_event = project_converters.DatetimeToSimultaneousEvent(
+    location_info
+).convert
+
 
 def run_if_allowed(func):
     def wrapper(d, day_light, *args, **kwargs):
@@ -49,9 +65,7 @@ def run_if_allowed(func):
 @run_if_allowed
 def get_day_light_data(d, day_light, location_info):
     print(f"RENDER '{day.isoformat()}'!")
-    astral_event = project_converters.DatetimeToSimultaneousEvent(
-        location_info
-    ).convert(d)
+    astral_event = datetime_to_simultaneous_event(d)
     clock_tuple, orchestration = astral_event_to_clock_tuple(astral_event)
     return (d, day_light, astral_event, clock_tuple, orchestration)
 
@@ -175,10 +189,10 @@ def wait(future_list):
 
 
 allowed_date_list = [
-    datetime.datetime(2023, 4, 1),  # moon phase index 10.61 :)
-    datetime.datetime(2023, 4, 2),
-    datetime.datetime(2023, 4, 3),
-    datetime.datetime(2023, 4, 4),
+    # datetime.datetime(2023, 4, 1),  # moon phase index 10.61 :)
+    # datetime.datetime(2023, 4, 2),
+    # datetime.datetime(2023, 4, 3),
+    # datetime.datetime(2023, 4, 4),
     # datetime.datetime(2023, 4, 23),
     # datetime.datetime(2023, 4, 24),
     # datetime.datetime(2023, 4, 25),
@@ -195,20 +209,11 @@ allowed_day_light_list = [
 ]
 
 if __name__ == "__main__":
-    # Duplicated in walkman_modules.aeolian_harp
-    location_info = LocationInfo(
-        name="Essen",
-        region="NRW",
-        timezone="Europe/Berlin",
-        latitude=51.4556432,
-        longitude=7.0115552,
-    )
-    location_info.elevation = 100
 
     # import logging
     # logging.setLevel(logging.DEBUG)
 
-    with ThreadPoolExecutor(max_workers=8) as executor:
+    with ThreadPoolExecutor(max_workers=12) as executor:
         with diary_interfaces.open():
             april = tuple(
                 datetime.datetime(2023, 4, d, tzinfo=location_info.tzinfo)
@@ -227,6 +232,6 @@ if __name__ == "__main__":
                     ):
                         day_light_list.append(day_light_data)
 
-            illustrate(day_light_list, executor)
             notate(day_light_list, executor)
+            illustrate(day_light_list, executor)
             sound(day_light_list, executor)
