@@ -278,6 +278,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         self._context_tuple_to_event_placement_tuple = (
             diary_converters.ContextTupleToEventPlacementTuple()
         )
+        self._moon_phase_to_modal0sequential_event_to_clock_line = {}
 
     def convert(
         self,
@@ -315,7 +316,10 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
                     clock = self._make_clock_daylight(orchestration, scale, duration)
                 case project_parameters.SunLight.EVENING_TWILIGHT:
                     clock = self._make_clock_evening_twilight(
-                        orchestration, scale, duration
+                        orchestration,
+                        scale,
+                        duration,
+                        astral_constellation["moon_phase"],
                     )
                 case project_parameters.SunLight.NIGHTLIGHT:
                     clock = self._make_clock_nightlight(
@@ -372,6 +376,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         orchestration: music_parameters.Orchestration,
         scale: music_parameters.Scale,
         duration,
+        moon_phase,
     ) -> clock_interfaces.Clock:
         duration = duration.duration
 
@@ -461,24 +466,35 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
             ]
         )
 
-        modal_0_sequential_event_to_clock_line = clock_converters.Modal0SequentialEventToClockLine(
-            (
-                diary_converters.Modal0SequentialEventToEventPlacementTuple(
-                    orchestration=orchestration.get_subset("AEOLIAN_HARP"),
-                    # Turn off modal1 mode converter for better performance
-                    # (this is very expensive and we don't want to use any
-                    #  modal1 context based entries here anyway).
-                    add_mod1=False,
-                ),
-                diary_converters.Modal0SequentialEventToEventPlacementTuple(
-                    orchestration=orchestration.get_subset("GUITAR"),
-                    add_mod1=True,
-                ),
+        try:
+            modal_0_sequential_event_to_clock_line = (
+                self._moon_phase_to_modal0sequential_event_to_clock_line[moon_phase]
             )
-        )
-        main_clock_line = modal_0_sequential_event_to_clock_line.convert(
-            modal_sequential_event
-        )
+        except KeyError:
+            modal_0_sequential_event_to_clock_line = self._moon_phase_to_modal0sequential_event_to_clock_line[
+                moon_phase
+            ] = clock_converters.Modal0SequentialEventToClockLine(
+                (
+                    diary_converters.Modal0SequentialEventToEventPlacementTuple(
+                        orchestration=orchestration.get_subset("AEOLIAN_HARP"),
+                        # Turn off modal1 mode converter for better performance
+                        # (this is very expensive and we don't want to use any
+                        #  modal1 context based entries here anyway).
+                        add_mod1=False,
+                    ),
+                    diary_converters.Modal0SequentialEventToEventPlacementTuple(
+                        orchestration=orchestration.get_subset("GUITAR"),
+                        add_mod1=True,
+                    ),
+                )
+            )
+
+        if modal_sequential_event:
+            main_clock_line = modal_0_sequential_event_to_clock_line.convert(
+                modal_sequential_event
+            )
+        else:
+            main_clock_line = self._make_empty_clock_line(duration)
 
         clock = clock_interfaces.Clock(main_clock_line)
         return clock
