@@ -42,7 +42,7 @@ def main(
     modal_event_to_convert = context.modal_event
     instrument = context.orchestration[0]
     energy = context.energy
-    add_partner = activity_level(7)
+    add_partner = energy > 2 and activity_level(7)
     string_list_tuple = find_string_list_tuple(
         pitch_tuple, instrument, random, add_partner, energy
     )
