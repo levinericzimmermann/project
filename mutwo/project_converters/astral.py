@@ -389,7 +389,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         # is a basic melodic phrase).
         default_pattern_a = ((4, 2), (5, 3), (4, 3), (6, 1))
         default_pattern_b = ((4, 3), (5, 4), (4, 5), (6, 3))
-        odd_pattern = ((3, 4), (5, 3), (4, 4), (6, 5), (3, 8), (2, 10), (2, 10), (6, 8))
+        odd_pattern = ((3, 4), (5, 3), (4, 4), (6, 5), (3, 9), (2, 10), (2, 10), (6, 6))
         # ev_duration_cycle = itertools.cycle(([odd_pattern] * 5))
         pattern_loop = (
             default_pattern_a + default_pattern_b + odd_pattern + default_pattern_a
