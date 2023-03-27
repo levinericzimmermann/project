@@ -19,6 +19,7 @@ def is_supported(context, **kwargs):
         assert len(context.orchestration) == 1
         instrument = context.orchestration[0]
         assert isinstance(instrument, project_parameters.AeolianHarp)
+        assert context.energy < 6
     except AssertionError:
         return False
     return True
