@@ -5,10 +5,10 @@
         "homepage": null,
         "owner": "mutwo-org",
         "repo": "mutwo-nix",
-        "rev": "9e07ac7d50c3e716f5b81f37662bfd1c52727f00",
-        "sha256": "14hq9v1lwc8qgjjap2hp7ag7hlxgcnfnqy9slqw3292xvrsqvg1b",
+        "rev": "252640e8d3f55afcbd98c349720f252563168fe5",
+        "sha256": "10jp0ynl7l19pnyw47s4wpffdsfwv3xi0lqdc6d97kykizyi8yww",
         "type": "tarball",
-        "url": "https://github.com/mutwo-org/mutwo-nix/archive/9e07ac7d50c3e716f5b81f37662bfd1c52727f00.tar.gz",
+        "url": "https://github.com/mutwo-org/mutwo-nix/archive/252640e8d3f55afcbd98c349720f252563168fe5.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
