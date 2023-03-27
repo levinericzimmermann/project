@@ -388,9 +388,12 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         # So one gatra/phrase takes around 4, 5 minutes (this
         # is a basic melodic phrase).
         default_pattern = (4, 5, 4, 6)
-        odd_pattern = (3, 2, 2, 6, 3, 5, 4, 6)
+        odd_pattern = (3, 5, 4, 6, 3, 2, 2, 6)
         # ev_duration_cycle = itertools.cycle(([odd_pattern] * 5))
-        ev_duration_cycle = itertools.cycle((default_pattern * 2) + odd_pattern)
+        pattern_loop = (default_pattern * 2) + odd_pattern + default_pattern
+        # We make this reverse, because we want to ensure that the very last
+        # bar is long.
+        ev_duration_cycle = itertools.cycle(reversed(pattern_loop))
 
         # If the tempo is faster, there is less space
         # and the likelihood that guitar and aeolian
@@ -402,8 +405,17 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
 
         clock_event_list = []
         clock_duration = 0
+        is_first = True
+        is_second = False
         while clock_duration < duration:
-            ev_duration = next(ev_duration_cycle)
+            if is_first:
+                ev_duration = 7
+                is_first, is_second = False, True
+            elif is_second:
+                ev_duration = 5
+                is_second = False
+            else:
+                ev_duration = next(ev_duration_cycle)
 
             # If we use a higher tempo the score is longer and more verbose.
             # With a too low tempo the score is too dense / almost unreadable.
@@ -434,6 +446,10 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
             clock_event_list.append(clock_event)
 
         clock_event_list = clock_event_list[:-1]
+        # Reverse again, we want our last "bar" to be rather long, but
+        # we don't care about the quality of the first bar, this
+        # is why we turned this around, see above.
+        clock_event_list.reverse()
         scale_position_count = len(clock_event_list)
 
         gatra_tuple = project_converters.ScaleToGatraTuple().convert(scale)
