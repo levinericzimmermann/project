@@ -387,13 +387,16 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         # of 4 events. So the structure repeats after each gatra.
         # So one gatra/phrase takes around 4, 5 minutes (this
         # is a basic melodic phrase).
-        default_pattern = (4, 5, 4, 6)
-        odd_pattern = (3, 5, 4, 6, 3, 2, 2, 6)
+        default_pattern_a = ((4, 2), (5, 3), (4, 3), (6, 1))
+        default_pattern_b = ((4, 3), (5, 4), (4, 5), (6, 3))
+        odd_pattern = ((3, 4), (5, 3), (4, 4), (6, 5), (3, 8), (2, 10), (2, 10), (6, 8))
         # ev_duration_cycle = itertools.cycle(([odd_pattern] * 5))
-        pattern_loop = (default_pattern * 2) + odd_pattern + default_pattern
+        pattern_loop = (
+            default_pattern_a + default_pattern_b + odd_pattern + default_pattern_a
+        )
         # We make this reverse, because we want to ensure that the very last
         # bar is long.
-        ev_duration_cycle = itertools.cycle(reversed(pattern_loop))
+        pattern_cycle = itertools.cycle(reversed(pattern_loop))
 
         # If the tempo is faster, there is less space
         # and the likelihood that guitar and aeolian
@@ -404,6 +407,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
         tempo_cycle = itertools.cycle(([avg_t] * 7))
 
         clock_event_list = []
+        energy_list = []
         clock_duration = 0
         is_first = True
         is_second = False
@@ -415,7 +419,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
                 ev_duration = 5
                 is_second = False
             else:
-                ev_duration = next(ev_duration_cycle)
+                ev_duration, energy = next(pattern_cycle)
 
             # If we use a higher tempo the score is longer and more verbose.
             # With a too low tempo the score is too dense / almost unreadable.
@@ -444,12 +448,15 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
             )
             clock_duration += float(clock_event.metrize(mutate=False).duration.duration)
             clock_event_list.append(clock_event)
+            energy_list.append(energy)
 
         clock_event_list = clock_event_list[:-1]
+        energy_list = energy_list[-1]
         # Reverse again, we want our last "bar" to be rather long, but
         # we don't care about the quality of the first bar, this
         # is why we turned this around, see above.
         clock_event_list.reverse()
+        energy_list.reverse()
         scale_position_count = len(clock_event_list)
 
         gatra_tuple = project_converters.ScaleToGatraTuple().convert(scale)
@@ -475,9 +482,13 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
                     scale,
                     clock_event=clock_event,
                     control_event=clock_event,
+                    energy=energy,
                 )
-                for start_pitch, end_pitch, clock_event in zip(
-                    root_pitch_tuple, root_pitch_tuple[1:], clock_event_list
+                for start_pitch, end_pitch, clock_event, energy in zip(
+                    root_pitch_tuple,
+                    root_pitch_tuple[1:],
+                    clock_event_list,
+                    energy_list,
                 )
             ]
         )
