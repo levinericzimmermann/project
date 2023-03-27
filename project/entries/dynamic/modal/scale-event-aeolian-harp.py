@@ -41,6 +41,7 @@ def main(
     pitch_tuple = scale(context, **kwargs)
     modal_event_to_convert = context.modal_event
     instrument = context.orchestration[0]
+    energy = context.energy
     add_partner = activity_level(7)
     string_list_tuple = find_string_list_tuple(
         pitch_tuple, instrument, random, add_partner
@@ -50,7 +51,9 @@ def main(
         string_list_tuple, event_count_to_average_tone_duration, modal_event_to_convert
     )
 
-    sim = make_simultaneous_event(string_list_tuple, random, instrument, activity_level)
+    sim = make_simultaneous_event(
+        string_list_tuple, random, instrument, activity_level, energy
+    )
 
     return timeline_interfaces.EventPlacement(
         core_events.SimultaneousEvent([sim]),
@@ -81,11 +84,15 @@ def make_range_pair(
     )
 
 
-def make_simultaneous_event(string_list_tuple, random, instrument, activity_level):
+def make_simultaneous_event(
+    string_list_tuple, random, instrument, activity_level, energy
+):
     tag = instrument.name
 
     event_count = len(string_list_tuple)
-    duration_list = [random.choice([1.75, 1.5, 2.0, 2.25, 3.25, 3]) for _ in range(event_count)]
+    duration_list = [
+        random.choice([1.75, 1.5, 2.0, 2.25, 3.25, 3]) for _ in range(event_count)
+    ]
     match random.integers(0, 3):
         case 1:
             duration_list[-1] *= 2
@@ -107,7 +114,7 @@ def make_simultaneous_event(string_list_tuple, random, instrument, activity_leve
         else:
             envelope = "BASIC_QUIET"
     else:
-        if activity_level(5):
+        if random.random() > 0.5:
             envelope = "PLUCK_1"
         else:
             envelope = "PLUCK_0"
@@ -119,9 +126,22 @@ def make_simultaneous_event(string_list_tuple, random, instrument, activity_leve
         if activity_level(3):
             frequency_factor = 2
 
+    string_list_list = list(string_list_tuple)
+    if energy < 6:
+        if activity_level(5):
+            if activity_level(8):
+                rest_insert_index = event_count - random.choice([0, 1])
+            else:
+                rest_insert_index = 1
+            if rest_insert_index < 0:
+                rest_insert_index = 0
+            rest_duration = random.choice([0.5, 0.75])
+            duration_list.insert(rest_insert_index, rest_duration)
+            string_list_list.insert(rest_insert_index, [])
+
     absolute_time = core_parameters.DirectDuration(0)
     for string_list, duration, start in zip(
-        string_list_tuple,
+        string_list_list,
         duration_list,
         core_utilities.accumulate_from_zero(duration_list),
     ):
