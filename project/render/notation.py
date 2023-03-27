@@ -100,7 +100,9 @@ def aeolian_harp_converter():
                 new_sequential_event = core_events.SequentialEvent([])
                 for start, stop in zip(absolute_time_tuple, absolute_time_tuple[1:]):
                     note_like = music_events.NoteLike([], stop - start, "p")
-                    note_like.notation_indicator_collection.duration_line.is_active = True
+                    note_like.notation_indicator_collection.duration_line.is_active = (
+                        True
+                    )
                     for s in event:
                         if hasattr((e := s.get_event_at(start)), "pitch_list"):
                             for p in e.pitch_list:
@@ -338,12 +340,12 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
         markup_system_padding=1,
         markup_system_basic_distance=1,
         staff_height=12,
-        top_margin=0.1,
+        top_margin=2,
         bottom_margin=0.1,
-        left_margin=1,
+        left_margin=3,
         foot_separation=0.1,
         head_separation=0.1,
-        line_width=28.5,
+        line_width=24.5,
         before_title_space=0.01,
         after_title_space=0.01,
         page_top_space=0.01,
