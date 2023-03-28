@@ -102,24 +102,6 @@ def make_simultaneous_event(
             duration_list[-1] *= 1.5
     summed_duration = sum(duration_list)
 
-    if activity_level(6):
-        if activity_level(4):
-            envelope = "BASIC"
-        else:
-            envelope = "BASIC_QUIET"
-    else:
-        if random.random() > 0.5:
-            envelope = "PLUCK_1"
-        else:
-            envelope = "PLUCK_0"
-
-    frequency_factor = 1
-    if envelope in ("BASIC", "BASIC_LOUD", "BASIC_QUIET"):
-        frequency_factor = random.choice([0.5, 0.25])
-    if envelope in ("PLUCK_0", "PLUCK_1"):
-        if activity_level(3):
-            frequency_factor = 2
-
     string_list_list = list(string_list_tuple)
 
     if energy < 6:
@@ -153,6 +135,23 @@ def make_simultaneous_event(
             note_like = music_events.NoteLike(
                 string.tuning, duration=duration, volume="p"
             )
+            if activity_level(6):
+                if activity_level(4):
+                    envelope = "BASIC"
+                else:
+                    envelope = "BASIC_QUIET"
+            else:
+                if random.random() > 0.5:
+                    envelope = "PLUCK_1"
+                else:
+                    envelope = "PLUCK_0"
+
+            frequency_factor = 1
+            if envelope in ("BASIC", "BASIC_LOUD", "BASIC_QUIET"):
+                frequency_factor = random.choice([0.5, 0.25])
+            if envelope in ("PLUCK_0", "PLUCK_1"):
+                if activity_level(3):
+                    frequency_factor = 2
             note_like.frequency_factor = frequency_factor
             note_like.envelope = envelope
             seq.squash_in(start, note_like)
