@@ -130,7 +130,7 @@ def make_simultaneous_event(
                 rest_insert_index = 1
             if rest_insert_index < 0:
                 rest_insert_index = 0
-            rest_duration = random.choice([0.5, 0.75])
+            rest_duration = random.choice([2, 1.75])
             duration_list.insert(rest_insert_index, rest_duration)
             string_list_list.insert(rest_insert_index, [])
 
