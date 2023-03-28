@@ -105,8 +105,8 @@ def make_simultaneous_event(
 
     if energy < 6:
         if activity_level(5):
-            if activity_level(8):
-                rest_insert_index = event_count - random.choice([1, 2])
+            if event_count >= 4 and activity_level(8):
+                rest_insert_index = event_count - 2
             else:
                 rest_insert_index = 1
             if rest_insert_index < 0:
