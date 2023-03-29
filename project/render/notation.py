@@ -178,6 +178,14 @@ def guitar_converter():
                 for e in event[0]:
                     if hasattr(e, "notation_indicator_collection"):
                         e.notation_indicator_collection.clef.name = "G_8"
+                # No need to print repeating tones: The player is ALWAYS allowed
+                # to repeat a sound.
+                for sequential_event in event:
+                    sequential_event.tie_by(
+                        lambda e0, e1: hasattr(e0, "pitch_list")
+                        and hasattr(e1, "pitch_list")
+                        and e0.pitch_list == e1.pitch_list
+                    )
             return super().convert(event_placement, *args, **kwargs)
 
     def set_pitch_list(pitch_list):
