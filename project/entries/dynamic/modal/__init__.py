@@ -74,7 +74,7 @@ diary_interfaces.DynamicEntry.from_file(
     timeline_interfaces.EventPlacement,
     skip_check=project.constants.SKIP_CHECK,
     file_path=f"{path}/silence.py",
-    relevance=20,
+    relevance=68,
 )
 
 diary_interfaces.DynamicEntry.from_file(
@@ -139,5 +139,5 @@ diary_interfaces.DynamicEntry.from_file(
     timeline_interfaces.EventPlacement,
     skip_check=project.constants.SKIP_CHECK,
     file_path=f"{path}/repeating-tone-aeolian-harp.py",
-    relevance=90,
+    relevance=60,
 )
