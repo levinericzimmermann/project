@@ -104,7 +104,7 @@ def make_simultaneous_event(
     string_list_list = list(string_list_tuple)
 
     if energy < 6:
-        if activity_level(5):
+        if activity_level(3):
             if event_count >= 4 and activity_level(8):
                 rest_insert_index = event_count - 2
             else:
@@ -151,7 +151,7 @@ def make_simultaneous_event(
             if envelope in ("BASIC", "BASIC_LOUD", "BASIC_QUIET"):
                 frequency_factor = random.choice([0.5, 0.25])
             if envelope in ("PLUCK_0", "PLUCK_1"):
-                if activity_level(3):
+                if random.random() < 0.3:
                     frequency_factor = 2
             note_like.frequency_factor = frequency_factor
             note_like.envelope = envelope
