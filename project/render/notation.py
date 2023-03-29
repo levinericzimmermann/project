@@ -329,7 +329,7 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
             # the following lilypond error:
             #   Drawing systems...lilypond: skyline.cc:100: Building::Building(Real, Real, Real, Real): Assertion `start_height == end_height' failed.
             moment=4,  # 1/16 is one second
-            staff_size=20.25,
+            staff_size=20,
         )
         abjad_score_block_list.append(abjad_score_block)
 
@@ -341,12 +341,12 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
         markup_system_padding=1,
         markup_system_basic_distance=1,
         staff_height=12,
-        top_margin=2,
+        top_margin=1.5,
         bottom_margin=0.1,
-        left_margin=3,
+        left_margin=2.5,
         foot_separation=0.1,
         head_separation=0.1,
-        line_width=24.5,
+        line_width=25,
         before_title_space=0.01,
         after_title_space=0.01,
         page_top_space=0.01,
