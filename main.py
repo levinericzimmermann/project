@@ -101,7 +101,7 @@ def _illustrate_guitar_tuning(
 
 
 def notate(day_light_list, executor):
-    day_light_to_notate_tuple = ("sunset",)
+    day_light_to_notate_tuple = ("dawn", "sunset")
     future_list = []
     day_light_to_notation_path_list = {
         day_light: [] for day_light in day_light_to_notate_tuple
@@ -109,6 +109,12 @@ def notate(day_light_list, executor):
     for data in day_light_list:
         if (day_light := data[1]) in day_light_to_notate_tuple:
             notation_path_list = day_light_to_notation_path_list[day_light]
+            if not notation_path_list:
+                sun_phase_index = ("dawn", "sunrise", "sunset", "dusk").index(day_light)
+                notation_path_list.append(
+                    f"etc/suncycle/sun_{sun_phase_index}_landscape.pdf"
+                )
+                notation_path_list.append("etc/blank.pdf")
             d = data[0]
             notation_path = f"builds/notations/{project.constants.TITLE}_{d.year}_{d.month}_{d.day}_{day_light}.pdf"
             if future := _notate(*data, notation_path, executor):
@@ -172,7 +178,7 @@ def _sound(d, day_light, astral_event, clock_tuple, orchestration, executor):
 
     # Our clock event has the tempo information, but this tempo information
     # is actually valid for the complete event! So we actually need
-    # to move it to a higher layer before apply 'metrize'.
+    # to move it to a higher layer before we apply 'metrize'.
     simultaneous_event.tempo_envelope, simultaneous_event["clock"][0].tempo_envelope = (
         simultaneous_event["clock"][0].tempo_envelope,
         simultaneous_event.tempo_envelope,
@@ -204,8 +210,9 @@ allowed_date_list = [
 ]
 # allowed_date_list = [datetime.datetime(2023, 4, 30)]
 allowed_day_light_list = [
-    "sunset"
+    "dawn",
     # "dusk",
+    # "sunset",
 ]
 
 if __name__ == "__main__":
@@ -233,5 +240,5 @@ if __name__ == "__main__":
                         day_light_list.append(day_light_data)
 
             notate(day_light_list, executor)
-            illustrate(day_light_list, executor)
             sound(day_light_list, executor)
+            illustrate(day_light_list, executor)
