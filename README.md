@@ -12,6 +12,14 @@ Please see `mutwo/project_parameters/instruments.py`:
 - box 3: d
 
 
+## start script
+
+1. ./scripts/set-permission
+2. ./scripts/start-jack-server-usb
+3. walkman walkman.toml.j2
+4. ./scripts/record.py
+5. ./scripts/connect-jack-usb
+
 ## Internal representation of aeolian harp
 
 This is a bit complicated, because in walkman each string need to be represented by an individual sequential event, on the notation level we simply use one staff.
