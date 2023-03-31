@@ -1,0 +1,14 @@
+
+jack_connect system:capture_1 walkman_4:input_1
+jack_connect system:capture_2 walkman_4:input_2
+jack_connect system:capture_3 walkman_4:input_3
+jack_connect system:capture_4 system:playback_4
+
+jack_connect walkman_4:output_1 system:playback_1
+jack_connect walkman_4:output_2 system:playback_2
+jack_connect walkman_4:output_3 system:playback_3
+
+jack_connect walkman_4:output_1 10-1-record:input_1
+jack_connect walkman_4:output_2 10-1-record:input_2
+jack_connect walkman_4:output_3 10-1-record:input_3
+jack_connect system:capture_4 10-1-record:input_4
