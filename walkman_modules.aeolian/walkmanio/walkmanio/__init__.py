@@ -44,5 +44,9 @@ def import_astral_part_tuple(path: str) -> AstralPartTuple:
     astral_part_list = []
     for fname in os.listdir(path):
         with open(f"{path}/{fname}", "rb") as f:
-            astral_part_list.append(pickle.load(f))
+            try:
+                astral_part = pickle.load(f)
+            except Exception:
+                continue
+            astral_part_list.append(astral_part)
     return tuple(astral_part_list)
