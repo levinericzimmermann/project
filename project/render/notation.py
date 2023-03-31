@@ -1,5 +1,6 @@
 import copy
 import hashlib
+import shutil
 import subprocess
 import warnings
 
@@ -248,7 +249,13 @@ GUITAR = None
 
 def notation(clock_tuple, d, scale, orchestration, path, executor):
     global GUITAR
-    GUITAR = orchestration.GUITAR
+    try:
+        GUITAR = orchestration.GUITAR
+    # This means we have an empty clock due to an
+    # exception
+    except AttributeError:
+        return executor.submit(shutil.copyfile, 'etc/blank.pdf', path)
+
     global SCALE
     SCALE = scale
 
@@ -367,13 +374,13 @@ def notation(clock_tuple, d, scale, orchestration, path, executor):
 
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ekme-heji.ily"')
 
-    def render_and_rotate(lilypond_file, path):
-        temp_path = hashlib.md5(path.encode()).hexdigest()
-        temp_path = f".{temp_path}.pdf"
-        abjad.persist.as_pdf(lilypond_file, temp_path)
-        subprocess.call(["pdftk", temp_path, "cat", "1right", "output", path])
-
     return executor.submit(render_and_rotate, lilypond_file, path)
+
+def render_and_rotate(lilypond_file, path):
+    temp_path = hashlib.md5(path.encode()).hexdigest()
+    temp_path = f".{temp_path}.pdf"
+    abjad.persist.as_pdf(lilypond_file, temp_path)
+    subprocess.call(["pdftk", temp_path, "cat", "1right", "output", path])
 
 
 def merge_notation(suffix: str, path_list: list[str]):

@@ -27,7 +27,7 @@ astral_constellation_to_scale = project_converters.AstralConstellationToScale(
 astral_event_to_clock_tuple = project_converters.AstralEventToClockTuple(
     astral_constellation_to_orchestration,
     astral_constellation_to_scale,
-).convert
+)
 
 # Duplicated in walkman_modules.aeolian_harp
 location_info = LocationInfo(
@@ -66,7 +66,16 @@ def run_if_allowed(func):
 def get_day_light_data(d, day_light, location_info):
     print(f"RENDER '{day.isoformat()}'!")
     astral_event = datetime_to_simultaneous_event(d)
-    clock_tuple, orchestration = astral_event_to_clock_tuple(astral_event)
+    if (
+        datetime.datetime(d.year, d.month, d.day),
+        day_light,
+    ) in EMPTY_CLOCK_LINE_EXCEPTION_LIST:
+        orchestration = music_parameters.Orchestration()
+        clock_tuple = astral_event_to_clock_tuple._make_empty_clock(
+            astral_event.duration, orchestration
+        ),
+    else:
+        clock_tuple, orchestration = astral_event_to_clock_tuple(astral_event)
     return (d, day_light, astral_event, clock_tuple, orchestration)
 
 
@@ -176,6 +185,9 @@ def _sound(d, day_light, astral_event, clock_tuple, orchestration, executor):
         clock_simultaneous_event = clock2sim(clock, repetition_count=1)
         simultaneous_event.concatenate_by_tag(clock_simultaneous_event)
 
+    if not simultaneous_event:
+        return
+
     # Our clock event has the tempo information, but this tempo information
     # is actually valid for the complete event! So we actually need
     # to move it to a higher layer before we apply 'metrize'.
@@ -195,8 +207,8 @@ def wait(future_list):
 
 
 allowed_date_list = [
-    # datetime.datetime(2023, 4, 1),  # moon phase index 10.61 :)
-    # datetime.datetime(2023, 4, 2),
+    datetime.datetime(2023, 4, 1),  # moon phase index 10.61 :)
+    datetime.datetime(2023, 4, 2),
     # datetime.datetime(2023, 4, 3),
     # datetime.datetime(2023, 4, 4),
     # datetime.datetime(2023, 4, 23),
@@ -213,6 +225,16 @@ allowed_day_light_list = [
     "dawn",
     # "dusk",
     # "sunset",
+]
+
+
+EMPTY_CLOCK_LINE_EXCEPTION_LIST = [
+    # setup isn't ready yet :)
+    (datetime.datetime(2023, 4, 1), "dawn"),
+    # oboist nai plays a concert
+    (datetime.datetime(2023, 4, 6), "sunset"),
+    # sofia rehearsal
+    (datetime.datetime(2023, 4, 7), "sunset"),
 ]
 
 if __name__ == "__main__":
