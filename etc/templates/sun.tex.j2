@@ -1,0 +1,46 @@
+\documentclass[12pt,a4paper,british{%- if landscape -%},landscape{%- endif -%}]{article}
+
+\renewcommand*\ttdefault{cmvtt}
+\renewcommand{\familydefault}{\ttdefault}
+
+\usepackage[OT2,T1]{fontenc}
+
+\renewcommand\labelitemi{---}
+
+
+\usepackage{graphicx}
+\usepackage[
+    a4paper,
+    bindingoffset=0.1cm,
+    left=0.1cm,
+    right=0.1cm,
+    top=0.1cm,
+    bottom=0.1cm,
+    footskip=.25in
+]{geometry}
+
+\frenchspacing              % Better looking spacings after periods
+\pagestyle{empty}           % No pagenumbers/headers/footers
+
+
+
+\begin{document}
+
+
+
+\begin{figure}[h]
+    {%- if landscape -%}
+    \begin{center}
+    \vspace{-2cm}
+    {%- else -%}
+    \hspace{-2cm}
+    {%- endif -%}
+    \includegraphics[scale=0.35]{ {{ path }} }
+    {%- if landscape -%}
+    \end{center}
+    {%- endif -%}
+\end{figure}
+
+
+
+\end{document}
