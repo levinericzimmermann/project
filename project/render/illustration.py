@@ -25,9 +25,9 @@ def illustrate_guitar_tuning(orchestration, d, path, executor):
             notelike.pitch_list[0].cent_deviation_from_closest_western_pitch_class, 2
         )
         notelike.notation_indicator_collection.markup.content = (
-            rf"\markup {{ \typewriter { c }ct }}"
+            rf"\markup {{ \typewriter \tiny { c } }}"
         )
-        notelike.notation_indicator_collection.markup.direction = "^"
+        notelike.notation_indicator_collection.markup.direction = abjad.enums.UP
 
     seq2avoice = abjad_converters.SequentialEventToAbjadVoice(
         mutwo_pitch_to_abjad_pitch=abjad_converters.MutwoPitchToHEJIAbjadPitch(),
