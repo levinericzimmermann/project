@@ -11,10 +11,10 @@ envelope = core_events.Envelope([[0, 0, 3], [0.5, 1], [1, 1]])
 
 
 def draw_moon(filename, movement):
-    reverse = False
+    reverse = True
     if movement < 0:
         movement = abs(movement)
-        reverse = True
+        reverse = False
 
     width, height = 2000, 2000
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
