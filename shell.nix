@@ -51,6 +51,8 @@ in
 
   pkgs.mkShell {
       buildInputs = with pkgs; [
+          jack2
+          qjackctl
           python94
           lilypond-with-fonts
           # For generating books
@@ -58,4 +60,9 @@ in
           # Concatenating notes
           # pdftk
       ];
+      shellHook = ''
+        umask 0000
+        export JACK_PROMISCUOUS_SERVER="jackaudio"
+      '';
+
   }
