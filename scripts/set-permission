@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 function setP() {
     echo "Set permission of arduino $1"
-    sudo chown levinericzimmermann:users /dev/ttyACM$1
+    sudo chown `whoami`:users /dev/ttyACM$1
 }
 
 setP 0
