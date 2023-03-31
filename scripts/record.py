@@ -14,16 +14,25 @@ server = (
 )
 input_tuple = tuple(pyo.Input(n) for n in range(channel_count))
 now = datetime.datetime.now().isoformat()
-filename = f"etc/recordings/{now[:13]}_{now[14:16]}.wav"
+filename = f"etc/recordings/{now[:13]}_{now[14:16]}"
+record_tuple = tuple(
+    pyo.Record(inp, f"{filename}_{i}.wav", sampletype=4, fileformat=0, chnls=1)
+    for i, inp in enumerate(input_tuple)
+)
+
+for inp in input_tuple:
+    inp.play()
+
+for rec in record_tuple:
+    rec.play()
 
 print("Start recording on", filename)
 
-server.recordOptions(sampletype=4, fileformat=0)
-server.recstart(filename)
 try:
     while True:
         time.sleep(1)
 except (KeyboardInterrupt, Exception):
-    server.recstop()
+    for rec in record_tuple:
+        rec.stop()
     print("Record stopped.")
 server.stop()
