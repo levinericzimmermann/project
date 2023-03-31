@@ -361,7 +361,7 @@ class AstralEventToClockTuple(core_converters.abc.Converter):
     ):
         main_clock_line = self._make_empty_clock_line(duration)
         moon_context_tuple = (
-            diary_interfaces.MoonContext(0, duration, orchestration, moon_phase_index),
+            diary_interfaces.MoonContext(0, duration, orchestration, moon_phase_index=moon_phase_index),
         )
         event_placement_tuple = self._context_tuple_to_event_placement_tuple.convert(
             moon_context_tuple
