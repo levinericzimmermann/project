@@ -125,6 +125,7 @@ ENV/
 *.mid
 *.ly
 *.tex
+*.aux
 *.texi
 *.count
 *.eps
