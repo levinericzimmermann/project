@@ -106,6 +106,8 @@ def find_chord_tuple(
 ) -> tuple[Chord, ...]:
     """Create a tuple of chords which fulfill specific constraints"""
 
+    pitch_tuple = tuple(sorted(core_utilities.uniqify_sequence(pitch_tuple)))
+
     valid_pitch_tuple = tuple(
         p for p in pitch_tuple if p in ambitus and p not in picked_pitch_tuple
     )
