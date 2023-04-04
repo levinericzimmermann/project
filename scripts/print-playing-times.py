@@ -15,16 +15,12 @@ location = LocationInfo(
 for date in range(1, 31):
     date = datetime.datetime(2023, 4, date, tzinfo=location.tzinfo)
 
-    print(f'april {date.day}\n')
+    print(f'\n\napril {date.day}\n')
     # Depression.CIVIL seems to be the best, indeed
     s = sun.sun(location.observer, date=date, dawn_dusk_depression=Depression.CIVIL)
 
-    print("\tdawn\t", s["dawn"].time())
-    print("\tsunrise\t", s["sunrise"].time())
-
-    print('\t__\n')
+    # print("\tdawn\t", s["dawn"].time())
+    # print("\tsunrise\t", s["sunrise"].time())
 
     print("\tsunset\t", s["sunset"].time())
     print("\tdusk\t", s["dusk"].time())
-
-    print("---\n\n")
