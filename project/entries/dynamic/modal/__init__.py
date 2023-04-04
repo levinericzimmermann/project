@@ -74,7 +74,7 @@ diary_interfaces.DynamicEntry.from_file(
     timeline_interfaces.EventPlacement,
     skip_check=project.constants.SKIP_CHECK,
     file_path=f"{path}/silence.py",
-    relevance=68,
+    relevance=52,
 )
 
 diary_interfaces.DynamicEntry.from_file(
