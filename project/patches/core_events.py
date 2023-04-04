@@ -1,3 +1,4 @@
+import functools
 import itertools
 import typing
 
@@ -74,10 +75,84 @@ def SimultaneousEvent_chordify(self) -> core_events.SequentialEvent:
 
         return n
 
-    return self.sequentialize(slice_tuple_to_event)
+    sim = core_events.SimultaneousEvent([_FronzenSequentialEvent(s[:]) for s in self])
+    print("WITH FROZEN")
+    return sim.sequentialize(slice_tuple_to_event)
+
+
+def SimultaneousEvent_sequentialize(
+    self, slice_tuple_to_event=None
+) -> core_events.SequentialEvent:
+    if slice_tuple_to_event is None:
+        slice_tuple_to_event = core_events.SimultaneousEvent
+
+    # Find all start/end times
+    absolute_time_set = set([])
+    for e in self:
+        try:  # SequentialEvent
+            (
+                absolute_time_tuple,
+                duration,
+            ) = e._absolute_time_in_floats_tuple_and_duration
+        except AttributeError:  # SimpleEvent or SimultaneousEvent
+            absolute_time_tuple, duration = (0,), e.duration.duration_in_floats
+        for t in absolute_time_tuple + (duration,):
+            absolute_time_set.add(t)
+
+    # Sort, but also remove the last entry: we don't need
+    # to split at complete duration, because after duration
+    # there isn't any event left in any child.
+    absolute_time_list = sorted(absolute_time_set)[:-1]
+
+    # Slice all child events
+    slices = []
+    for e in self:
+        eslice_list = []
+        previous_split_t = self.duration
+        for split_t in reversed(absolute_time_list):
+            print("s", split_t)
+            if split_t == 0:  # We reached the end
+                eslice = e
+            else:
+                try:
+                    eslice = e.cut_out(split_t, previous_split_t, mutate=False)
+                    e.cut_out(0, split_t)
+                # Event is shorter etc.
+                except core_utilities.InvalidStartAndEndValueError:
+                    # We still need to append an event slice,
+                    # because otherwise this slice group will be
+                    # omitted (because we use 'zip').
+                    eslice = None
+            eslice_list.append(eslice)
+            previous_split_t = split_t
+        eslice_list.reverse()
+        slices.append(eslice_list)
+
+    # Finally, build new sequence from event slices
+    sequential_event = core_events.SequentialEvent([])
+    for slice_tuple in zip(*slices):
+        if slice_tuple := tuple(filter(bool, slice_tuple)):
+            e = slice_tuple_to_event(slice_tuple)
+            sequential_event.append(e)
+
+    return sequential_event
+
+
+class _FronzenSequentialEvent(core_events.SequentialEvent):
+    @functools.cached_property
+    def _absolute_time_in_floats_tuple_and_duration(self):
+        return super()._absolute_time_in_floats_tuple_and_duration
+
+    @functools.cached_property
+    def _absolute_time_tuple_and_duration(self):
+        return super()._absolute_time_tuple_and_duration
+
+    def copy(self):
+        return _FronzenSequentialEvent(super().copy(self))
 
 
 core_events.SimultaneousEvent.chordify = SimultaneousEvent_chordify
+core_events.SimultaneousEvent.sequentialize = SimultaneousEvent_sequentialize
 
 
 # Patches
