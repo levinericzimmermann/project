@@ -59,6 +59,8 @@ in
           # texlive.combined.scheme-full
           # Concatenating notes
           # pdftk
+          # Needed for various scripts
+          arduino-cli
       ];
       shellHook = ''
         umask 0000
