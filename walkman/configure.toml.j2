@@ -26,8 +26,8 @@ channel_count           = 4
     # Each box has its own pickup
     [configure.module.audio_input.{{ box_index }}]
     input_channel_index     = {{ box_index }}
-    fade_in_duration        = 4.5
-    fade_out_duration       = 5.25
+    fade_in_duration        = 6
+    fade_out_duration       = 6.25
 
     [configure.module.value.audio_input_{{ box_index }}_child_decibel]
     # We have a very quiet signal
@@ -50,12 +50,8 @@ channel_count           = 4
     {% endfor %}
 
 {% for box_index in range(box_count) %}
-    [configure.module.d_c_block.{{ box_index }}]
-    audio_input                          = "aeolian_harp.0.{{ box_index }}"
-
     [configure.module.compressor.{{ box_index }}]
-    # audio_input                          = "aeolian_harp.0.{{ box_index }}"
-    audio_input                          = "d_c_block.{{ box_index }}"
+    audio_input                          = "aeolian_harp.0.{{ box_index }}"
 {% endfor %}
 
 [configure.module.mixer.strings]

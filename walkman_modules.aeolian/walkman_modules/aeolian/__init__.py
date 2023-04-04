@@ -14,7 +14,7 @@ import serial
 import walkman
 import walkmanio
 
-__all__ = ("String", "AeolianHarp", "Compressor", "Gate", "DCBlock", "ResFilter")
+__all__ = ("String", "AeolianHarp", "Compressor", "Gate")
 
 BAUDRATE = 230400
 READ_TIMEOUT = 0.1
@@ -319,10 +319,7 @@ class AeolianHarp(walkman.Hub):
     def _test(self):
         e, f, d = "BASIC", 120, 10
         max_d = d * (self.TOTAL_STRING_COUNT - 1)
-        max_d = d * (3 - 1)
-        # for string_index in range(self.TOTAL_STRING_COUNT):
-        # for string_index in range(0, 3):
-        for string_index in range(6, 9):
+        for string_index in range(self.TOTAL_STRING_COUNT):
             event_list = [
                 walkmanio.WalkmanEvent(d, dict(envelope=e, frequency=f), False),
             ]
@@ -336,10 +333,9 @@ class AeolianHarp(walkman.Hub):
                         event_list.append(r)
                     else:
                         event_list.insert(0, r)
-            seq = self.sequencer_tuple[string_index]
-            seq.event_iterator = itertools.cycle(event_list)
-            print("PLAY", string_index)
-            seq.play()
+            self.sequencer_tuple[string_index].event_iterator = itertools.cycle(
+                event_list
+            )
 
 
 class Compressor(
@@ -387,85 +383,3 @@ class Gate(
     @functools.cached_property
     def _pyo_object(self) -> pyo.PyoObject:
         return self.gate
-
-
-class Delay(
-    walkman.ModuleWithDecibel,
-    audio_input=walkman.Catch(walkman.constants.EMPTY_MODULE_INSTANCE_NAME),
-    thresh=walkman.AutoSetup(walkman.Value, module_kwargs={"value": -50}),
-    risetime=walkman.AutoSetup(walkman.Value, module_kwargs={"value": 3}),
-    falltime=walkman.AutoSetup(walkman.Value, module_kwargs={"value": 1}),
-):
-    def _setup_pyo_object(self):
-        super()._setup_pyo_object()
-        self.gate = pyo.Gate(
-            self.audio_input.pyo_object,
-            mul=self.amplitude_signal_to,
-            thresh=self.thresh.pyo_object_or_float,
-            risetime=self.risetime.pyo_object_or_float,
-            falltime=self.falltime.pyo_object_or_float,
-            lookahead=20,
-        ).stop()
-        self.internal_pyo_object_list.append(self.gate)
-
-    @functools.cached_property
-    def _pyo_object(self) -> pyo.PyoObject:
-        return self.gate
-
-
-class DCBlock(
-    walkman.ModuleWithDecibel,
-    audio_input=walkman.Catch(walkman.constants.EMPTY_MODULE_INSTANCE_NAME),
-):
-    def _setup_pyo_object(self):
-        super()._setup_pyo_object()
-        self.dcfilter = pyo.DCBlock(
-            self.audio_input.pyo_object,
-            mul=self.amplitude_signal_to,
-        ).stop()
-        # f_list = [76, 90, 170, 200, 270, 440, 445, 580, 746, 935, 1100, 1700, 2300, 2600, 3200, 3800, 4000, 4900]
-        # f_list = [76, 90, 170, 200, 270, 440, 580, 746, 935, 1100, 1700, 2300, 2600, 3200, 4000]
-        f_list = [76]
-        self.fi_list = []
-        last_filter = self.dcfilter
-        for f in f_list:
-            fi = pyo.Biquad(last_filter, freq=f, type=3, q=2)
-            # fi = pyo.Biquad(last_filter, freq=f, type=3, q=499)
-            last_filter = fi
-            self.fi_list.append(fi)
-        self.internal_pyo_object_list.extend([self.dcfilter] + self.fi_list)
-
-    @functools.cached_property
-    def _pyo_object(self) -> pyo.PyoObject:
-        return self.fi_list[-1]
-
-
-class ResFilter(
-    walkman.ModuleWithDecibel,
-):
-    def __init__(self, input_channel_index: int = 0, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._input_channel_index = input_channel_index
-        self.f_list =  [1, 2, 4, 8, 16]
-
-    def _initialise(
-        self, frequency: float = 200, *args, **kwargs
-    ):
-        super()._initialise(*args, **kwargs)
-        print('initialise', frequency)
-        for f, fi in zip(self.f_list, self.fi_list):
-            fi.setFreq(f * frequency)
-
-    def _setup_pyo_object(self):
-        super()._setup_pyo_object()
-        self.input = pyo.Input(self._input_channel_index)
-        self.fi_list = []
-        for f in self.f_list:
-            fi = pyo.Biquad(self.input, freq=f, type=2, q=1)
-            self.fi_list.append(fi)
-        self.res = sum(self.fi_list)
-        self.internal_pyo_object_list.extend(self.fi_list + [ self.input, self.res])
-
-    @functools.cached_property
-    def _pyo_object(self) -> pyo.PyoObject:
-        return self.res
