@@ -55,6 +55,7 @@ in
           qjackctl
           python94
           lilypond-with-fonts
+          reaper
           # For generating books
           # texlive.combined.scheme-full
           # Concatenating notes
