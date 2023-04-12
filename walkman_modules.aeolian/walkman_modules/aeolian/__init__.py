@@ -1,3 +1,4 @@
+import concurrent.futures
 import datetime
 import enum
 import functools
@@ -6,15 +7,19 @@ import time
 import typing
 
 from astral import LocationInfo
+import numpy as np
 from apscheduler.schedulers.background import BackgroundScheduler
 import time_machine
+import librosa
+
+from mutwo import core_utilities
 
 import pyo
 import serial
 import walkman
 import walkmanio
 
-__all__ = ("String", "AeolianHarp", "Compressor", "Gate")
+__all__ = ("String", "AeolianHarp", "Compressor", "Gate", "SpectralFilterInput")
 
 BAUDRATE = 230400
 READ_TIMEOUT = 0.1
@@ -383,3 +388,85 @@ class Gate(
     @functools.cached_property
     def _pyo_object(self) -> pyo.PyoObject:
         return self.gate
+
+
+class SpectralFilterInput(walkman.AudioInput):
+    def __init__(
+        self,
+        *args,
+        noise_file_path: str = "noise.wav",
+        size: int = 1024,
+        overlaps: int = 3,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        self.noise_file_path = noise_file_path
+        self.size = size
+        self.overlaps = overlaps
+        self.thread_pool_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+
+    def _setup_pyo_object(self):
+        super()._setup_pyo_object()
+
+        y_noise, sampling_rate_noise = librosa.load(self.noise_file_path)
+        noise_magnitude_list = np.abs(librosa.stft(y_noise, n_fft=self.size))
+        self.noise_magnitude_list = [
+            float(v) for v in np.mean(noise_magnitude_list, axis=1)
+        ]
+
+        self.noise_table = pyo.DataTable(int(self.size / 2))
+
+        self.analysis = pyo.PVAnal(
+            self.denorm,
+            size=self.size,
+            overlaps=self.overlaps,
+            callback=self.set_noise_table,
+        )
+        self.filter = pyo.PVFilter(self.analysis, self.noise_table)
+        self.synthesis = pyo.PVSynth(self.filter)
+        self.internal_pyo_object_list.extend(
+            [self.analysis, self.filter, self.synthesis]
+        )
+
+    @functools.cached_property
+    def _pyo_object(self) -> pyo.PyoObject:
+        return self.synthesis
+
+    def set_noise_table(self, signal_magnitude_list, _):
+        # We don't run this in our main thread, because it seems to block
+        # pyo / our main thread. If we run this calculation in a separate
+        # thread we reduce likelihood for xruns.
+        self.thread_pool_executor.submit(
+            self.set_signal_noise_ratio_list, signal_magnitude_list
+        )
+
+    def set_signal_noise_ratio_list(self, signal_magnitude_list):
+        self.noise_table.replace(
+            self._signal_noise_ratio_list(
+                signal_magnitude_list, self.noise_magnitude_list
+            )
+        )
+
+    @staticmethod
+    def _signal_noise_ratio_list(signal_magnitude_list, noise_magnitude_list):
+        # We calculate now the signal-noise ratio.
+        # We know how noisy each bin is by comparing its value with the
+        # value of a very noisy bin.
+        # If the DELTA between noise and signal is 0 this means the noise
+        # must be 100% present in our signal (we get 0). If it is 100%
+        # present we need to cancel this bin with our filter. Therefore we
+        # reverse 100% presence (= min or 0) to max value 1 via 'scale'.
+        signal_noise_ratio_list = []
+        for magnitude_signal, magnitude_noise in zip(
+            signal_magnitude_list, noise_magnitude_list
+        ):
+            delta = magnitude_noise - magnitude_signal
+            signal_noise_ratio = core_utilities.scale(
+                delta, min((0, delta)), magnitude_noise, 1, 0
+            )
+            signal_noise_ratio_list.append(signal_noise_ratio)
+        return signal_noise_ratio_list
+
+    def close(self, *args, **kwargs):
+        super().close(*args, **kwargs)
+        self.thread_pool_executor.shutdown()
