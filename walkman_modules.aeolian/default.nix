@@ -5,6 +5,7 @@ with pkgs.python310Packages;
 let
 
   walkman = import (sources.mutwo-nix.outPath + "/walkman/default.nix") {};
+  mutwo-core = import (sources.mutwo-nix.outPath + "/mutwo.core/default.nix") {};
 
   astral = pkgs.python310Packages.buildPythonPackage rec {
     pname = "astral";
@@ -57,6 +58,9 @@ in
       APScheduler
       astral
       time-machine
+      # For spectral filter
+      librosa
+      mutwo-core
     ];
     checkPhase = ''
       runHook preCheck
