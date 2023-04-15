@@ -43,13 +43,20 @@ def make_clock(
 
     project.clocks.apply_clock_events(modal_sequential_event)
 
+    for modal_event in modal_sequential_event:
+        modal_event.control_event = core_events.SimultaneousEvent(
+            [core_events.SequentialEvent([core_events.SimpleEvent(1)])]
+        )
+
     main_clock_line = clock_converters.Modal0SequentialEventToClockLine(
         (
             diary_converters.Modal0SequentialEventToEventPlacementTuple(
-                project.constants.ORCHESTRATION.get_subset("HARP")
+                orchestration=project.constants.ORCHESTRATION.get_subset("HARP"),
+                add_mod1=False,
             ),
             diary_converters.Modal0SequentialEventToEventPlacementTuple(
-                project.constants.ORCHESTRATION.get_subset("VIOLIN")
+                orchestration=project.constants.ORCHESTRATION.get_subset("VIOLIN"),
+                add_mod1=True,
             ),
         )
     ).convert(modal_sequential_event)
