@@ -10,15 +10,22 @@ from mutwo import clock_interfaces
 from mutwo import core_events
 from mutwo import diary_converters
 from mutwo import music_events
+from mutwo import project_converters
 
 import project
 
 
-def make_clock(
-    scale_position_tuple,
-    before_rest_duration=0,
-) -> clock_interfaces.Clock:
+def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interfaces.Clock:
     scale = project.constants.SCALE
+
+    markov_chain = scale_to_markov_chain(scale)
+    g = markov_chain.walk_deterministic(tuple(markov_chain.keys())[0])
+
+    scale_position_list = []
+    for _ in range(project.constants.GATRA_SIZE * project.constants.GATRA_COUNT):
+        scale_position_list.extend(next(g))
+
+    scale_position_tuple = tuple(scale_position_list)
 
     root_pitch_tuple = tuple(
         scale.scale_position_to_pitch(scale_position)
@@ -70,6 +77,24 @@ def make_clock(
     return clock
 
 
+def scale_to_markov_chain(scale):
+    key = tuple(p.ratio for p in scale.scale_family.interval_tuple)
+    try:
+        markov_chain = _scale_to_markov_chain[key]
+    except KeyError:
+        gatra_tuple = scale_to_gatra_tuple.convert(scale)
+        markov_chain = _scale_to_markov_chain[
+            key
+        ] = gatra_tuple_to_markov_chain.convert(gatra_tuple)
+        markov_chain.make_deterministic_map()
+    return markov_chain
+
+
+scale_to_gatra_tuple = project_converters.ScaleToGatraTuple()
+gatra_tuple_to_markov_chain = project_converters.GatraTupleToMarkovChain()
+_scale_to_markov_chain = {}
+
+
 def _clock_rest(rest_duration):
     return clock_interfaces.ClockLine(
         clock_events.ClockEvent(
@@ -97,13 +122,8 @@ if __name__ == "__main__":
 
     with diary_interfaces.open():
         clock_list = []
-        for scale_position_tuple in [
-            ((0, 0), (3, 0), (1, 0), (4, 0), (2, 0), (0, 0)),
-            ((0, 0), (2, 0), (4, 0)),
-            ((0, 0), (4, -1)),
-            ((0, 0), (3, 0), (2, 0), (4, 0)),
-        ]:
-            clock = clock_list.append(make_clock(scale_position_tuple))
+        for index, line in enumerate(project.constants.POEM.split("\n")):
+            clock_list.append(make_clock(index, line))
 
     clock_tuple = tuple(clock_list)
     project.render.notation(clock_tuple)

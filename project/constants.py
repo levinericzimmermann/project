@@ -7,6 +7,30 @@ from mutwo import project_parameters
 
 TITLE = "10.2"
 
+# Poem by robert lax.
+# Foundation of this composition.
+POEM = r"""river
+river
+river
+
+river
+river
+river
+
+river
+river
+river
+
+river
+river
+river
+"""
+
+assert len(POEM.split('\n')) == 16
+
+GATRA_SIZE = 4
+GATRA_COUNT = 1
+
 diary_interfaces.configurations.DEFAULT_STORAGE_PATH = "etc/data/diary.fs"
 
 SKIP_CHECK = False
