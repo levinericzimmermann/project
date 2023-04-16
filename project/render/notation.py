@@ -154,7 +154,7 @@ def violin_converter():
 
     return {
         violin_tag: clock_converters.EventPlacementToAbjadStaffGroup(
-            complex_event_to_abjad_container, staff_count=2
+            complex_event_to_abjad_container, staff_count=1
         ),
     }
 
