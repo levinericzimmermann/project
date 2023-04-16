@@ -223,5 +223,5 @@ def notation(clock_tuple):
         ).convert(abjad_score_block_list)
 
         abjad.persist.as_pdf(
-            lilypond_file, f"builds/{project.constants.TITLE}_{instrument.name}.pdf"
+            lilypond_file, f"builds/notation/{project.constants.TITLE}_{instrument.name}.pdf"
         )
