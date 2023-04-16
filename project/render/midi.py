@@ -61,7 +61,7 @@ def midi(
             executor.submit(
                 event_to_midi_file.convert,
                 event[0],
-                f"builds/{project.constants.TITLE}_{event.tag}.mid",
+                f"builds/midi/{project.constants.TITLE}_{event.tag}.mid",
             )
 
 
