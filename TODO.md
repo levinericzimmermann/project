@@ -1,0 +1,8 @@
+- create pdf page for each poem line
+- intersect partbooks with notation/poetry line
+- switch violin to viola/cello
+- illustrate harp scordatura
+- illustrate viola scordatra
+- illustrate glockenspiel scordatra
+- always notate 2 harp staves even if only 1 is used
+- don't notate dynamics
