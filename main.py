@@ -118,6 +118,8 @@ def _clock_end(scale):
 
 
 if __name__ == "__main__":
+    project.render.illustration()
+
     from mutwo import diary_interfaces
 
     with diary_interfaces.open():
