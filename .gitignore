@@ -129,6 +129,7 @@ ENV/
 *.count
 *.eps
 *.opus
+*.aux
 
 # no pianoteq binary
 pianoteq
