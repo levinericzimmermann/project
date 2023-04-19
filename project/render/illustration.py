@@ -17,7 +17,7 @@ def illustration():
     base_path = "builds/illustrations"
     harp_scordatura_path = f"{base_path}/harp_tuning.png"
     intro_tex_path = f"{base_path}/intro.tex"
-    poem_path = f"{base_path}/poem_line_"
+    poem_path = f"{base_path}/poem.tex"
 
     try:
         os.mkdir(base_path)
@@ -101,13 +101,13 @@ def illustrate_start(tex_path, harp_scordatura):
     call_latex(tex_path)
 
 
-def illustrate_poem(path):
-    for i, line in enumerate(project.constants.POEM.split("\n")):
-        template = J2ENVIRONMENT.get_template("poem.tex.j2").render(line=line)
-        tex_path = f"{path}_{i}.tex"
-        with open(tex_path, "w") as b:
-            b.write(template)
-        call_latex(tex_path)
+def illustrate_poem(tex_path):
+    template = J2ENVIRONMENT.get_template("poem.tex.j2").render(
+        poem=project.constants.POEM.split("\n")
+    )
+    with open(tex_path, "w") as b:
+        b.write(template)
+    call_latex(tex_path)
 
 
 def call_latex(tex_path: str):
