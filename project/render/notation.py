@@ -1,3 +1,6 @@
+import concurrent.futures
+import subprocess
+
 import abjad
 
 from mutwo import abjad_converters
@@ -38,16 +41,14 @@ def clock_event_to_abjad_staff_group():
                     first_leaf,
                 )
 
-    complex_event_to_abjad_container = (
-        clock_generators.make_complex_event_to_abjad_container(
-            sequential_event_to_abjad_staff_kwargs={
-                "post_process_abjad_container_routine_sequence": (
-                    PostProcessClockSequentialEvent(),
-                ),
-            },
-            duration_line=True,
-            # duration_line=False,
-        )
+    complex_event_to_abjad_container = clock_generators.make_complex_event_to_abjad_container(
+        sequential_event_to_abjad_staff_kwargs={
+            "post_process_abjad_container_routine_sequence": (
+                PostProcessClockSequentialEvent(),
+            ),
+        },
+        duration_line=True,
+        # duration_line=False,
     )
     return clock_converters.ClockEventToAbjadStaffGroup(
         complex_event_to_abjad_container
@@ -159,69 +160,109 @@ def violin_converter():
     }
 
 
-def notation(clock_tuple):
-    abjad_score_to_abjad_score_block = clock_converters.AbjadScoreToAbjadScoreBlock()
-    instrument_note_like_to_pitched_note_like = (
-        project_converters.InstrumentNoteLikeToPitchedNoteLike(
-            project.constants.CLOCK_INSTRUMENT_TO_PITCH_DICT
-        )
+abjad_score_to_abjad_score_block = clock_converters.AbjadScoreToAbjadScoreBlock()
+instrument_note_like_to_pitched_note_like = (
+    project_converters.InstrumentNoteLikeToPitchedNoteLike(
+        project.constants.CLOCK_INSTRUMENT_TO_PITCH_DICT
     )
-    for instrument in project.constants.ORCHESTRATION:
-        converter_name = f"{instrument.name}_converter"
-        try:
-            tag_to_abjad_staff_group_converter = globals()[converter_name]
-        except KeyError:
-            continue
-        clock_to_abjad_score = clock_converters.ClockToAbjadScore(
-            tag_to_abjad_staff_group_converter,
-            clock_event_to_abjad_staff_group=clock_event_to_abjad_staff_group,
+)
+
+
+def notation(clock_tuple):
+    # set to true if you only want score creation but not expensive notation render
+    omit_notation = False
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        path_list = []
+        for instrument in project.constants.ORCHESTRATION:
+            if p := _notation(instrument, clock_tuple, executor, omit_notation):
+                path_list.append(p)
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for path in path_list:
+            _score(path, executor)
+
+
+def _notation(instrument, clock_tuple, executor, omit_notation):
+    notation_path = f"builds/notation/{project.constants.TITLE}_{instrument.name}.pdf"
+
+    if omit_notation:
+        return notation_path
+
+    converter_name = f"{instrument.name}_converter"
+    try:
+        tag_to_abjad_staff_group_converter = globals()[converter_name]
+    except KeyError:
+        return
+    clock_to_abjad_score = clock_converters.ClockToAbjadScore(
+        tag_to_abjad_staff_group_converter,
+        clock_event_to_abjad_staff_group=clock_event_to_abjad_staff_group,
+    )
+
+    abjad_score_block_list = []
+    for clock in clock_tuple:
+        for clock_line in (
+            clock.main_clock_line,
+            clock.start_clock_line,
+            clock.end_clock_line,
+        ):
+            if clock_line:
+                clock_line._clock_event = instrument_note_like_to_pitched_note_like(
+                    clock_line.clock_event
+                )
+        abjad_score = clock_to_abjad_score.convert(
+            clock,
+            tag_tuple=(
+                project.constants.ORCHESTRATION.HARP.name,
+                project.constants.ORCHESTRATION.VIOLIN.name,
+            ),
         )
 
-        abjad_score_block_list = []
-        for clock in clock_tuple:
-            for clock_line in (
-                clock.main_clock_line,
-                clock.start_clock_line,
-                clock.end_clock_line,
-            ):
-                if clock_line:
-                    clock_line._clock_event = instrument_note_like_to_pitched_note_like(
-                        clock_line.clock_event
-                    )
-            abjad_score = clock_to_abjad_score.convert(
-                clock,
-                tag_tuple=(
-                    project.constants.ORCHESTRATION.HARP.name,
-                    project.constants.ORCHESTRATION.VIOLIN.name,
-                ),
-            )
+        # We get lilypond error for harp:
+        #   Interpreting music...[8][16][24]ERROR: Wrong type (expecting exact integer): ()
+        consist_timing_translator = True
+        # We get lilypond error for violin:
+        #   Drawing systems...lilypond: skyline.cc:100: Building::Building(Real, Real, Real, Real): Assertion `start_height == end_height' failed.
+        if instrument.name == "violin":
+            consist_timing_translator = False
 
-            # We get lilypond error for harp:
-            #   Interpreting music...[8][16][24]ERROR: Wrong type (expecting exact integer): ()
-            consist_timing_translator = True
-            # We get lilypond error for violin:
+        abjad_score_block = abjad_score_to_abjad_score_block.convert(
+            abjad_score,
+            consist_timing_translator=consist_timing_translator,
+            # Setting a lower 'moment' decreases the likelihood that we catch
+            # the following lilypond error:
             #   Drawing systems...lilypond: skyline.cc:100: Building::Building(Real, Real, Real, Real): Assertion `start_height == end_height' failed.
-            if instrument.name == "violin":
-                consist_timing_translator = False
-
-            abjad_score_block = abjad_score_to_abjad_score_block.convert(
-                abjad_score,
-                consist_timing_translator=consist_timing_translator,
-                # Setting a lower 'moment' decreases the likelihood that we catch
-                # the following lilypond error:
-                #   Drawing systems...lilypond: skyline.cc:100: Building::Building(Real, Real, Real, Real): Assertion `start_height == end_height' failed.
-                moment=4,  # 1/16 is one second
-            )
-            abjad_score_block_list.append(abjad_score_block)
-
-        lilypond_file = clock_converters.AbjadScoreBlockTupleToLilyPondFile(
-            system_system_padding=3,
-            system_system_basic_distance=12,
-            score_system_padding=3,
-            markup_system_padding=1,
-            staff_height=20,
-        ).convert(abjad_score_block_list)
-
-        abjad.persist.as_pdf(
-            lilypond_file, f"builds/notation/{project.constants.TITLE}_{instrument.name}.pdf"
+            moment=4,  # 1/16 is one second
         )
+        abjad_score_block_list.append(abjad_score_block)
+
+    lilypond_file = clock_converters.AbjadScoreBlockTupleToLilyPondFile(
+        system_system_padding=3,
+        system_system_basic_distance=12,
+        score_system_padding=3,
+        markup_system_padding=1,
+        staff_height=20,
+    ).convert(abjad_score_block_list)
+
+    executor.submit(abjad.persist.as_pdf, lilypond_file, notation_path)
+    return notation_path
+
+
+def _score(path, executor):
+    path_merged = f"{path}_merged.pdf"
+    interleave(path, path_merged)
+
+
+def interleave(path_notation, path_merged):
+    subprocess.call(
+        [
+            "pdftk",
+            f"A={path_notation}",
+            "B=builds/illustration/poem.pdf",
+            "shuffle",
+            "A",
+            "Bend-1",
+            "output",
+            path_merged,
+        ]
+    )
