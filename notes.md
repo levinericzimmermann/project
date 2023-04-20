@@ -1,0 +1,6 @@
+- glockenspiel kann gleiche skala haben:
+    - b und e werden nicht hoeher gestimmt und sind deshalb leicht verstimmt
+    - f# wird auch nicht umgestimmt: das hat dann 27/16, also pythagoraeisches intervall
+    - die funktion des f# ist aber dieselbe
+    - dh. bei f# bekommen wir dann immer gewisse reibungen
+    - dh. f# sollte vermutlich nicht der grundton sein!

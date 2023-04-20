@@ -1,4 +1,3 @@
-- create pdf page for each poem line
 - intersect partbooks with notation/poetry line
 - switch violin to viola/cello
 - illustrate harp scordatura
