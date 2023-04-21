@@ -253,6 +253,8 @@ def _score(path, executor):
     _rotate(path, path_rotated)
     path_merged = f"{path}_merged.pdf"
     _interleave(path_rotated, path_merged)
+    path_with_intro = f"{path}_with_intro.pdf"
+    _add_intro(path_merged, path_with_intro)
 
 
 def _rotate(path_notation, path_rotated):
@@ -272,5 +274,17 @@ def _interleave(path_notation, path_merged):
             "Bend-1",
             "output",
             path_merged,
+        ]
+    )
+
+
+def _add_intro(path_notation, path_with_intro):
+    subprocess.call(
+        [
+            "pdftk",
+            path_notation,
+            "builds/illustrations/into.pdf",
+            "output",
+            path_with_intro,
         ]
     )
