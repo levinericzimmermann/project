@@ -125,12 +125,7 @@ def harp_converter():
                         notation_indicator_collection.clef.name = "bass"
                         break
                 event_placement.event[harp_tag] = core_events.TaggedSimultaneousEvent(
-                    # Don't print staves without any pitches!
-                    [
-                        s
-                        for s in (right, left)
-                        if any(s.get_parameter("pitch_list", filter_undefined=True))
-                    ],
+                    (right, left),
                     tag=harp_tag,
                 )
             return super().convert(event_placement, *args, **kwargs)
@@ -170,7 +165,7 @@ instrument_note_like_to_pitched_note_like = (
 
 def notation(clock_tuple):
     # set to true if you only want score creation but not expensive notation render
-    omit_notation = True
+    omit_notation = False
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         path_list = []
@@ -282,8 +277,8 @@ def _add_intro(path_notation, path_with_intro):
     subprocess.call(
         [
             "pdftk",
-            path_notation,
             "builds/illustrations/intro.pdf",
+            path_notation,
             "output",
             path_with_intro,
         ]
