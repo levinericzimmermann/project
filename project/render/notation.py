@@ -283,7 +283,7 @@ def _add_intro(path_notation, path_with_intro):
         [
             "pdftk",
             path_notation,
-            "builds/illustrations/into.pdf",
+            "builds/illustrations/intro.pdf",
             "output",
             path_with_intro,
         ]
