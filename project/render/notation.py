@@ -271,7 +271,7 @@ def _interleave(path_notation, path_merged):
             "B=builds/illustrations/poem.pdf",
             "shuffle",
             "A",
-            "Bend-1",
+            "B",
             "output",
             path_merged,
         ]
