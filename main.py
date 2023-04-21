@@ -118,7 +118,17 @@ def _clock_end(scale):
 
 
 if __name__ == "__main__":
-    project.render.illustration()
+    import argparse
+
+    parser = argparse.ArgumentParser(prog="project")
+    parser.add_argument("-i", "--illustration", action="store_true")
+    parser.add_argument("-n", "--notation", action="store_true")
+    parser.add_argument("-s", "--sound", action="store_true")
+
+    args = parser.parse_args()
+
+    if args.illustration:
+        project.render.illustration()
 
     from mutwo import diary_interfaces
 
@@ -128,5 +138,9 @@ if __name__ == "__main__":
             clock_list.append(make_clock(index, line))
 
     clock_tuple = tuple(clock_list)
-    project.render.notation(clock_tuple)
-    project.render.midi(clock_tuple)
+
+    if args.notation:
+        project.render.notation(clock_tuple)
+
+    if args.sound:
+        project.render.midi(clock_tuple)
