@@ -170,7 +170,7 @@ instrument_note_like_to_pitched_note_like = (
 
 def notation(clock_tuple):
     # set to true if you only want score creation but not expensive notation render
-    omit_notation = False
+    omit_notation = True
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         path_list = []
@@ -184,7 +184,7 @@ def notation(clock_tuple):
 
 
 def _notation(instrument, clock_tuple, executor, omit_notation):
-    notation_path = f"builds/notation/{project.constants.TITLE}_{instrument.name}.pdf"
+    notation_path = f"builds/notations/{project.constants.TITLE}_{instrument.name}.pdf"
 
     if omit_notation:
         return notation_path
@@ -249,16 +249,24 @@ def _notation(instrument, clock_tuple, executor, omit_notation):
 
 
 def _score(path, executor):
+    path_rotated = f"{path}_rotated.pdf"
+    _rotate(path, path_rotated)
     path_merged = f"{path}_merged.pdf"
-    interleave(path, path_merged)
+    _interleave(path_rotated, path_merged)
 
 
-def interleave(path_notation, path_merged):
+def _rotate(path_notation, path_rotated):
+    subprocess.call(
+        ["pdftk", path_notation, "cat", "1-endeast", "output", path_rotated]
+    )
+
+
+def _interleave(path_notation, path_merged):
     subprocess.call(
         [
             "pdftk",
             f"A={path_notation}",
-            "B=builds/illustration/poem.pdf",
+            "B=builds/illustrations/poem.pdf",
             "shuffle",
             "A",
             "Bend-1",
