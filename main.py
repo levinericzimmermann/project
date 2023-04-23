@@ -16,7 +16,7 @@ import project
 
 
 def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interfaces.Clock:
-    scale = project.constants.SCALE
+    scale = project.constants.PENTATONIC_SCALE_TUPLE[poem_index]
 
     markov_chain = scale_to_markov_chain(scale)
     g = markov_chain.walk_deterministic(tuple(markov_chain.keys())[0])
