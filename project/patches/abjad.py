@@ -5,6 +5,7 @@ import abjad
 from mutwo import abjad_converters
 from mutwo import abjad_parameters
 from mutwo import core_utilities
+from mutwo import music_parameters
 
 # FIXES
 if 1:
@@ -123,3 +124,17 @@ if 1:
     abjad_converters.LeafMakerSequentialEventToDurationLineBasedQuantizedAbjadContainer._adjust_quantisized_abjad_leaves = (
         _DurationLineBasedQuantizedAbjadContainerMixin_adjust_quantisized_abjad_leaves
     )
+
+
+# More fixes
+if 1:
+    # This should soon be intergrated into mutwo.abjad, mutwo.music already
+    # allows its integration.
+
+    def MutwoPitchToAbjadPitch_convert(self, pitch_to_convert) -> abjad.Pitch:
+        if isinstance(pitch_to_convert, music_parameters.WesternPitch):
+            return abjad.NamedPitch(pitch_to_convert.round_to(mutate=False).name)
+        else:
+            return abjad.NamedPitch.from_hertz(pitch_to_convert.frequency)
+
+    abjad_converters.MutwoPitchToAbjadPitch.convert = MutwoPitchToAbjadPitch_convert
