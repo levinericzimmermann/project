@@ -52,6 +52,7 @@ def midi(
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         for event in simultaneous_event:
             event = grace_notes_converter(playing_indicators_converter(event))
+
             executor.submit(
                 event_to_midi_file.convert,
                 event[0],
@@ -73,7 +74,9 @@ def post_process_instruments(simultaneous_event):
                 # ).convert(event)
                 # simultaneous_event.extend(split_clock_event)
                 # event_index_to_remove = event_index
-                ...
+                event = project.constants.INSTRUMENT_CLOCK_EVENT_TO_PITCHED_CLOCK_EVENT(event)
+                event_to_remove_index_list.append(event_index)
+                event_to_add_list.append(event)
             case project.constants.ORCHESTRATION.V.name:
                 event_to_remove_index_list.append(event_index)
                 event_to_add_list.extend(

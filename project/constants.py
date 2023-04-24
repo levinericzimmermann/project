@@ -3,6 +3,7 @@ import ranges
 from mutwo import abjad_converters
 from mutwo import diary_interfaces
 from mutwo import music_parameters
+from mutwo import project_converters
 from mutwo import project_parameters
 
 TITLE = "10.2"
@@ -152,6 +153,12 @@ CLOCK_INSTRUMENT_TO_PITCH_DICT = {
     ORCHESTRATION_CLOCK.CLOCK_I3: music_parameters.WesternPitch("d", 4),
     ORCHESTRATION_CLOCK.CLOCK_I4: music_parameters.WesternPitch("e", 4),
 }
+
+INSTRUMENT_CLOCK_EVENT_TO_PITCHED_CLOCK_EVENT = (
+    project_converters.InstrumentNoteLikeToPitchedNoteLike(
+        CLOCK_INSTRUMENT_TO_PITCH_DICT
+    )
+)
 
 
 def sounding_harp_pitch_to_written_harp_pitch(harp_pitch):

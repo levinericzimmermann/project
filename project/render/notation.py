@@ -152,7 +152,6 @@ def v_converter():
             # v_event = event_placement.event[v_tag]
             return super().convert(event_placement, *args, **kwargs)
 
-
     complex_event_to_abjad_container = (
         clock_generators.make_complex_event_to_abjad_container(
             duration_line=True,
@@ -220,8 +219,10 @@ def _notation(instrument, clock_tuple, executor, omit_notation):
             clock.end_clock_line,
         ):
             if clock_line:
-                clock_line._clock_event = instrument_note_like_to_pitched_note_like(
-                    clock_line.clock_event
+                clock_line._clock_event = (
+                    project.constants.INSTRUMENT_CLOCK_EVENT_TO_PITCHED_CLOCK_EVENT(
+                        clock_line.clock_event
+                    )
                 )
         abjad_score = clock_to_abjad_score.convert(
             clock,
