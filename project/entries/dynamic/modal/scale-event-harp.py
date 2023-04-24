@@ -156,7 +156,7 @@ def add_staccatto(melody, activity_level, random, has_inversion):
 
 
 def add_flageolet(melody, activity_level, random, has_inversion):
-    if (note_count := len(melody)) > 3 and activity_level(6):
+    if (note_count := len(melody)) > 3 and activity_level(8):
         note_to_pick_index_range_max = note_count - 2 - int(has_inversion)
         f_count = random.choice((1, 2, 3), p=(0.5, 0.3, 0.2))
         min_index = 0 if len(melody[0].pitch_list) == 1 else 1
@@ -186,6 +186,6 @@ def add_accent(melody, scale, end_pitch, has_inversion, activity_level):
         for p in e.pitch_list:
             if p.normalize(mutate=False) == normalized_end_pitch:
                 add_accent = True
-        if add_accent and ((i == 0 and activity_level(8)) or activity_level(2)):
+        if add_accent and ((i == 0 and activity_level(6)) or activity_level(2)):
             e.playing_indicator_collection.articulation.name = ">"
             e.volume = "mf"
