@@ -253,7 +253,7 @@ def _notation(instrument, clock_tuple, executor, omit_notation):
             # Setting a lower 'moment' decreases the likelihood that we catch
             # the following lilypond error:
             #   Drawing systems...lilypond: skyline.cc:100: Building::Building(Real, Real, Real, Real): Assertion `start_height == end_height' failed.
-            moment=4,  # 1/16 is one second
+            moment=2,  # 1/16 is one second
         )
         abjad_score_block_list.append(abjad_score_block)
 
