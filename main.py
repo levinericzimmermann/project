@@ -118,8 +118,10 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--illustration", action="store_true")
     parser.add_argument("-n", "--notation", action="store_true")
     parser.add_argument("-s", "--sound", action="store_true")
+    parser.add_argument("-m", "--max-index", default=16)
 
     args = parser.parse_args()
+    max_index = int(args.max_index)
 
     if args.illustration:
         project.render.illustration()
@@ -129,7 +131,10 @@ if __name__ == "__main__":
     with diary_interfaces.open():
         clock_list = []
         for index, line in enumerate(project.constants.POEM.split("\n")):
-            clock_list.append(make_clock(index, line))
+            if index < max_index:
+                clock_list.append(make_clock(index, line))
+            else:
+                break
 
     clock_tuple = tuple(clock_list)
 
