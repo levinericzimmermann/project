@@ -17,14 +17,18 @@ import project
 def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interfaces.Clock:
     scale = project.constants.PENTATONIC_SCALE_TUPLE[poem_index]
 
-    markov_chain = scale_to_markov_chain(scale)
-    g = markov_chain.walk_deterministic(tuple(markov_chain.keys())[0])
+    part_count = project.constants.GATRA_SIZE * project.constants.GATRA_COUNT
+    if not poem_line:
+        scale_position_tuple = tuple((0, 0) for _ in range(part_count))
+    else:
+        markov_chain = scale_to_markov_chain(scale)
+        g = markov_chain.walk_deterministic(tuple(markov_chain.keys())[0])
 
-    scale_position_list = []
-    for _ in range(project.constants.GATRA_SIZE * project.constants.GATRA_COUNT):
-        scale_position_list.extend(next(g))
+        scale_position_list = []
+        for _ in range(part_count):
+            scale_position_list.extend(next(g))
 
-    scale_position_tuple = tuple(scale_position_list)
+        scale_position_tuple = tuple(scale_position_list)
 
     root_pitch_tuple = tuple(
         scale.scale_position_to_pitch(scale_position)
