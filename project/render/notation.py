@@ -8,6 +8,7 @@ from mutwo import clock_converters
 from mutwo import clock_generators
 from mutwo import core_events
 from mutwo import core_utilities
+from mutwo import music_events
 from mutwo import music_parameters
 from mutwo import project_converters
 
@@ -127,6 +128,12 @@ def harp_converter():
                     ):
                         notation_indicator_collection.clef.name = "bass"
                         break
+                for seq in (right, left):
+                    for e in seq:
+                        if not e.pitch_list:
+                            e.playing_indicator_collection = (
+                                music_events.configurations.DEFAULT_PLAYING_INDICATORS_COLLECTION_CLASS()
+                            )
                 event_placement.event[harp_tag] = core_events.TaggedSimultaneousEvent(
                     (right, left),
                     tag=harp_tag,
