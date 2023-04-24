@@ -65,6 +65,8 @@ def main(
         if inversion:
             add_inversion(context, pitch_list_list)
 
+    add_octave_parallel(pitch_list_list, activity_level)
+
     # TODO: Consider to remove some pitches in order
     # to gain an easier fingering. Or to make some of them
     # optional?
@@ -99,6 +101,15 @@ def add_inversion(context, pitch_list_list):
     instrument = context_to_instrument(context)
     if all(p in instrument for p in inversion):
         pitch_list_list.append(inversion)
+
+
+def add_octave_parallel(pitch_list_list, activity_level):
+    # TODO(Ensure we don't use pitches outside the harps range)
+    if all([len(pl) <= 1 for pl in pitch_list_list]) and activity_level(4):
+        for pl in pitch_list_list:
+            if pl:
+                p = pl[0]
+                pl.append(p - music_parameters.JustIntonationPitch("2/1"))
 
 
 def context_to_instrument(context):
