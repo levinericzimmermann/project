@@ -48,7 +48,7 @@ def main(
     if not xylophone:
         add_cluster(melody, scale, activity_level, random, has_inversion)
         add_flageolet(melody, activity_level, random, has_inversion)
-    add_accent(melody, scale, end_pitch, has_inversion)
+    add_accent(melody, scale, end_pitch, has_inversion, activity_level)
 
     # Deactivated, not so good
     # add_repetition(melody, activity_level)
@@ -171,9 +171,18 @@ def add_flageolet(melody, activity_level, random, has_inversion):
             n.playing_indicator_collection.flageolet.is_active = True
 
 
-def add_accent(melody, scale, end_pitch, has_inversion):
-    if scale.pitch_to_scale_position(end_pitch)[0] == 0:
-        index = -2 if has_inversion else -1
-        n = melody[index]
-        n.playing_indicator_collection.articulation.name = ">"
-        n.volume = "f"
+def add_accent(melody, scale, end_pitch, has_inversion, activity_level):
+    normalized_end_pitch = end_pitch.normalize(mutate=False)
+    stop_index = -1 if has_inversion else None
+    for i, e in enumerate(reversed(melody[:stop_index])):
+        # No accents for flageolets, those are rather quite sounds
+        if e.playing_indicator_collection.flageolet.is_active:
+            continue
+
+        add_accent = False
+        for p in e.pitch_list:
+            if p.normalize(mutate=False) == normalized_end_pitch:
+                add_accent = True
+        if add_accent and ((i == 0 and activity_level(8)) or activity_level(2)):
+            e.playing_indicator_collection.articulation.name = ">"
+            e.volume = "mf"
