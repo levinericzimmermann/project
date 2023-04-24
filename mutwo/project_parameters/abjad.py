@@ -6,7 +6,7 @@ from mutwo import abjad_converters
 from mutwo import abjad_parameters
 
 
-__all__ = ("Optional", "Tremolo", "DurationLine", "Cluster", "SonsXylo")
+__all__ = ("Optional", "Tremolo", "DurationLine", "Cluster", "SonsXylo", "Flageolet")
 
 
 class Optional(abjad_parameters.abc.BangEachAttachment):
@@ -89,3 +89,9 @@ class SonsXylo(abjad_parameters.abc.ToggleAttachment):
             return super().process_leaf_tuple(leaf_tuple, previous_attachment)
         else:
             return leaf_tuple
+
+
+class Flageolet(abjad_parameters.abc.BangFirstAttachment):
+    def process_leaf(self, leaf: abjad.Leaf) -> LeafOrLeafSequence:
+        abjad.attach(abjad.LilyPondLiteral(r'\flageolet'), leaf)
+        return leaf

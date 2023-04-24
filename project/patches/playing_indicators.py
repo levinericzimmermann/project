@@ -44,6 +44,9 @@ class PlayingIndicatorCollection(music_parameters_PlayingIndicatorCollection):
     cluster: music_parameters.abc.PlayingIndicator = dataclasses.field(
         default_factory=music_parameters.abc.ExplicitPlayingIndicator
     )
+    flageolet: music_parameters.abc.PlayingIndicator = dataclasses.field(
+        default_factory=music_parameters.abc.ExplicitPlayingIndicator
+    )
     sons_xylo: SonsXylo = dataclasses.field(default_factory=SonsXylo)
 
 
