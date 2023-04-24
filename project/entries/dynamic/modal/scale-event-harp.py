@@ -40,7 +40,7 @@ def main(
         melody[-1].duration = last_duration
 
     add_optional(melody)
-    add_arpeggio(melody, activity_level)
+    add_arpeggio(melody, activity_level, has_inversion)
     add_pitch_variation(melody, activity_level)
     add_staccatto(melody, activity_level, random, has_inversion)
     xylophone = add_xylophone(melody, activity_level)
@@ -80,7 +80,11 @@ def add_optional(melody):
             break  # only one optional note per event placement
 
 
-def add_arpeggio(melody, activity_level):
+def add_arpeggio(melody, activity_level, has_inversion):
+    if has_inversion and len(melody[-1].pitch_list) > 1:
+        if activity_level(6):
+            melody[-1].playing_indicator_collection.arpeggio.direction = "down"
+        return
     if len(melody[0].pitch_list) > 1 and activity_level(6):
         melody[0].playing_indicator_collection.arpeggio.direction = "up"
 
