@@ -6,7 +6,7 @@ from mutwo import abjad_converters
 from mutwo import abjad_parameters
 
 
-__all__ = ("Optional", "Tremolo", "DurationLine", "Cluster")
+__all__ = ("Optional", "Tremolo", "DurationLine", "Cluster", "SonsXylo")
 
 
 class Optional(abjad_parameters.abc.BangEachAttachment):
@@ -61,3 +61,31 @@ class DurationLine(abjad_parameters.abc.BangFirstAttachment):
 class Cluster(abjad_parameters.abc.BangEachAttachment):
     def process_leaf(self, leaf: abjad.Leaf) -> LeafOrLeafSequence:
         return abjad.Cluster([abjad.mutate.copy(leaf)])
+
+
+class SonsXylo(abjad_parameters.abc.ToggleAttachment):
+    def process_leaf(
+        self,
+        leaf: abjad.Leaf,
+        previous_attachment: typing.Optional[abjad_parameters.abc.AbjadAttachment],
+    ) -> LeafOrLeafSequence:
+        if self.indicator.activity:
+            att = abjad.StartTextSpan(
+                left_text=abjad.Markup(r'\typewriter {\tiny { "sons xylo." }}'),
+                # style="solid-line-with-arrow",
+            )
+        else:
+            att = abjad.StopTextSpan()
+
+        abjad.attach(att, leaf)
+        return leaf
+
+    def process_leaf_tuple(
+        self,
+        leaf_tuple: tuple[abjad.Leaf, ...],
+        previous_attachment: typing.Optional[abjad_parameters.abc.AbjadAttachment],
+    ) -> tuple[abjad.Leaf, ...]:
+        if previous_attachment is not None or self.indicator.is_active:
+            return super().process_leaf_tuple(leaf_tuple, previous_attachment)
+        else:
+            return leaf_tuple

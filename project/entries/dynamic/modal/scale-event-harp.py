@@ -42,7 +42,9 @@ def main(
     add_optional(melody)
     add_arpeggio(melody, activity_level)
     add_pitch_variation(melody, activity_level)
-    add_cluster(melody, scale, activity_level, random, has_inversion)
+    xylophone = add_xylophone(melody, activity_level)
+    if not xylophone:
+        add_cluster(melody, scale, activity_level, random, has_inversion)
     # Deactivated, not so good
     # add_repetition(melody, activity_level)
 
@@ -110,8 +112,20 @@ def add_cluster(melody, scale, activity_level, random, has_inversion):
             [scale.scale_position_to_pitch((i, 0)) for i in range(5)]
         )
         p0, p1 = (
-            start_pitch - music_parameters.JustIntonationPitch(r) for r in "8/1 4/1".split(" ")
+            start_pitch - music_parameters.JustIntonationPitch(r)
+            for r in "8/1 4/1".split(" ")
         )
-        n = music_events.NoteLike((p0, p1), fractions.Fraction(1, 4), volume='ppp')
+        n = music_events.NoteLike((p0, p1), fractions.Fraction(1, 4), volume="ppp")
         n.playing_indicator_collection.cluster.is_active = True
         melody.insert(index, n)
+
+
+def add_xylophone(melody, activity_level) -> bool:
+    if all(
+        [len(p) <= 1 for p in melody.get_parameter("pitch_list")]
+    ) and activity_level(7):
+        for n in melody[:-1]:
+            n.playing_indicator_collection.sons_xylo.activity = True
+        melody[-1].playing_indicator_collection.sons_xylo.activity = False
+        return True
+    return False
