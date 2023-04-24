@@ -109,7 +109,7 @@ SCALE = music_parameters.Scale(
     music_parameters.RepeatingScaleFamily(
         tuple(sorted(GENERATOR_INTERVAL_TUPLE)),
         repetition_interval=music_parameters.JustIntonationPitch("2/1"),
-        min_pitch_interval=music_parameters.JustIntonationPitch("1/8"),
+        min_pitch_interval=music_parameters.JustIntonationPitch("1/16"),
         max_pitch_interval=music_parameters.JustIntonationPitch("16/1"),
     ),
 )
@@ -123,7 +123,7 @@ HARP_WRITTEN_SCALE = music_parameters.Scale(
             for pitch in "p1 M2 m3 p4 p5 m6 m7".split(" ")
         ],
         repetition_interval=music_parameters.JustIntonationPitch("2/1"),
-        min_pitch_interval=music_parameters.JustIntonationPitch("1/8"),
+        min_pitch_interval=music_parameters.JustIntonationPitch("1/16"),
         max_pitch_interval=music_parameters.JustIntonationPitch("16/1"),
     ),
 )
