@@ -92,6 +92,7 @@ abjad_converters.configurations.DEFAULT_ABJAD_ATTACHMENT_CLASS_TUPLE = tuple(
     project_parameters.Optional,
     project_parameters.Tremolo,
     project_parameters.DurationLine,
+    project_parameters.Cluster,
 )
 
 GENERATOR_INTERVAL_TUPLE = tuple(

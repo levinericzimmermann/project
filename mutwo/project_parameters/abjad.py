@@ -6,7 +6,7 @@ from mutwo import abjad_converters
 from mutwo import abjad_parameters
 
 
-__all__ = ("Optional", "Tremolo", "DurationLine")
+__all__ = ("Optional", "Tremolo", "DurationLine", "Cluster")
 
 
 class Optional(abjad_parameters.abc.BangEachAttachment):
@@ -56,3 +56,8 @@ class DurationLine(abjad_parameters.abc.BangFirstAttachment):
     def process_leaf(self, leaf: abjad.Leaf) -> LeafOrLeafSequence:
         abjad.attach(abjad.LilyPondLiteral(r"\-", site="after"), leaf)
         return leaf
+
+
+class Cluster(abjad_parameters.abc.BangEachAttachment):
+    def process_leaf(self, leaf: abjad.Leaf) -> LeafOrLeafSequence:
+        return abjad.Cluster([abjad.mutate.copy(leaf)])
