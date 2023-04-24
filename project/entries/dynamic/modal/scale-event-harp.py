@@ -42,10 +42,12 @@ def main(
     add_optional(melody)
     add_arpeggio(melody, activity_level)
     add_pitch_variation(melody, activity_level)
+    add_staccatto(melody, activity_level, random, has_inversion)
     xylophone = add_xylophone(melody, activity_level)
     if not xylophone:
         add_cluster(melody, scale, activity_level, random, has_inversion)
-    add_staccatto(melody, activity_level, random, has_inversion)
+        add_flageolet(melody, activity_level, random, has_inversion)
+
     # Deactivated, not so good
     # add_repetition(melody, activity_level)
 
@@ -145,3 +147,19 @@ def add_staccatto(melody, activity_level, random, has_inversion):
             ).playing_indicator_collection.cluster.is_active:
                 continue
             n.playing_indicator_collection.articulation.name = "."
+
+
+def add_flageolet(melody, activity_level, random, has_inversion):
+    if (note_count := len(melody)) > 3 and activity_level(6):
+        note_to_pick_index_range_max = note_count - 2 - int(has_inversion)
+        f_count = random.choice((1, 2, 3), p=(0.5, 0.3, 0.2))
+        min_index = 0 if len(melody[0].pitch_list) == 1 else 1
+        note_to_pick_index_list = random.choice(
+            tuple(range(min_index, note_to_pick_index_range_max + 1)), size=f_count
+        )
+        for note_to_pick_index in note_to_pick_index_list:
+            n = melody[note_to_pick_index]
+            p = n.playing_indicator_collection
+            if p.cluster.is_active or p.articulation.is_active or p.optional.is_active:
+                continue
+            n.playing_indicator_collection.flageolet.is_active = True
