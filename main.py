@@ -15,6 +15,8 @@ import project
 
 
 def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interfaces.Clock:
+    print("make clock for", poem_line, "...")
+
     scale = project.constants.PENTATONIC_SCALE_TUPLE[poem_index]
 
     part_count = project.constants.GATRA_SIZE * project.constants.GATRA_COUNT
