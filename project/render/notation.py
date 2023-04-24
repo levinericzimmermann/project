@@ -7,6 +7,7 @@ from mutwo import abjad_converters
 from mutwo import clock_converters
 from mutwo import clock_generators
 from mutwo import core_events
+from mutwo import core_utilities
 from mutwo import music_parameters
 from mutwo import project_converters
 
@@ -42,11 +43,12 @@ def clock_event_to_abjad_staff_group():
                 )
 
     complex_event_to_abjad_container = clock_generators.make_complex_event_to_abjad_container(
-        sequential_event_to_abjad_staff_kwargs={
-            "post_process_abjad_container_routine_sequence": (
+        sequential_event_to_abjad_staff_kwargs=dict(
+            post_process_abjad_container_routine_sequence=(
                 PostProcessClockSequentialEvent(),
             ),
-        },
+            mutwo_volume_to_abjad_attachment_dynamic=None,
+        ),
         duration_line=True,
         # duration_line=False,
     )
@@ -74,11 +76,12 @@ def harp_converter():
 
     complex_event_to_abjad_container = (
         clock_generators.make_complex_event_to_abjad_container(
-            sequential_event_to_abjad_staff_kwargs={
-                "post_process_abjad_container_routine_sequence": (
+            sequential_event_to_abjad_staff_kwargs=dict(
+                post_process_abjad_container_routine_sequence=(
                     PostProcessHarpSequentialEvent(),
                 ),
-            },
+                mutwo_volume_to_abjad_attachment_dynamic=None,
+            ),
         )
     )
 
@@ -139,17 +142,30 @@ def harp_converter():
 
 
 @run
-def violin_converter():
+def v_converter():
+    v_tag = project.constants.ORCHESTRATION.V.name
+
+    class EventPlacementToAbjadStaffGroup(
+        clock_converters.EventPlacementToAbjadStaffGroup
+    ):
+        def convert(self, event_placement, *args, **kwargs):
+            # v_event = event_placement.event[v_tag]
+            return super().convert(event_placement, *args, **kwargs)
+
+
     complex_event_to_abjad_container = (
         clock_generators.make_complex_event_to_abjad_container(
-            duration_line=True, sequential_event_to_abjad_staff_kwargs={}
+            duration_line=True,
+            sequential_event_to_abjad_staff_kwargs=dict(
+                mutwo_volume_to_abjad_attachment_dynamic=None,
+            ),
         )
     )
 
-    violin_tag = project.constants.ORCHESTRATION.VIOLIN.name
+    v_tag = project.constants.ORCHESTRATION.V.name
 
     return {
-        violin_tag: clock_converters.EventPlacementToAbjadStaffGroup(
+        v_tag: EventPlacementToAbjadStaffGroup(
             complex_event_to_abjad_container, staff_count=1
         ),
     }
@@ -181,6 +197,8 @@ def notation(clock_tuple):
 def _notation(instrument, clock_tuple, executor, omit_notation):
     notation_path = f"builds/notations/{project.constants.TITLE}_{instrument.name}.pdf"
 
+    print("Notate", instrument.name)
+
     if omit_notation:
         return notation_path
 
@@ -209,16 +227,16 @@ def _notation(instrument, clock_tuple, executor, omit_notation):
             clock,
             tag_tuple=(
                 project.constants.ORCHESTRATION.HARP.name,
-                project.constants.ORCHESTRATION.VIOLIN.name,
+                project.constants.ORCHESTRATION.V.name,
             ),
         )
 
         # We get lilypond error for harp:
         #   Interpreting music...[8][16][24]ERROR: Wrong type (expecting exact integer): ()
         consist_timing_translator = True
-        # We get lilypond error for violin:
+        # We get lilypond error for v:
         #   Drawing systems...lilypond: skyline.cc:100: Building::Building(Real, Real, Real, Real): Assertion `start_height == end_height' failed.
-        if instrument.name == "violin":
+        if instrument.name == "v":
             consist_timing_translator = False
 
         abjad_score_block = abjad_score_to_abjad_score_block.convert(

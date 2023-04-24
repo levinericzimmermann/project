@@ -62,7 +62,7 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
                 add_mod1=False,
             ),
             diary_converters.Modal0SequentialEventToEventPlacementTuple(
-                orchestration=project.constants.ORCHESTRATION.get_subset("VIOLIN"),
+                orchestration=project.constants.ORCHESTRATION.get_subset("V"),
                 add_mod1=True,
             ),
         )

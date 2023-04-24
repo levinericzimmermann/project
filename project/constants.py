@@ -129,7 +129,7 @@ HARP_WRITTEN_SCALE = music_parameters.Scale(
 
 center = int(len(SCALE.pitch_tuple) // 2)
 ORCHESTRATION = music_parameters.Orchestration(
-    VIOLIN=project_parameters.Violin(),
+    V=project_parameters.V(),
     HARP=music_parameters.CelticHarp(pitch_tuple=SCALE.pitch_tuple),
     CLOCK=music_parameters.UnpitchedInstrument("clock", "c"),
 )

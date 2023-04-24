@@ -80,7 +80,7 @@ def post_process_instruments(simultaneous_event):
                 # simultaneous_event.extend(split_clock_event)
                 # event_index_to_remove = event_index
                 ...
-            case project.constants.ORCHESTRATION.VIOLIN.name:
+            case project.constants.ORCHESTRATION.V.name:
                 event_to_remove_index_list.append(event_index)
                 event_to_add_list.extend(
                     (
