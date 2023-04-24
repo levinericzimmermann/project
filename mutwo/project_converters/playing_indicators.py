@@ -1,5 +1,5 @@
-import copy
 import typing
+import warnings
 
 import quicktions as fractions
 
@@ -10,7 +10,7 @@ from mutwo import music_converters
 from mutwo import music_parameters
 
 
-__all__ = ("TremoloConverter",)
+__all__ = ("TremoloConverter", "ClusterConverter")
 
 
 class TremoloConverter(music_converters.PlayingIndicatorConverter):
@@ -104,3 +104,52 @@ class TremoloConverter(music_converters.PlayingIndicatorConverter):
     @property
     def default_playing_indicator(self) -> music_parameters.abc.PlayingIndicator:
         return music_parameters.Tremolo()
+
+
+class ClusterConverter(music_converters.PlayingIndicatorConverter):
+    def __init__(
+        self,
+        scale: music_parameters.Scale,
+        simple_event_to_playing_indicator_collection: typing.Callable[
+            [core_events.SimpleEvent],
+            music_parameters.PlayingIndicatorCollection,
+        ] = music_converters.SimpleEventToPlayingIndicatorCollection(),
+    ):
+        self.scale = scale
+        super().__init__(simple_event_to_playing_indicator_collection)
+
+    def _apply_playing_indicator(
+        self,
+        simple_event_to_convert: core_events.SimpleEvent,
+        playing_indicator: music_parameters.abc.ExplicitPlayingIndicator,
+    ) -> core_events.SequentialEvent[core_events.SimpleEvent]:
+        sequential_event = core_events.SequentialEvent([])
+        simple_event_to_convert = simple_event_to_convert.copy()
+        if hasattr(simple_event_to_convert, "pitch_list") and (
+            pl := simple_event_to_convert.pitch_list
+        ):
+            if len(pl) > 1:
+                min_pitch, max_pitch = min(pl), max(pl)
+                i0, i1 = (
+                    self.scale.pitch_tuple.index(p) for p in (min_pitch, max_pitch)
+                )
+                new_pitch_list = []
+                for i in range(i0, i1 + 1):
+                    new_pitch_list.append(self.scale.pitch_tuple[i])
+                simple_event_to_convert = simple_event_to_convert.set(
+                    "pitch_list", new_pitch_list
+                )
+            else:
+                warnings.warn("Cluster with only one pitch detected!")
+        else:
+            warnings.warn("Cluster without pitch list!")
+        sequential_event.append(simple_event_to_convert)
+        return sequential_event
+
+    @property
+    def playing_indicator_name(self) -> str:
+        return "cluster"
+
+    @property
+    def default_playing_indicator(self) -> music_parameters.abc.PlayingIndicator:
+        return music_parameters.abc.ExplicitPlayingIndicator()

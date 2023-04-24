@@ -44,6 +44,7 @@ def midi(
             music_converters.StacattoConverter(),
             music_converters.ArpeggioConverter(duration_for_each_attack=0.3),
             project_converters.TremoloConverter(0.21, 1.25),
+            project_converters.ClusterConverter(project.constants.SCALE),
         )
     )
 
