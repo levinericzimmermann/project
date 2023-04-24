@@ -165,10 +165,13 @@ def add_flageolet(melody, activity_level, random, has_inversion):
         )
         for note_to_pick_index in note_to_pick_index_list:
             n = melody[note_to_pick_index]
+            if len(n.pitch_list) != 1:
+                continue
             p = n.playing_indicator_collection
             if p.cluster.is_active or p.articulation.is_active or p.optional.is_active:
                 continue
             n.playing_indicator_collection.flageolet.is_active = True
+            n.pitch_list[0] -= music_parameters.JustIntonationPitch('2/1')
 
 
 def add_accent(melody, scale, end_pitch, has_inversion, activity_level):
