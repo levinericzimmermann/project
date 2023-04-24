@@ -122,7 +122,7 @@ def add_cluster(melody, scale, activity_level, random, has_inversion):
         )
         p0, p1 = (
             start_pitch - music_parameters.JustIntonationPitch(r)
-            for r in "8/1 4/1".split(" ")
+            for r in "16/1 8/1".split(" ")
         )
         n = music_events.NoteLike((p0, p1), fractions.Fraction(1, 4), volume="ppp")
         n.playing_indicator_collection.cluster.is_active = True
