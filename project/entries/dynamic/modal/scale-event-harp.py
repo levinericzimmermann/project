@@ -1,8 +1,10 @@
+import quicktions as fractions
 import ranges
 
 from mutwo import clock_events
 from mutwo import core_events
 from mutwo import music_events
+from mutwo import music_parameters
 from mutwo import timeline_interfaces
 
 
@@ -13,6 +15,7 @@ def is_supported(context, scale_harp, **kwargs):
 def main(
     context, random, activity_level, scale_harp, **kwargs
 ) -> timeline_interfaces.EventPlacement:
+    scale = context.modal_event.scale
     pitch_tuple_tuple = scale_harp(context, **kwargs)
     modal_event_to_convert = context.modal_event
     instrument = context.orchestration[0]
@@ -30,7 +33,7 @@ def main(
             for pitch_tuple in pitch_tuple_tuple
         ]
     )
-    if len(melody[-2].pitch_list) > 1:
+    if has_inversion := (len(melody[-2].pitch_list) > 1):
         melody[-1].duration = last_duration / 2
         melody[-2].duration = last_duration / 2
     else:
@@ -39,6 +42,7 @@ def main(
     add_optional(melody)
     add_arpeggio(melody, activity_level)
     add_pitch_variation(melody, activity_level)
+    add_cluster(melody, scale, activity_level, random, has_inversion)
     # Deactivated, not so good
     # add_repetition(melody, activity_level)
 
@@ -93,3 +97,21 @@ def add_repetition(melody, activity_level):
         melody.split_child_at(
             melody.absolute_time_tuple[-1] + (melody[-1].duration * 0.5)
         )
+
+
+def add_cluster(melody, scale, activity_level, random, has_inversion):
+    if has_inversion:
+        index = -2
+    else:
+        index = -1
+
+    if activity_level(3):
+        start_pitch = random.choice(
+            [scale.scale_position_to_pitch((i, 0)) for i in range(5)]
+        )
+        p0, p1 = (
+            start_pitch - music_parameters.JustIntonationPitch(r) for r in "8/1 4/1".split(" ")
+        )
+        n = music_events.NoteLike((p0, p1), fractions.Fraction(1, 4), volume='ppp')
+        n.playing_indicator_collection.cluster.is_active = True
+        melody.insert(index, n)
