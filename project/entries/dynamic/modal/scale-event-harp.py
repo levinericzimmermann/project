@@ -16,6 +16,7 @@ def main(
     context, random, activity_level, scale_harp, **kwargs
 ) -> timeline_interfaces.EventPlacement:
     scale = context.modal_event.scale
+    end_pitch = context.modal_event.end_pitch
     pitch_tuple_tuple = scale_harp(context, **kwargs)
     modal_event_to_convert = context.modal_event
     instrument = context.orchestration[0]
@@ -47,6 +48,7 @@ def main(
     if not xylophone:
         add_cluster(melody, scale, activity_level, random, has_inversion)
         add_flageolet(melody, activity_level, random, has_inversion)
+    add_accent(melody, scale, end_pitch, has_inversion)
 
     # Deactivated, not so good
     # add_repetition(melody, activity_level)
@@ -167,3 +169,11 @@ def add_flageolet(melody, activity_level, random, has_inversion):
             if p.cluster.is_active or p.articulation.is_active or p.optional.is_active:
                 continue
             n.playing_indicator_collection.flageolet.is_active = True
+
+
+def add_accent(melody, scale, end_pitch, has_inversion):
+    if scale.pitch_to_scale_position(end_pitch)[0] == 0:
+        index = -2 if has_inversion else -1
+        n = melody[index]
+        n.playing_indicator_collection.articulation.name = ">"
+        n.volume = "f"

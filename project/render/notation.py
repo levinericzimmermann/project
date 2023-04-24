@@ -134,6 +134,14 @@ def harp_converter():
                             e.playing_indicator_collection = (
                                 music_events.configurations.DEFAULT_PLAYING_INDICATORS_COLLECTION_CLASS()
                             )
+
+                # We usually have a monophonic structure where both hands
+                # behave equally. So it's sufficient to print the accent in
+                # only the right hand.
+                for i, e in enumerate(right):
+                    if e.playing_indicator_collection.articulation.name == ">":
+                        left[i].playing_indicator_collection.articulation.name = None
+
                 event_placement.event[harp_tag] = core_events.TaggedSimultaneousEvent(
                     (right, left),
                     tag=harp_tag,
