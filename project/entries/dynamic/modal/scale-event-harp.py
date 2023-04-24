@@ -45,6 +45,7 @@ def main(
     xylophone = add_xylophone(melody, activity_level)
     if not xylophone:
         add_cluster(melody, scale, activity_level, random, has_inversion)
+    add_staccatto(melody, activity_level, random, has_inversion)
     # Deactivated, not so good
     # add_repetition(melody, activity_level)
 
@@ -129,3 +130,10 @@ def add_xylophone(melody, activity_level) -> bool:
         melody[-1].playing_indicator_collection.sons_xylo.activity = False
         return True
     return False
+
+
+def add_staccatto(melody, activity_level, random, has_inversion):
+    if (note_count := len(melody)) > 3 and activity_level(5):
+        note_to_pick_index_range_max = note_count - 2 - int(has_inversion)
+        note_to_pick_index = random.integers(0, note_to_pick_index_range_max) + 1
+        melody[note_to_pick_index].playing_indicator_collection.articulation.name = "."
