@@ -20,18 +20,12 @@ def midi(
     repetition_count_range: ranges.Range = ranges.Range(1, 3),
     random_seed: int = 100,
 ):
-    random = np.random.default_rng(random_seed)
-    repetition_count_tuple = tuple(
-        range(repetition_count_range.start, repetition_count_range.end)
-    )
-
     clock2sim = clock_converters.ClockToSimultaneousEvent(
         project_converters.ClockLineToSimultaneousEvent()
     ).convert
 
     simultaneous_event = core_events.SimultaneousEvent([])
     for clock in clock_tuple:
-        # clock_repetition_count = random.choice(repetition_count_tuple)
         clock_repetition_count = 1
         clock_simultaneous_event = clock2sim(
             clock, repetition_count=clock_repetition_count
