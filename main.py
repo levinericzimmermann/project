@@ -9,7 +9,6 @@ from mutwo import clock_events
 from mutwo import clock_interfaces
 from mutwo import core_events
 from mutwo import diary_converters
-from mutwo import music_events
 from mutwo import project_converters
 
 import project
@@ -38,15 +37,6 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
             for start_pitch, end_pitch in zip(root_pitch_tuple, root_pitch_tuple[1:])
         ]
     )
-
-    # modal_sequential_event.insert(1, core_events.SimpleEvent(f(30, 16)))
-    # n = music_events.NoteLike(duration=f(10, 16))
-    # n.playing_indicator_collection.fermata.type = "long"
-    # modal_sequential_event.insert(1, n)
-
-    # modal_sequential_event = clock_converters.ApplyClockTreeOnModalEvent0(
-    #     project.clock_trees.ModalEvent0ToClockTree(scale)
-    # ).convert(modal_sequential_event)
 
     project.clocks.apply_clock_events(modal_sequential_event)
 
