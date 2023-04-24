@@ -135,5 +135,13 @@ def add_xylophone(melody, activity_level) -> bool:
 def add_staccatto(melody, activity_level, random, has_inversion):
     if (note_count := len(melody)) > 3 and activity_level(5):
         note_to_pick_index_range_max = note_count - 2 - int(has_inversion)
-        note_to_pick_index = random.integers(0, note_to_pick_index_range_max) + 1
-        melody[note_to_pick_index].playing_indicator_collection.articulation.name = "."
+        staccatto_count = random.choice((1, 2), p=(0.6, 0.4))
+        note_to_pick_index_list = random.choice(
+            tuple(range(1, note_to_pick_index_range_max + 1)), size=staccatto_count
+        )
+        for note_to_pick_index in note_to_pick_index_list:
+            if (
+                n := melody[note_to_pick_index]
+            ).playing_indicator_collection.cluster.is_active:
+                continue
+            n.playing_indicator_collection.articulation.name = "."
