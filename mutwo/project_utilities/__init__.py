@@ -7,19 +7,20 @@ __all__ = ("split_harp",)
 
 
 def split_harp(
-    harp_event: core_events.SequentialEvent, tag="harp"
+    harp_event: core_events.SequentialEvent,
+    tag="harp",
+    split_border: music_parameters.abc.Pitch = music_parameters.WesternPitch("c", 4),
 ) -> core_events.SimultaneousEvent:
-    border = music_parameters.WesternPitch("c", 4)
     right = harp_event.set_parameter(
         "pitch_list",
-        lambda pitch_list: [p for p in pitch_list if p >= border]
+        lambda pitch_list: [p for p in pitch_list if p >= split_border]
         if pitch_list
         else None,
         mutate=False,
     )
     left = harp_event.set_parameter(
         "pitch_list",
-        lambda pitch_list: [p for p in pitch_list if p < border]
+        lambda pitch_list: [p for p in pitch_list if p < split_border]
         if pitch_list
         else None,
         mutate=False,
@@ -39,4 +40,4 @@ def split_harp(
                     music_events.configurations.DEFAULT_PLAYING_INDICATORS_COLLECTION_CLASS()
                 )
 
-    return core_events.TaggedSimultaneousEvent([left, right], tag=tag)
+    return core_events.TaggedSimultaneousEvent([right, left], tag=tag)
