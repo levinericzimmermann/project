@@ -5,6 +5,7 @@ from mutwo import clock_events
 from mutwo import core_events
 from mutwo import music_events
 from mutwo import music_parameters
+from mutwo import project_utilities
 from mutwo import timeline_interfaces
 
 
@@ -53,16 +54,14 @@ def main(
     # Deactivated, not so good
     # add_repetition(melody, activity_level)
 
+    harp_event = project_utilities.split_harp(melody, tag)
+
     duration = modal_event_to_convert.clock_event.duration
     start_range = ranges.Range(duration * 0, duration * 0.3)
     end_range = ranges.Range(duration * 0.7, duration * 0.98)
 
     return timeline_interfaces.EventPlacement(
-        core_events.SimultaneousEvent(
-            [core_events.TaggedSimultaneousEvent([melody], tag=tag)]
-        ),
-        start_range,
-        end_range,
+        core_events.SimultaneousEvent([harp_event]), start_range, end_range
     ).move_by(context.start)
 
 
@@ -171,7 +170,7 @@ def add_flageolet(melody, activity_level, random, has_inversion):
             if p.cluster.is_active or p.articulation.is_active or p.optional.is_active:
                 continue
             n.playing_indicator_collection.flageolet.is_active = True
-            n.pitch_list[0] -= music_parameters.JustIntonationPitch('2/1')
+            n.pitch_list[0] -= music_parameters.JustIntonationPitch("2/1")
 
 
 def add_accent(melody, scale, end_pitch, has_inversion, activity_level):

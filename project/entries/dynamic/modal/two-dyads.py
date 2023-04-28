@@ -41,14 +41,16 @@ def main(context, dyad, random, **kwargs) -> timeline_interfaces.EventPlacement:
         ]
     )
 
+    simultaneous_event = core_events.SimultaneousEvent(
+        [core_events.TaggedSimultaneousEvent([melody], tag=tag)]
+    )
+
     duration = modal_event_to_convert.clock_event.duration
     start_range = ranges.Range(duration * 0.1, duration * 0.2)
     end_range = ranges.Range(duration * 0.7, duration * 0.9)
 
     return timeline_interfaces.EventPlacement(
-        core_events.SimultaneousEvent(
-            [core_events.TaggedSimultaneousEvent([melody], tag=tag)]
-        ),
+        simultaneous_event,
         start_range,
         end_range,
     ).move_by(context.start)

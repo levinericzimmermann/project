@@ -1,5 +1,6 @@
 import concurrent.futures
 import subprocess
+import warnings
 
 import abjad
 
@@ -7,9 +8,8 @@ from mutwo import abjad_converters
 from mutwo import clock_converters
 from mutwo import clock_generators
 from mutwo import core_events
-from mutwo import music_events
-from mutwo import music_parameters
 from mutwo import project_converters
+from mutwo import project_utilities
 
 import project
 
@@ -105,46 +105,21 @@ def harp_converter():
                     if pitch_list
                     else None,
                 )
-                # split staves
-                border = music_parameters.WesternPitch("c", 4)
-                right = harp_event.set_parameter(
-                    "pitch_list",
-                    lambda pitch_list: [p for p in pitch_list if p >= border]
-                    if pitch_list
-                    else None,
-                    mutate=False,
-                )[0]
-                left = harp_event.set_parameter(
-                    "pitch_list",
-                    lambda pitch_list: [p for p in pitch_list if p < border]
-                    if pitch_list
-                    else None,
-                    mutate=False,
-                )[0]
-                for note_like in left:
-                    if notation_indicator_collection := getattr(
-                        note_like, "notation_indicator_collection", None
-                    ):
-                        notation_indicator_collection.clef.name = "bass"
-                        break
-                for seq in (right, left):
-                    for e in seq:
-                        if not e.pitch_list:
-                            e.playing_indicator_collection = (
-                                music_events.configurations.DEFAULT_PLAYING_INDICATORS_COLLECTION_CLASS()
-                            )
 
-                # We usually have a monophonic structure where both hands
-                # behave equally. So it's sufficient to print the accent in
-                # only the right hand.
-                for i, e in enumerate(right):
-                    if e.playing_indicator_collection.articulation.name == ">":
-                        left[i].playing_indicator_collection.articulation.name = None
+                # Split if it hasn't been split yet
+                if (seq_event_count := len(harp_event)) == 1:
+                    event_placement.event[harp_tag] = project_utilities.split_harp(
+                        harp_event[0], harp_tag
+                    )
+                elif seq_event_count > 2:
+                    warnings.warn("Found harp event with more than 2 SequentialEvent")
 
-                event_placement.event[harp_tag] = core_events.TaggedSimultaneousEvent(
-                    (right, left),
-                    tag=harp_tag,
-                )
+                # # We usually have a monophonic structure where both hands
+                # # behave equally. So it's sufficient to print the accent in
+                # # only the right hand.
+                # for i, e in enumerate(right):
+                #     if e.playing_indicator_collection.articulation.name == ">":
+                #         left[i].playing_indicator_collection.articulation.name = None
             return super().convert(event_placement, *args, **kwargs)
 
     return {
