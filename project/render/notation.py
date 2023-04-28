@@ -7,7 +7,6 @@ from mutwo import abjad_converters
 from mutwo import clock_converters
 from mutwo import clock_generators
 from mutwo import core_events
-from mutwo import core_utilities
 from mutwo import music_events
 from mutwo import music_parameters
 from mutwo import project_converters
