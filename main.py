@@ -19,7 +19,7 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
 
     scale = project.constants.PENTATONIC_SCALE_TUPLE[poem_index]
 
-    part_count = project.constants.GATRA_SIZE * project.constants.GATRA_COUNT
+    part_count = project.constants.GATRA_COUNT
     if not poem_line:
         scale_position_tuple = tuple((0, 0) for _ in range(part_count))
     else:
