@@ -49,12 +49,10 @@ def main(
     if not xylophone:
         add_cluster(melody, scale, activity_level, random, has_inversion)
         add_flageolet(melody, activity_level, random, has_inversion)
-    add_accent(melody, scale, end_pitch, has_inversion, activity_level)
-
-    # Deactivated, not so good
-    # add_repetition(melody, activity_level)
 
     harp_event = project_utilities.split_harp(melody, tag)
+    for hand in harp_event:
+        add_accent(hand, scale, end_pitch, has_inversion, activity_level)
 
     duration = modal_event_to_convert.clock_event.duration
     start_range = ranges.Range(duration * 0, duration * 0.3)
