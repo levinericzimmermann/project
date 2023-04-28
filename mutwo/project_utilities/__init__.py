@@ -9,7 +9,7 @@ __all__ = ("split_harp",)
 def split_harp(
     harp_event: core_events.SequentialEvent,
     tag="harp",
-    split_border: music_parameters.abc.Pitch = music_parameters.WesternPitch("c", 4),
+    split_border: music_parameters.abc.Pitch = music_parameters.WesternPitch("cqf", 4),
 ) -> core_events.SimultaneousEvent:
     right = core_events.TaggedSequentialEvent(
         harp_event.set_parameter(
