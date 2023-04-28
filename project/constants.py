@@ -101,6 +101,15 @@ GENERATOR_INTERVAL_TUPLE = tuple(
     for r in "7/6 16/9 4/3 1/1 3/2 9/8 12/7".split(" ")
 )
 
+# We need to use special intervals for the Glockenspiel,
+# because we can only tune it down: this means some intervals
+# are very off compared to the intervals of the other instruments.
+# But that's fine: semantically it's still the same.
+GLOCKENSPIEL_GENERATOR_INTERVAL_TUPLE = tuple(
+    music_parameters.JustIntonationPitch(r)
+    for r in "7/6 16/9 4/3 1/1 3/2 10/9 5/3".split(" ")
+)
+
 assert len(GENERATOR_INTERVAL_TUPLE) == 7
 
 # Global tuning based scale. Similar to 'pelog', because
@@ -115,17 +124,50 @@ SCALE = music_parameters.Scale(
     ),
 )
 
+HARP_AMBITUS = music_parameters.OctaveAmbitus(
+    music_parameters.JustIntonationPitch("1/16"),
+    music_parameters.JustIntonationPitch("16/1"),
+)
+
+GLOCKENSPIEL_AMBITUS = music_parameters.OctaveAmbitus(
+    music_parameters.JustIntonationPitch("2/1"),
+    music_parameters.JustIntonationPitch("8/1"),
+)
+
+GLOCKENSPIEL_SCALE = music_parameters.Scale(
+    CONCERT_PITCH_JUST_INTONATION_PITCH,
+    music_parameters.RepeatingScaleFamily(
+        tuple(sorted(GLOCKENSPIEL_GENERATOR_INTERVAL_TUPLE)),
+        repetition_interval=music_parameters.JustIntonationPitch("2/1"),
+        min_pitch_interval=GLOCKENSPIEL_AMBITUS.minima_pitch,
+        max_pitch_interval=GLOCKENSPIEL_AMBITUS.maxima_pitch,
+    ),
+)
+
+RETUNED_INSTRUMENT_INTERVAL_TUPLE = tuple(
+    music_parameters.WesternPitchInterval(pitch)
+    for pitch in "p1 M2 m3 p4 p5 M6 m7".split(" ")
+)
+
+# Two simple minor scales starting from 'a'
+
 HARP_WRITTEN_SCALE = music_parameters.Scale(
-    # Simple minor scale starting from 'a'
     CONCERT_PITCH_WESTERN_PITCH,
     music_parameters.RepeatingScaleFamily(
-        [
-            music_parameters.WesternPitchInterval(pitch)
-            for pitch in "p1 M2 m3 p4 p5 m6 m7".split(" ")
-        ],
-        repetition_interval=music_parameters.JustIntonationPitch("2/1"),
-        min_pitch_interval=music_parameters.JustIntonationPitch("1/16"),
-        max_pitch_interval=music_parameters.JustIntonationPitch("16/1"),
+        RETUNED_INSTRUMENT_INTERVAL_TUPLE,
+        repetition_interval=music_parameters.WesternPitchInterval("p8"),
+        min_pitch_interval=HARP_AMBITUS.minima_pitch,
+        max_pitch_interval=HARP_AMBITUS.maxima_pitch,
+    ),
+)
+
+GLOCKENSPIEL_WRITTEN_SCALE = music_parameters.Scale(
+    CONCERT_PITCH_WESTERN_PITCH,
+    music_parameters.RepeatingScaleFamily(
+        RETUNED_INSTRUMENT_INTERVAL_TUPLE,
+        repetition_interval=music_parameters.WesternPitchInterval("p8"),
+        min_pitch_interval=GLOCKENSPIEL_AMBITUS.minima_pitch,
+        max_pitch_interval=GLOCKENSPIEL_AMBITUS.maxima_pitch,
     ),
 )
 
@@ -164,8 +206,18 @@ INSTRUMENT_CLOCK_EVENT_TO_PITCHED_CLOCK_EVENT = (
 
 
 def sounding_harp_pitch_to_written_harp_pitch(harp_pitch):
-    scale_position = SCALE.pitch_to_scale_position(harp_pitch)
-    return HARP_WRITTEN_SCALE.scale_position_to_pitch(scale_position)
+    return _sounding_pitch_to_written_pitch(harp_pitch, SCALE, HARP_WRITTEN_SCALE)
+
+
+def sounding_glockenspiel_pitch_to_written_glockenspiel_pitch(harp_pitch):
+    return _sounding_pitch_to_written_pitch(
+        harp_pitch, GLOCKENSPIEL_SCALE, GLOCKENSPIEL_WRITTEN_SCALE
+    )
+
+
+def _sounding_pitch_to_written_pitch(pitch, sounding_scale, written_scale):
+    scale_position = sounding_scale.pitch_to_scale_position(pitch)
+    return written_scale.scale_position_to_pitch(scale_position)
 
 
 def _make_pentatonic_scale_tuple():
