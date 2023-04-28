@@ -11,19 +11,25 @@ def split_harp(
     tag="harp",
     split_border: music_parameters.abc.Pitch = music_parameters.WesternPitch("c", 4),
 ) -> core_events.SimultaneousEvent:
-    right = harp_event.set_parameter(
-        "pitch_list",
-        lambda pitch_list: [p for p in pitch_list if p >= split_border]
-        if pitch_list
-        else None,
-        mutate=False,
+    right = core_events.TaggedSequentialEvent(
+        harp_event.set_parameter(
+            "pitch_list",
+            lambda pitch_list: [p for p in pitch_list if p >= split_border]
+            if pitch_list
+            else None,
+            mutate=False,
+        ),
+        tag="right",
     )
-    left = harp_event.set_parameter(
-        "pitch_list",
-        lambda pitch_list: [p for p in pitch_list if p < split_border]
-        if pitch_list
-        else None,
-        mutate=False,
+    left = core_events.TaggedSequentialEvent(
+        harp_event.set_parameter(
+            "pitch_list",
+            lambda pitch_list: [p for p in pitch_list if p < split_border]
+            if pitch_list
+            else None,
+            mutate=False,
+        ),
+        tag="left",
     )
 
     for note_like in left:
