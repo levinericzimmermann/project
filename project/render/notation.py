@@ -242,7 +242,6 @@ def glockenspiel_converter():
         clock_converters.EventPlacementToAbjadStaffGroup
     ):
         def convert(self, event_placement, *args, **kwargs):
-            # v_event = event_placement.event[v_tag]
             return super().convert(event_placement, *args, **kwargs)
 
     complex_event_to_abjad_container = (
@@ -325,6 +324,7 @@ def _notation(instrument, clock_tuple, executor, omit_notation):
             clock,
             tag_tuple=(
                 project.constants.ORCHESTRATION.PCLOCK.name,
+                project.constants.ORCHESTRATION.GLOCKENSPIEL.name,
                 project.constants.ORCHESTRATION.HARP.name,
                 project.constants.ORCHESTRATION.V.name,
             ),
