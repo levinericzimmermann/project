@@ -70,12 +70,7 @@ def post_process_instruments(simultaneous_event):
     event_to_add_list = []
     for event_index, event in enumerate(simultaneous_event):
         match event.tag:
-            case clock_events.configurations.DEFAULT_CLOCK_TAG:
-                # split_clock_event = c94_converters.SplitClockTreeEvent(
-                #     c94.constants.TREE_LAYER_TUPLE
-                # ).convert(event)
-                # simultaneous_event.extend(split_clock_event)
-                # event_index_to_remove = event_index
+            case project.constants.ORCHESTRATION.PCLOCK.name:
                 event = project.constants.INSTRUMENT_CLOCK_EVENT_TO_PITCHED_CLOCK_EVENT(event)
                 event_to_remove_index_list.append(event_index)
                 event_to_add_list.append(event)
