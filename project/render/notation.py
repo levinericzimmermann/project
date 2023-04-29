@@ -220,6 +220,52 @@ def v_converter():
     return v_converter
 
 
+@run
+def glockenspiel_converter():
+    glockenspiel_tag = project.constants.ORCHESTRATION.GLOCKENSPIEL.name
+
+    class PostProcessSequentialEvent(abjad_converters.ProcessAbjadContainerRoutine):
+        def __call__(
+            self,
+            complex_event_to_convert: core_events.abc.ComplexEvent,
+            container_to_process: abjad.Container,
+        ):
+            leaf_sequence = abjad.select.leaves(container_to_process)
+            try:
+                first_leaf = leaf_sequence[0]
+            except IndexError:
+                pass
+            else:
+                abjad.attach(abjad.Clef("treble^15"), first_leaf)
+
+    class EventPlacementToAbjadStaffGroup(
+        clock_converters.EventPlacementToAbjadStaffGroup
+    ):
+        def convert(self, event_placement, *args, **kwargs):
+            # v_event = event_placement.event[v_tag]
+            return super().convert(event_placement, *args, **kwargs)
+
+    complex_event_to_abjad_container = (
+        clock_generators.make_complex_event_to_abjad_container(
+            duration_line=True,
+            sequential_event_to_abjad_staff_kwargs=dict(
+                mutwo_volume_to_abjad_attachment_dynamic=None,
+                post_process_abjad_container_routine_sequence=(
+                    PostProcessSequentialEvent(),
+                ),
+            ),
+        )
+    )
+
+    glockenspiel_converter = {
+        glockenspiel_tag: EventPlacementToAbjadStaffGroup(
+            complex_event_to_abjad_container, staff_count=1
+        ),
+    }
+    glockenspiel_converter.update(pclock_tag_to_converter)
+    return glockenspiel_converter
+
+
 abjad_score_to_abjad_score_block = clock_converters.AbjadScoreToAbjadScoreBlock()
 instrument_note_like_to_pitched_note_like = (
     project_converters.InstrumentNoteLikeToPitchedNoteLike(
