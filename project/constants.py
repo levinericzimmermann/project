@@ -176,6 +176,9 @@ center = int(len(SCALE.pitch_tuple) // 2)
 ORCHESTRATION = music_parameters.Orchestration(
     V=project_parameters.V(),
     HARP=music_parameters.CelticHarp(pitch_tuple=SCALE.pitch_tuple),
+    GLOCKENSPIEL=music_parameters.DiscreetPitchedInstrument(
+        name="glockenspiel", short_name="g.", pitch_tuple=GLOCKENSPIEL_SCALE.pitch_tuple
+    ),
     CLOCK=music_parameters.UnpitchedInstrument("clock", "c"),
     PCLOCK=music_parameters.UnpitchedInstrument("pclock", "pc"),
 )
