@@ -16,6 +16,7 @@ import project
 def illustration():
     base_path = "builds/illustrations"
     harp_scordatura_path = f"{base_path}/harp_tuning.png"
+    glockenspiel_scordatura_path = f"{base_path}/glockenspiel_tuning.png"
     intro_tex_path = f"{base_path}/intro.tex"
     poem_path = f"{base_path}/poem.tex"
 
@@ -26,7 +27,10 @@ def illustration():
 
     illustrate_poem(poem_path)
     illustrate_harp_tuning(project.constants.ORCHESTRATION, harp_scordatura_path)
-    illustrate_start(intro_tex_path, harp_scordatura_path)
+    illustrate_glockenspiel_tuning(
+        project.constants.ORCHESTRATION, glockenspiel_scordatura_path
+    )
+    illustrate_start(intro_tex_path, harp_scordatura_path, glockenspiel_scordatura_path)
 
 
 def illustrate_harp_tuning(orchestration, path):
@@ -36,6 +40,17 @@ def illustrate_harp_tuning(orchestration, path):
     )
     pitch_tuple = tuple(p for p in orchestration.HARP.pitch_tuple if p in pitch_range)
     illustrate_tuning(path, pitch_tuple)
+
+
+def illustrate_glockenspiel_tuning(orchestration, path):
+    pitch_range = ranges.Range(
+        music_parameters.JustIntonationPitch("7/3"),
+        music_parameters.JustIntonationPitch("14/3"),
+    )
+    pitch_tuple = tuple(
+        p for p in orchestration.GLOCKENSPIEL.pitch_tuple if p in pitch_range
+    )
+    illustrate_tuning(path, pitch_tuple, clef_name="treble^15")
 
 
 def illustrate_tuning(path, pitch_tuple, clef_name=None, resolution=400, title=None):
@@ -92,9 +107,10 @@ def illustrate_tuning(path, pitch_tuple, clef_name=None, resolution=400, title=N
     return abjad.persist.as_png(lilypond_file, path, resolution=resolution)
 
 
-def illustrate_start(tex_path, harp_scordatura):
+def illustrate_start(tex_path, harp_scordatura, glockenspiel_scordatura_path):
     template = J2ENVIRONMENT.get_template("intro.tex.j2").render(
-        harp_scordatura=harp_scordatura
+        harp_scordatura=harp_scordatura,
+        glockenspiel_scordatura=glockenspiel_scordatura_path,
     )
     with open(tex_path, "w") as b:
         b.write(template)
