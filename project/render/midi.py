@@ -15,11 +15,7 @@ from mutwo import project_converters
 import project
 
 
-def midi(
-    clock_tuple: tuple[clock_interfaces.Clock, ...],
-    repetition_count_range: ranges.Range = ranges.Range(1, 3),
-    random_seed: int = 100,
-):
+def midi(clock_tuple: tuple[clock_interfaces.Clock, ...]):
     clock2sim = clock_converters.ClockToSimultaneousEvent(
         project_converters.ClockLineToSimultaneousEvent()
     ).convert
@@ -57,7 +53,7 @@ def midi(
 
             executor.submit(
                 event_to_midi_file.convert,
-                event[0],
+                event,
                 f"builds/midi/{project.constants.TITLE}_{event.tag}.mid",
             )
 
@@ -71,7 +67,9 @@ def post_process_instruments(simultaneous_event):
     for event_index, event in enumerate(simultaneous_event):
         match event.tag:
             case project.constants.ORCHESTRATION.PCLOCK.name:
-                event = project.constants.INSTRUMENT_CLOCK_EVENT_TO_PITCHED_CLOCK_EVENT(event)
+                event = project.constants.INSTRUMENT_CLOCK_EVENT_TO_PITCHED_CLOCK_EVENT(
+                    event
+                )
                 event_to_remove_index_list.append(event_index)
                 event_to_add_list.append(event)
             case project.constants.ORCHESTRATION.V.name:
