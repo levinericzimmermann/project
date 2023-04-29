@@ -7,6 +7,7 @@ from mutwo import clock_events
 from mutwo import core_parameters
 from mutwo import diary_interfaces
 from mutwo import music_events
+from mutwo import timeline_interfaces
 
 import project
 
@@ -84,4 +85,18 @@ hit = diary_interfaces.ClockEntry.from_file(
     file_path=f"{path}/hit.py",
     duration_range=ranges.Range(d(f(13, 16)), d(f(20, 16))),
     abbreviation_to_path_dict=dict(note=note.path, clock=clock_event.path),
+)
+
+# ###############################################
+# Modal context.
+# ###############################################
+
+diary_interfaces.DynamicEntry.from_file(
+    "clock_modal0",
+    diary_interfaces.ModalContext1.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/modal0.py",
+    abbreviation_to_path_dict=dict(tremolo_middle=tremolo_middle.path),
+    relevance=100,
 )

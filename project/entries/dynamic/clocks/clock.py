@@ -12,4 +12,6 @@ def main(
     event_list=[],
     **kwargs,
 ):
-    return clock_events.ClockEvent([core_events.SequentialEvent(event_list)])
+    return core_events.TaggedSimultaneousEvent(
+        [core_events.SequentialEvent(event_list)], tag="pclock"
+    )

@@ -54,6 +54,10 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
     main_clock_line = clock_converters.Modal0SequentialEventToClockLine(
         (
             diary_converters.Modal0SequentialEventToEventPlacementTuple(
+                orchestration=project.constants.ORCHESTRATION.get_subset("PCLOCK"),
+                add_mod1=True,
+            ),
+            diary_converters.Modal0SequentialEventToEventPlacementTuple(
                 orchestration=project.constants.ORCHESTRATION.get_subset("HARP"),
                 add_mod1=False,
             ),

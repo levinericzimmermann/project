@@ -34,6 +34,46 @@ def clock_event_to_abjad_staff_group():
             except IndexError:
                 pass
             else:
+                abjad.attach(
+                    abjad.LilyPondLiteral(
+                        r"\override Staff.StaffSymbol.line-count = #0 "
+                        r"\stopStaff \omit Staff.Clef \omit Staff.NoteHead "
+                        r"\hide Staff.BarLine "
+                    ),
+                    first_leaf,
+                )
+
+    complex_event_to_abjad_container = clock_generators.make_complex_event_to_abjad_container(
+        sequential_event_to_abjad_staff_kwargs=dict(
+            post_process_abjad_container_routine_sequence=(
+                PostProcessClockSequentialEvent(),
+            ),
+            mutwo_volume_to_abjad_attachment_dynamic=None,
+        ),
+        duration_line=True,
+        # duration_line=False,
+    )
+    return clock_converters.ClockEventToAbjadStaffGroup(
+        complex_event_to_abjad_container
+    )
+
+
+@run
+def pclock_tag_to_converter():
+    class PostProcessClockSequentialEvent(
+        abjad_converters.ProcessAbjadContainerRoutine
+    ):
+        def __call__(
+            self,
+            complex_event_to_convert: core_events.abc.ComplexEvent,
+            container_to_process: abjad.Container,
+        ):
+            leaf_sequence = abjad.select.leaves(container_to_process)
+            try:
+                first_leaf = leaf_sequence[0]
+            except IndexError:
+                pass
+            else:
                 abjad.attach(abjad.Clef("percussion"), first_leaf)
                 abjad.attach(
                     abjad.LilyPondLiteral(
@@ -52,9 +92,26 @@ def clock_event_to_abjad_staff_group():
         duration_line=True,
         # duration_line=False,
     )
-    return clock_converters.ClockEventToAbjadStaffGroup(
-        complex_event_to_abjad_container
-    )
+    pclock_tag = project.constants.ORCHESTRATION.PCLOCK.name
+
+    class EventPlacementToAbjadStaffGroup(
+        clock_converters.EventPlacementToAbjadStaffGroup
+    ):
+        def convert(self, event_placement, *args, **kwargs):
+            pclock_event = event_placement.event[pclock_tag]
+            if isinstance(pclock_event, core_events.TaggedSimultaneousEvent):
+                event_placement.event[
+                    pclock_tag
+                ] = project.constants.INSTRUMENT_CLOCK_EVENT_TO_PITCHED_CLOCK_EVENT(
+                    pclock_event
+                )
+            return super().convert(event_placement, *args, **kwargs)
+
+    return {
+        pclock_tag: EventPlacementToAbjadStaffGroup(
+            complex_event_to_abjad_container, staff_count=1
+        ),
+    }
 
 
 @run
@@ -122,12 +179,14 @@ def harp_converter():
                 #         left[i].playing_indicator_collection.articulation.name = None
             return super().convert(event_placement, *args, **kwargs)
 
-    return {
+    harp_converter = {
         harp_tag: EventPlacementToAbjadStaffGroup(
             complex_event_to_abjad_container,
             staff_count=2,
-        ),
+        )
     }
+    harp_converter.update(pclock_tag_to_converter)
+    return harp_converter
 
 
 @run
@@ -152,11 +211,13 @@ def v_converter():
 
     v_tag = project.constants.ORCHESTRATION.V.name
 
-    return {
+    v_converter = {
         v_tag: EventPlacementToAbjadStaffGroup(
             complex_event_to_abjad_container, staff_count=1
         ),
     }
+    v_converter.update(pclock_tag_to_converter)
+    return v_converter
 
 
 abjad_score_to_abjad_score_block = clock_converters.AbjadScoreToAbjadScoreBlock()
@@ -185,8 +246,6 @@ def notation(clock_tuple):
 def _notation(instrument, clock_tuple, executor, omit_notation):
     notation_path = f"builds/notations/{project.constants.TITLE}_{instrument.name}.pdf"
 
-    print("Notate", instrument.name)
-
     if omit_notation:
         return notation_path
 
@@ -195,6 +254,9 @@ def _notation(instrument, clock_tuple, executor, omit_notation):
         tag_to_abjad_staff_group_converter = globals()[converter_name]
     except KeyError:
         return
+
+    print("\n\nNotate", instrument.name)
+
     clock_to_abjad_score = clock_converters.ClockToAbjadScore(
         tag_to_abjad_staff_group_converter,
         clock_event_to_abjad_staff_group=clock_event_to_abjad_staff_group,
@@ -216,6 +278,7 @@ def _notation(instrument, clock_tuple, executor, omit_notation):
         abjad_score = clock_to_abjad_score.convert(
             clock,
             tag_tuple=(
+                project.constants.ORCHESTRATION.PCLOCK.name,
                 project.constants.ORCHESTRATION.HARP.name,
                 project.constants.ORCHESTRATION.V.name,
             ),
