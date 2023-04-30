@@ -1,6 +1,6 @@
 # 10.2
 
-This is a composition for harp(s), bowed string instrument(s) & percussion.
+This is a composition for harp, cello or viola & percussion.
 
 ## Tempo
 
