@@ -26,6 +26,9 @@ of the normal scale, but which can nevertheless be played on the instrument
 
 import collections
 
+import quicktions as fractions
+
+import ranges
 import yamm
 
 from mutwo import core_events
@@ -63,7 +66,10 @@ def main(
 ) -> core_events.SimultaneousEvent:
     orchestration = context.orchestration
     instrument = orchestration[0]
-    scale = context.modal_event.scale
+    modal_event = context.modal_event
+    scale = modal_event.scale
+    main_pitch = modal_event.pitch
+    duration = modal_event.clock_event.duration
 
     if instrument_scale is None:
         instrument_scale = global_scale
@@ -73,7 +79,8 @@ def main(
     assert global_scale.scale_degree_count == instrument_scale.scale_degree_count
 
     sequential_event = make_sequential_event(
-        context,
+        main_pitch,
+        duration,
         instrument,
         scale,
         random,
@@ -96,7 +103,8 @@ def main(
 
 
 def make_sequential_event(
-    context,
+    main_pitch,
+    duration,
     instrument,
     scale,
     random,
@@ -106,7 +114,7 @@ def make_sequential_event(
     activity_level,
 ):
     pitch_material = get_pitch_material(
-        context.modal_event.pitch,
+        main_pitch,
         scale,
         instrument,
         global_scale,
@@ -116,8 +124,10 @@ def make_sequential_event(
 
     sequential_event = core_events.SequentialEvent([])
 
+    event_count = duration_to_event_count(duration)
     g = markov_chain.walk((0,))
-    while len(sequential_event) < 5:
+    event_counter = 0
+    while event_counter < event_count:
         pindex = next(g)
         pitch_part = pitch_material[pindex]
 
@@ -125,6 +135,8 @@ def make_sequential_event(
             repetition_count = random.integers(1, 4)
         else:
             repetition_count = random.integers(1, 2)
+
+        repetition_count = min((event_count - event_counter, repetition_count))
 
         for _ in range(repetition_count):
 
@@ -138,6 +150,8 @@ def make_sequential_event(
 
             n = music_events.NoteLike(pitch, random.choice([1, 1.25, 0.75, 0.5]), "pp")
             sequential_event.append(n)
+
+            event_counter += 1
 
     return sequential_event
 
@@ -194,6 +208,10 @@ def pitch_to_normalized_instrument_pitch(pitch, global_scale, instrument_scale):
     )
 
 
+def duration_to_event_count(duration):
+    return int(duration / density[0]) * density[1]
+
+
 markov_chain = yamm.chain.Chain(
     {
         (0,): {1: 1, 2: 1},
@@ -201,3 +219,7 @@ markov_chain = yamm.chain.Chain(
         (2,): {0: 1, 1: 0.25},
     }
 )
+
+
+# For 10 seconds 1 attack
+density = (fractions.Fraction(9, 16), 1)
