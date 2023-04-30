@@ -1,8 +1,6 @@
 import os
 
-import ranges
-
-from mutwo import clock_events
+from mutwo import core_events
 from mutwo import diary_interfaces
 from mutwo import music_parameters
 from mutwo import timeline_interfaces
@@ -41,6 +39,15 @@ scale_harp = diary_interfaces.DynamicEntry.from_file(
     file_path=f"{path}/scale-harp.py",
     abbreviation_to_path_dict=dict(scale=scale.path, dyad=dyad.path),
     relevance=1,
+)
+
+still = diary_interfaces.DynamicEntry.from_file(
+    "still",
+    diary_interfaces.ModalContext1.identifier,
+    core_events.SimultaneousEvent,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/still.py",
+    relevance=80,
 )
 
 # ###############################################
@@ -82,5 +89,16 @@ diary_interfaces.DynamicEntry.from_file(
     timeline_interfaces.EventPlacement,
     skip_check=project.constants.SKIP_CHECK,
     file_path=f"{path}/natural-harmonic.py",
+    relevance=80,
+)
+
+
+diary_interfaces.DynamicEntry.from_file(
+    "still_glockenspiel",
+    diary_interfaces.ModalContext1.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    abbreviation_to_path_dict=dict(still=still.path),
+    file_path=f"{path}/still_glockenspiel.py",
     relevance=80,
 )
