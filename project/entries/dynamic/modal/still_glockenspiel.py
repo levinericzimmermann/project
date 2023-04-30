@@ -19,7 +19,11 @@ def main(context, still, **kwargs) -> timeline_interfaces.EventPlacement:
     )
 
     duration = context.modal_event.clock_event.duration
-    start_range = ranges.Range(duration * 0.01, duration * 0.1)
+
+    if context.index == 0:
+        start_range = ranges.Range(duration * 0.4, duration * 0.5)
+    else:
+        start_range = ranges.Range(duration * 0.01, duration * 0.1)
     end_range = ranges.Range(duration * 0.95, duration * 0.995)
 
     return timeline_interfaces.EventPlacement(
