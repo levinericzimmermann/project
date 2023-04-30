@@ -77,7 +77,7 @@ def pclock_tag_to_converter():
                 abjad.attach(abjad.Clef("percussion"), first_leaf)
                 abjad.attach(
                     abjad.LilyPondLiteral(
-                        r"\override Staff.StaffSymbol.line-count = #3"
+                        r"\override Staff.StaffSymbol.line-count = #1"
                     ),
                     first_leaf,
                 )

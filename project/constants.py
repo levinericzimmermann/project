@@ -195,11 +195,11 @@ ORCHESTRATION_CLOCK = music_parameters.Orchestration(
 )
 
 CLOCK_INSTRUMENT_TO_PITCH_DICT = {
-    ORCHESTRATION_CLOCK.CLOCK_I0: music_parameters.WesternPitch("a", 3),
-    ORCHESTRATION_CLOCK.CLOCK_I1: music_parameters.WesternPitch("b", 3),
-    ORCHESTRATION_CLOCK.CLOCK_I2: music_parameters.WesternPitch("c", 4),
-    ORCHESTRATION_CLOCK.CLOCK_I3: music_parameters.WesternPitch("d", 4),
-    ORCHESTRATION_CLOCK.CLOCK_I4: music_parameters.WesternPitch("e", 4),
+    ORCHESTRATION_CLOCK.CLOCK_I0: music_parameters.WesternPitch("g", 3),
+    ORCHESTRATION_CLOCK.CLOCK_I1: music_parameters.WesternPitch("a", 3),
+    ORCHESTRATION_CLOCK.CLOCK_I2: music_parameters.WesternPitch("b", 3),
+    ORCHESTRATION_CLOCK.CLOCK_I3: music_parameters.WesternPitch("c", 4),
+    ORCHESTRATION_CLOCK.CLOCK_I4: music_parameters.WesternPitch("d", 4),
 }
 
 INSTRUMENT_CLOCK_EVENT_TO_PITCHED_CLOCK_EVENT = (
