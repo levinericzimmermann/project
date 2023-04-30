@@ -20,8 +20,25 @@ def is_supported(context, tremolo_middle=None, **kwargs):
     return True
 
 
-def main(context, tremolo_middle=None, **kwargs):
-    clock_event = tremolo_middle(instrument_index_tuple=[3], **kwargs)
+def main(context, tremolo_middle, tremolo_long, grace, hit, random, **kwargs):
+
+    match context.index % 4:
+        case 0:
+            clock_event = hit(
+                instrument_index_tuple=[random.choice((2, 3, 4))], **kwargs
+            )
+        case 1:
+            clock_event = tremolo_middle(instrument_index_tuple=[4], **kwargs)
+        case 2:
+            clock_event = grace(**kwargs)
+        case 3:
+            clock_event = tremolo_long(
+                instrument_index_tuple=[2], **kwargs
+            ).concatenate_by_index(
+                hit(instrument_index_tuple=[random.choice((2, 3, 4))], **kwargs)
+            )
+        case _:
+            raise RuntimeError()
 
     duration = context.modal_event.clock_event.duration
     start_range = ranges.Range(duration * 0.05, duration * 0.1)
