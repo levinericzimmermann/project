@@ -13,6 +13,8 @@ from mutwo import project_utilities
 
 import project
 
+MAX_DENOMINATOR = 100000
+
 
 def run(f):
     return f()
@@ -77,10 +79,29 @@ def pclock_tag_to_converter():
                 abjad.attach(abjad.Clef("percussion"), first_leaf)
                 abjad.attach(
                     abjad.LilyPondLiteral(
-                        r"\override Staff.StaffSymbol.line-count = #1"
+                        r"\override Staff.StaffSymbol.line-count = #1 "
+                        # Parts of PrepareForDurationLineBasedNotation which
+                        # are useful here.
+                        r"\override Staff.Dots.dot-count = #0 "
+                        r"\omit Staff.MultiMeasureRest "
+                        r"\override Staff.Dots.dot-count = #0 "
+                        r"\override Staff.NoteHead.duration-log = 2 "
                     ),
                     first_leaf,
                 )
+            # This is a fix for a very strange bug: for reasons I don't
+            # understand the code which replaces rests with skips is never
+            # executed for the 'pclock'. So in order to still replace the rests
+            # with the skips we add the next three lines. Of course it would be
+            # much better if we would simply know what's the actual problem.
+            for leaf in leaf_sequence:
+                if isinstance(leaf, abjad.Rest):
+                    abjad.mutate.replace(leaf, abjad.Skip(leaf.written_duration))
+
+            # # Explicit beams are never needed here.
+            # for leaf in leaf_sequence:
+            #     abjad.detach(abjad.StartBeam, leaf)
+            #     abjad.detach(abjad.StopBeam, leaf)
 
     complex_event_to_abjad_container = clock_generators.make_complex_event_to_abjad_container(
         sequential_event_to_abjad_staff_kwargs=dict(
@@ -88,6 +109,12 @@ def pclock_tag_to_converter():
                 PostProcessClockSequentialEvent(),
             ),
             mutwo_volume_to_abjad_attachment_dynamic=None,
+            # We don't want the 'omit Staff.Beam' etc. parts,
+            # because they remove the beams etc. of grace notes
+            # or tremolo notes, where we want to print them.
+            # So we can't do this globally in the way how we did
+            # it there.
+            prepare_for_duration_line_based_notation=False,
         ),
         duration_line=True,
         # duration_line=False,
@@ -109,7 +136,9 @@ def pclock_tag_to_converter():
 
     return {
         pclock_tag: EventPlacementToAbjadStaffGroup(
-            complex_event_to_abjad_container, staff_count=1
+            complex_event_to_abjad_container,
+            staff_count=1,
+            max_denominator=MAX_DENOMINATOR,
         ),
     }
 
@@ -183,6 +212,7 @@ def harp_converter():
         harp_tag: EventPlacementToAbjadStaffGroup(
             complex_event_to_abjad_container,
             staff_count=2,
+            max_denominator=MAX_DENOMINATOR,
         )
     }
     harp_converter.update(pclock_tag_to_converter)
@@ -213,7 +243,9 @@ def v_converter():
 
     v_converter = {
         v_tag: EventPlacementToAbjadStaffGroup(
-            complex_event_to_abjad_container, staff_count=1
+            complex_event_to_abjad_container,
+            staff_count=1,
+            max_denominator=MAX_DENOMINATOR,
         ),
     }
     v_converter.update(pclock_tag_to_converter)
@@ -258,7 +290,9 @@ def glockenspiel_converter():
 
     glockenspiel_converter = {
         glockenspiel_tag: EventPlacementToAbjadStaffGroup(
-            complex_event_to_abjad_container, staff_count=1
+            complex_event_to_abjad_container,
+            staff_count=1,
+            max_denominator=MAX_DENOMINATOR,
         ),
     }
     glockenspiel_converter.update(pclock_tag_to_converter)

@@ -22,7 +22,7 @@ def main(
 ):
     n = note(context, min_duration=min_duration, max_duration=max_duration, **kwargs)
     no = n.notation_indicator_collection
-    no.duration_line.is_active = True
+    no.rhythmic_information.activity = True
     pl = n.playing_indicator_collection
     pl.tremolo.flag_count = 32
     pl.tremolo.dynamic = tremolo_dynamic

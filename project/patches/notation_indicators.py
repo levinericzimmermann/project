@@ -9,11 +9,21 @@ music_parameters_NotationIndicatorCollection = (
 
 
 @dataclasses.dataclass
+class RhythmicInformation(music_parameters.abc.NotationIndicator):
+    activity: bool = False
+
+
+@dataclasses.dataclass
 class NotationIndicatorCollection(music_parameters_NotationIndicatorCollection):
     duration_line: music_parameters.abc.ExplicitPlayingIndicator = dataclasses.field(
         default_factory=music_parameters.abc.ExplicitPlayingIndicator
     )
+    rhythmic_information: RhythmicInformation = dataclasses.field(
+        default_factory=lambda: RhythmicInformation(activity=False)
+    )
 
 
 music_parameters.NotationIndicatorCollection = NotationIndicatorCollection
-music_events.configurations.DEFAULT_NOTATION_INDICATORS_COLLECTION_CLASS = NotationIndicatorCollection
+music_events.configurations.DEFAULT_NOTATION_INDICATORS_COLLECTION_CLASS = (
+    NotationIndicatorCollection
+)
