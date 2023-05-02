@@ -97,6 +97,11 @@ diary_interfaces.DynamicEntry.from_file(
     timeline_interfaces.EventPlacement,
     skip_check=project.constants.SKIP_CHECK,
     file_path=f"{path}/modal0.py",
-    abbreviation_to_path_dict=dict(tremolo_middle=tremolo_middle.path),
+    abbreviation_to_path_dict=dict(
+        tremolo_middle=tremolo_middle.path,
+        tremolo_long=tremolo_long.path,
+        grace=grace.path,
+        hit=hit.path,
+    ),
     relevance=100,
 )
