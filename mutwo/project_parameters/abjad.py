@@ -147,3 +147,10 @@ class RhythmicInformation(abjad_parameters.abc.ToggleAttachment):
             )
 
         return leaf
+
+    def process_leaf_tuple(
+        self,
+        leaf_tuple: tuple[abjad.Leaf, ...],
+        previous_attachment,
+    ) -> tuple[abjad.Leaf, ...]:
+        return (self.process_leaf(leaf_tuple[0], previous_attachment),) + leaf_tuple[1:]
