@@ -5,7 +5,6 @@ import abjad
 
 from mutwo import abjad_converters
 from mutwo import abjad_parameters
-from mutwo import music_parameters
 
 
 __all__ = (
@@ -16,6 +15,7 @@ __all__ = (
     "SonsXylo",
     "Flageolet",
     "RhythmicInformation",
+    "FlagStrokeStyle",
 )
 
 
@@ -154,3 +154,18 @@ class RhythmicInformation(abjad_parameters.abc.ToggleAttachment):
         previous_attachment,
     ) -> tuple[abjad.Leaf, ...]:
         return (self.process_leaf(leaf_tuple[0], previous_attachment),) + leaf_tuple[1:]
+
+
+class FlagStrokeStyle(abjad_parameters.abc.BangEachAttachment):
+    def process_leaf(self, leaf: abjad.Leaf) -> LeafOrLeafSequence:
+        abjad.attach(
+            abjad.LilyPondLiteral(
+                # Without autoBeamOff two 1/8 notes connect their beams and
+                # we don't have any strikethroughs anymore.. therefore we also
+                # need to turn auto beam off.
+                rf'\autoBeamOff \once \override Flag.stroke-style = #"{self.indicator.style}"'
+            ),
+            leaf,
+        )
+        abjad.attach(abjad.LilyPondLiteral(r"\autoBeamOn", site="after"), leaf)
+        return leaf
