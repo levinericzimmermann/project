@@ -41,6 +41,8 @@ LeafOrLeafSequence = abjad.Leaf | typing.Sequence[abjad.Leaf]
 
 
 class Tremolo(abjad_parameters.abc.BangEachAttachment):
+    leaf_maker = abjad.LeafMaker()
+
     def process_first_leaf(self, leaf: abjad.Leaf) -> abjad.Leaf:
         leaf = super().process_first_leaf(leaf)
 
@@ -60,90 +62,21 @@ class Tremolo(abjad_parameters.abc.BangEachAttachment):
         return leaf
 
     def _add_varying_tremolo(self, leaf: abjad.Leaf):
-        def acc(leaf):
-            abjad.attach(
-                abjad.LilyPondLiteral(
-                    r"\override Beam.grow-direction = #RIGHT", site="absolute_before"
-                ),
-                leaf,
-            )
-
-        def rit(leaf):
-            abjad.attach(
-                abjad.LilyPondLiteral(
-                    r"\override Beam.grow-direction = #LEFT", site="absolute_before"
-                ),
-                leaf,
-            )
-
-        match leaf:
-            case abjad.Chord():
-
-                def make_leaf(duration):
-                    return abjad.Chord(leaf.written_pitches, duration)
-
-            case abjad.Note():
-
-                def make_leaf(duration):
-                    return abjad.Note(leaf.written_pitch, duration)
-
-            case _:
-                raise NotImplementedError(leaf)
-
-        new_leaf_duration = fractions.Fraction(1, 16)
-        new_leaf_count = int(leaf.written_duration / new_leaf_duration)
-        assert new_leaf_count > 2
-        center = (new_leaf_count - 1) // 2
-        leaf_sequence = abjad.Container(
-            [make_leaf(new_leaf_duration) for _ in range(new_leaf_count)]
-        )
-        # https://lilypond.org/doc/v2.24/Documentation/notation/beams#feathered-beams
-        # Don't add r"\featherDurations 2/1", this conflicts with scaleDurations
-        # and it's not needed for the duration! It's only for midi output, which
-        # we don't use from lilypond anyway.
-        abjad.attach(abjad.StartBeam(), leaf_sequence[0])
-        abjad.attach(abjad.StopBeam(), leaf_sequence[-1])
-        D = music_parameters.Tremolo.D
-        match self.indicator.dynamic:
-            case D.Acc:
-                acc(leaf_sequence[0])
-            case D.Rit:
-                rit(leaf_sequence[0])
-            case D.AccRit:
-                acc(leaf_sequence[0])
-                rit(leaf_sequence[center])
-                abjad.attach(abjad.StartBeam(), leaf_sequence[center])
-                abjad.attach(abjad.StopBeam(), leaf_sequence[center])
-            case D.RitAcc:
-                rit(leaf_sequence[0])
-                acc(leaf_sequence[center])
-                abjad.attach(abjad.StartBeam(), leaf_sequence[center])
-                abjad.attach(abjad.StopBeam(), leaf_sequence[center])
-            case _:
-                return leaf
-
-        abjad.attach(
-            abjad.LilyPondLiteral(
-                r"\omit Staff.NoteHead \omit Staff.Stem", site="before"
-            ),
-            leaf_sequence[1],
-        )
-
-        abjad.attach(
-            abjad.LilyPondLiteral(
-                r"\override Beam.grow-direction = #'()"
-                r"\undo \omit Staff.NoteHead \undo \omit Staff.Stem",
-                site="after",
-            ),
-            leaf_sequence[-1],
-        )
-
-        difference = leaf.written_duration - (new_leaf_duration * new_leaf_count)
+        leaf_sequence = abjad.Container([abjad.mutate.copy(leaf)])
+        leaf_duration = fractions.Fraction(1, 8)
+        line_length = int(leaf.written_duration / leaf_duration) * 2
+        difference = leaf.written_duration - leaf_duration
         assert difference >= 0
-        rest_count = difference / new_leaf_duration
-        assert int(rest_count) == rest_count
-        for _ in range(int(rest_count)):
-            leaf_sequence.append(abjad.Skip(new_leaf_duration))
+        leaf_sequence[0].written_duration = leaf_duration
+        if difference > 0:
+            for leaf in self.leaf_maker(None, difference):
+                leaf_sequence.append(abjad.Skip(leaf.written_duration))
+        abjad.attach(
+            abjad.LilyPondLiteral(
+                rf"\{self.indicator.dynamic.name} #{line_length}", site="before"
+            ),
+            leaf_sequence[0],
+        )
         return leaf_sequence
 
 

@@ -390,6 +390,8 @@ def _notation(instrument, clock_tuple, executor, omit_notation):
         staff_height=20,
     ).convert(abjad_score_block_list)
 
+    lilypond_file.items.insert(0, r'\include "etc/lilypond/ar.ily"')
+
     executor.submit(abjad.persist.as_pdf, lilypond_file, notation_path)
     return notation_path
 
