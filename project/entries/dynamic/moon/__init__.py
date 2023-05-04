@@ -7,6 +7,16 @@ import project
 
 path = "/".join(os.path.abspath(__file__).split("/")[:-1])
 
+
+diary_interfaces.DynamicEntry.from_file(
+    "mpi29",
+    diary_interfaces.MoonContext.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/mpi29.py",
+    relevance=100,
+)
+
 diary_interfaces.DynamicEntry.from_file(
     "mpi28",
     diary_interfaces.MoonContext.identifier,
