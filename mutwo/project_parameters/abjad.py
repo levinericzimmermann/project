@@ -26,11 +26,10 @@ class Optional(abjad_parameters.abc.BangEachAttachment):
                 abjad.LilyPondLiteral(
                     r"\once \set fontSize = -2"
                     "\n"
-                    r"\once \override ParenthesesItem.font-size = #1"
+                    r"\once \override NoteHead.Parentheses.font-size = 3"
                     "\n"
-                    r"\once \override ParenthesesItem.padding = #0.3"
-                    "\n"
-                    r"\parenthesize"
+                    r"\parenthesize NoteHead",
+                    site="absolute_before",
                 ),
                 leaf,
             )
