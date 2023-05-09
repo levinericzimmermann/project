@@ -222,4 +222,4 @@ markov_chain = yamm.chain.Chain(
 
 
 # For 10 seconds 1 attack
-density = (fractions.Fraction(9, 16), 1)
+density = (fractions.Fraction(10, 16), 1)
