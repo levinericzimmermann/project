@@ -72,6 +72,32 @@ def post_process_instruments(simultaneous_event):
                 )
                 event_to_remove_index_list.append(event_index)
                 event_to_add_list.append(event)
+            case project.constants.ORCHESTRATION.GLOCKENSPIEL.name:
+
+                r = np.random.default_rng(10)
+
+                def _(c):
+                    # Can be played or can be not played
+                    c.optional.is_active = True
+                    # Can be bowed or can be hit
+                    c.string_contact_point.contact_point = r.choice(
+                        ["pizzicato", "arco"], p=[0.3, 0.7]
+                    )
+
+                event.mutate_parameter("playing_indicator_collection", _)
+
+                event_to_remove_index_list.append(event_index)
+                event_to_add_list.extend(
+                    (
+                        filter_pizz(
+                            event.set("tag", f"{event.tag}_pizz", mutate=False)
+                        ),
+                        filter_arco(
+                            event.set("tag", f"{event.tag}_arco", mutate=False)
+                        ),
+                    )
+                )
+
             case project.constants.ORCHESTRATION.V.name:
                 event_to_remove_index_list.append(event_index)
                 event_to_add_list.extend(
