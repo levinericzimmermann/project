@@ -96,6 +96,7 @@ abjad_converters.configurations.DEFAULT_ABJAD_ATTACHMENT_CLASS_TUPLE = tuple(
     project_parameters.Flageolet,
     project_parameters.RhythmicInformation,
     project_parameters.FlagStrokeStyle,
+    project_parameters.NoteHead,
 )
 
 GENERATOR_INTERVAL_TUPLE = tuple(

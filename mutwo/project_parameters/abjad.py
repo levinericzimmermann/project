@@ -16,6 +16,7 @@ __all__ = (
     "Flageolet",
     "RhythmicInformation",
     "FlagStrokeStyle",
+    "NoteHead",
 )
 
 
@@ -167,4 +168,21 @@ class FlagStrokeStyle(abjad_parameters.abc.BangEachAttachment):
             leaf,
         )
         abjad.attach(abjad.LilyPondLiteral(r"\autoBeamOn", site="after"), leaf)
+        return leaf
+
+
+class NoteHead(abjad_parameters.abc.BangEachAttachment):
+    def process_leaf(self, leaf: abjad.Leaf) -> LeafOrLeafSequence:
+        abjad.attach(
+            abjad.LilyPondLiteral(
+                r"\once \override NoteHead.stencil = #ly:text-interface::print"
+                "\n"
+                r"\once \override NoteHead.text = \markup {"
+                "\n\t"
+                rf'\musicglyph #"{self.indicator.name}"'
+                "\n"
+                "}"
+            ),
+            leaf,
+        )
         return leaf
