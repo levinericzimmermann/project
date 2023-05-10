@@ -62,7 +62,7 @@ def main(
     global_scale=DEFAULT_SCALE,
     instrument_scale=None,
     instrument_scale_with_alterations=None,
-    **kwargs
+    **kwargs,
 ) -> core_events.SimultaneousEvent:
     orchestration = context.orchestration
     instrument = orchestration[0]
@@ -131,16 +131,19 @@ def make_sequential_event(
         pindex = next(g)
         pitch_part = pitch_material[pindex]
 
+        # Main pitch has more repetitions
         if pindex == 0:
-            repetition_count = random.integers(1, 4)
+            rcount_option_tuple = (1, 2, 3)
+        # Side pitches have fewer repetitions
         else:
-            repetition_count = random.integers(1, 2)
+            rcount_option_tuple = (1, 2)
+        repetition_count = random.choice(rcount_option_tuple)
 
         repetition_count = min((event_count - event_counter, repetition_count))
 
         for _ in range(repetition_count):
 
-            if activity_level(7):
+            if main_part := activity_level(7):
                 pitch = pitch_part.pitch
             else:
                 if activity_level(5):
@@ -148,9 +151,21 @@ def make_sequential_event(
                 else:
                     pitch = pitch_part.alteration_down
 
-            n = music_events.NoteLike(pitch, random.choice([1, 1.25, 0.75, 0.5]), "pp")
-            sequential_event.append(n)
+            n = music_events.NoteLike(pitch, 1, "pp")
 
+            # Alteration
+            if not main_part:
+                note_head = "noteheads.sM1blackmensural"
+            # Main note, not alteration
+            elif pindex == 0:
+                note_head = "noteheads.sM3ligmensural"
+            # Side note, not alteration
+            else:
+                note_head = "noteheads.sM1mensural"
+
+            n.notation_indicator_collection.note_head.name = note_head
+
+            sequential_event.append(n)
             event_counter += 1
 
     return sequential_event
@@ -172,6 +187,7 @@ def get_pitch_material(
     for d in (-1, 1):
         p = ((scale_position[0] + d) % global_scale.scale_degree_count, 0)
         n = instrument_scale.scale_index_to_pitch(p[0])
+        assert n != main_pitch
         neighbour_pitch_list.append(n)
 
     pitch_part = collections.namedtuple(
