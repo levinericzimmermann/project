@@ -81,6 +81,12 @@ def main(
         if len(pitch_list) > 1
         else pizzicato_level
     )
+
+    for node in node_list:
+        if node.natural_harmonic.index > 4:
+            pizzicato_level = 0
+            break
+
     if activity_level(pizzicato_level):
         cpoint = "pizzicato"
         repetition_count_range = ranges.Range(3, 6)
@@ -89,6 +95,7 @@ def main(
     else:
         cpoint = "ordinario"
         note.notation_indicator_collection.duration_line.is_active = True
+
     note.playing_indicator_collection.string_contact_point.contact_point = cpoint
 
     duration = context.modal_event.clock_event.duration
