@@ -21,7 +21,7 @@ class FlagStrokeStyle(music_parameters.abc.NotationIndicator):
 
 @dataclasses.dataclass
 class NoteHead(music_parameters.abc.NotationIndicator):
-    name: typing.Optional[str] = None
+    markup_content: typing.Optional[str] = None
 
 
 @dataclasses.dataclass

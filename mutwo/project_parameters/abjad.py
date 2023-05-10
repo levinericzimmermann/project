@@ -179,7 +179,7 @@ class NoteHead(abjad_parameters.abc.BangEachAttachment):
                 "\n"
                 r"\once \override NoteHead.text = \markup {"
                 "\n\t"
-                rf'\musicglyph #"{self.indicator.name}"'
+                rf'{self.indicator.markup_content}'
                 "\n"
                 "}"
             ),

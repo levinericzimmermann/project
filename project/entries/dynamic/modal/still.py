@@ -155,15 +155,16 @@ def make_sequential_event(
 
             # Alteration
             if not main_part:
-                note_head = "noteheads.sM1blackmensural"
+                x = 0.5
             # Main note, not alteration
             elif pindex == 0:
-                note_head = "noteheads.sM3ligmensural"
+                x = 1.5
             # Side note, not alteration
             else:
-                note_head = "noteheads.sM1mensural"
+                x = 1
 
-            n.notation_indicator_collection.note_head.name = note_head
+            note_head = rf"\filled-box #'(0 . {x}) #'(0 . 1) #0"
+            n.notation_indicator_collection.note_head.markup_content = note_head
 
             sequential_event.append(n)
             event_counter += 1
