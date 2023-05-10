@@ -163,7 +163,7 @@ def make_sequential_event(
             else:
                 x = 1
 
-            note_head = rf"\filled-box #'(0 . {x}) #'(0 . 1) #0"
+            note_head = rf"\filled-box #'(0 . {x}) #'(-0.5 . 0.5) #0"
             n.notation_indicator_collection.note_head.markup_content = note_head
 
             sequential_event.append(n)
