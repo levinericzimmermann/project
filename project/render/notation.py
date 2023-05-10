@@ -274,6 +274,21 @@ def glockenspiel_converter():
         clock_converters.EventPlacementToAbjadStaffGroup
     ):
         def convert(self, event_placement, *args, **kwargs):
+            event = event_placement.event[glockenspiel_tag]
+            if isinstance(event, core_events.TaggedSimultaneousEvent):
+                # sounding -> written
+                event.set_parameter(
+                    "pitch_list",
+                    lambda pitch_list: [
+                        project.constants.sounding_glockenspiel_pitch_to_written_glockenspiel_pitch(
+                            pitch
+                        )
+                        for pitch in pitch_list
+                    ]
+                    if pitch_list
+                    else None,
+                )
+
             return super().convert(event_placement, *args, **kwargs)
 
     complex_event_to_abjad_container = (
