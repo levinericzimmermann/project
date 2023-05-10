@@ -223,11 +223,29 @@ def harp_converter():
 def v_converter():
     v_tag = project.constants.ORCHESTRATION.V.name
 
+    class PostProcessSequentialEvent(abjad_converters.ProcessAbjadContainerRoutine):
+        def __call__(
+            self,
+            complex_event_to_convert: core_events.abc.ComplexEvent,
+            container_to_process: abjad.Container,
+        ):
+            leaf_sequence = abjad.select.leaves(container_to_process)
+            try:
+                first_leaf = leaf_sequence[0]
+            except IndexError:
+                pass
+            else:
+                abjad.attach(abjad.Clef("bass"), first_leaf)
+
     class EventPlacementToAbjadStaffGroup(
         clock_converters.EventPlacementToAbjadStaffGroup
     ):
         def convert(self, event_placement, *args, **kwargs):
-            # v_event = event_placement.event[v_tag]
+            event = event_placement.event[v_tag]
+
+            if isinstance(event, core_events.TaggedSimultaneousEvent):
+                pass
+
             return super().convert(event_placement, *args, **kwargs)
 
     complex_event_to_abjad_container = (
@@ -235,6 +253,9 @@ def v_converter():
             duration_line=True,
             sequential_event_to_abjad_staff_kwargs=dict(
                 mutwo_volume_to_abjad_attachment_dynamic=None,
+                post_process_abjad_container_routine_sequence=(
+                    PostProcessSequentialEvent(),
+                ),
             ),
         )
     )
