@@ -1,3 +1,7 @@
+import dataclasses
+import functools
+import typing
+
 import ranges
 
 from mutwo import abjad_converters
@@ -216,9 +220,9 @@ def sounding_harp_pitch_to_written_harp_pitch(harp_pitch):
     return _sounding_pitch_to_written_pitch(harp_pitch, SCALE, HARP_WRITTEN_SCALE)
 
 
-def sounding_glockenspiel_pitch_to_written_glockenspiel_pitch(harp_pitch):
+def sounding_glockenspiel_pitch_to_written_glockenspiel_pitch(p):
     return _sounding_pitch_to_written_pitch(
-        harp_pitch, GLOCKENSPIEL_SCALE, GLOCKENSPIEL_WRITTEN_SCALE
+        p, GLOCKENSPIEL_SCALE, GLOCKENSPIEL_WRITTEN_SCALE
     )
 
 
@@ -259,3 +263,59 @@ def _make_pentatonic_scale_tuple():
 
 
 PENTATONIC_SCALE_TUPLE = _make_pentatonic_scale_tuple()
+
+
+@dataclasses.dataclass(frozen=True)
+class VKlang(object):
+    scale_degree: int
+    main_string_index: int
+    side_string_index: int
+    main_string_pitch: typing.Optional[music_parameters.JustIntonationPitch] = None
+    side_string_pitch: typing.Optional[music_parameters.JustIntonationPitch] = None
+    is_side_string_optional: bool = False
+
+    def __post_init__(self):
+        if self.main_string_pitch is None:
+            object.__setattr__(
+                self,
+                "main_string_pitch",
+                ORCHESTRATION.V.string_tuple[self.main_string_index].tuning,
+            )
+        if self.side_string_pitch is None:
+            object.__setattr__(
+                self,
+                "side_string_pitch",
+                ORCHESTRATION.V.string_tuple[self.side_string_index].tuning,
+            )
+
+    @functools.cached_property
+    def is_stable(self) -> bool:
+        return self.main_string_pitch in SCALE.pitch_tuple
+
+
+j = music_parameters.JustIntonationPitch
+
+ORCHESTRATION.V.v_klang_tuple = (
+    VKlang(2, 0, 1),
+    VKlang(2, 0, 1, j("4/27")),
+    VKlang(3, 0, 1, j("1/6")),
+    VKlang(4, 0, 1, j("3/16")),
+    VKlang(5, 0, 1, j("7/36")),
+    VKlang(6, 0, 1, j("2/9")),
+    VKlang(6, 1, 0),
+    VKlang(0, 1, 0, j("1/4")),
+    VKlang(0, 1, 2, j("1/4")),
+    VKlang(1, 1, 2, j("9/32"), j("3/8")),
+    VKlang(2, 1, 2, j("7/24")),
+    VKlang(3, 1, 2, j("1/3")),
+    VKlang(3, 2, 1),
+    VKlang(3, 2, 3),
+    VKlang(4, 2, 3, j("3/8")),
+    VKlang(5, 2, 3, j("3/7")),
+    VKlang(6, 2, 3, j("4/9")),
+    VKlang(0, 2, 3, j("1/2")),
+    VKlang(0, 3, 2),
+    VKlang(1, 3, 2, j("9/16")),  # XXX: Dissonant interval!
+    VKlang(2, 3, 2, j("7/12")),
+    VKlang(3, 3, 2, j("2/3")),
+)
