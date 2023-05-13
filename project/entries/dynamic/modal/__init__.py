@@ -64,6 +64,16 @@ diary_interfaces.DynamicEntry.from_file(
     relevance=50,
 )
 
+
+diary_interfaces.DynamicEntry.from_file(
+    "scale-event-v",
+    diary_interfaces.ModalContext0.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/scale-event-v.py",
+    relevance=50,
+)
+
 diary_interfaces.DynamicEntry.from_file(
     "two-dyads",
     diary_interfaces.ModalContext0.identifier,
