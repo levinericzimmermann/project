@@ -10,6 +10,7 @@ from mutwo import clock_interfaces
 from mutwo import core_events
 from mutwo import diary_converters
 from mutwo import project_converters
+from mutwo import timeline_interfaces
 
 import project
 
@@ -58,7 +59,9 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
                 add_mod1=True,
             ),
             diary_converters.Modal0SequentialEventToEventPlacementTuple(
-                orchestration=project.constants.ORCHESTRATION.get_subset("GLOCKENSPIEL"),
+                orchestration=project.constants.ORCHESTRATION.get_subset(
+                    "GLOCKENSPIEL"
+                ),
                 add_mod1=True,
             ),
             diary_converters.Modal0SequentialEventToEventPlacementTuple(
@@ -71,6 +74,9 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
             ),
         )
     ).convert(modal_sequential_event)
+
+    # Fix overlaps
+    main_clock_line.resolve_conflicts([timeline_interfaces.AlternatingStrategy()])
 
     start_clock_line = (
         _clock_rest(before_rest_duration) if before_rest_duration > 0 else None
