@@ -36,7 +36,9 @@ def main(
     klang_list = get_klang_list(
         modal_event_to_convert, scale, instrument, real_duration
     )
-    sequential_event = make_sequential_event(klang_list, random, instrument)
+    sequential_event = make_sequential_event(
+        klang_list, random, instrument, activity_level
+    )
     v_event = core_events.TaggedSimultaneousEvent([sequential_event], tag=tag)
 
     start_range = ranges.Range(
@@ -96,7 +98,7 @@ def get_klang_list(modal_event_to_convert, scale, instrument, duration):
     return klang_list
 
 
-def make_sequential_event(klang_list, random, instrument):
+def make_sequential_event(klang_list, random, instrument, activity_level):
     sequential_event = core_events.SequentialEvent(
         [
             music_events.NoteLike(
@@ -107,14 +109,29 @@ def make_sequential_event(klang_list, random, instrument):
             for klang in klang_list
         ]
     )
-    sequential_event[-1].duration = 3
+    sequential_event[-1].duration = 4
 
-    started_with_empty_string = start_with_empty_string(sequential_event, instrument, klang_list)
+    for n in sequential_event:
+        n.playing_indicator_collection.string_contact_point.name = "ordinario"
+
+    # Order matters!
+    add_pizzicato(sequential_event, klang_list, instrument)
+    remove_side_pitch(sequential_event, klang_list, activity_level)
+    add_arpeggio(sequential_event, klang_list, activity_level)
+    add_bend_after(sequential_event)
+
+    started_with_empty_string = start_with_empty_string(
+        sequential_event, instrument, klang_list
+    )
 
     for i, n in enumerate(sequential_event):
         if i == 0 and started_with_empty_string:
             continue
-        n.notation_indicator_collection.duration_line.is_active = True
+        if (
+            n.playing_indicator_collection.string_contact_point.name != "pizzicato"
+            and n.playing_indicator_collection.bend_after.bend_amount is None
+        ):
+            n.notation_indicator_collection.duration_line.is_active = True
 
     return sequential_event
 
@@ -126,10 +143,54 @@ def start_with_empty_string(sequential_event, instrument, klang_list):
         n_empty_string = sequential_event[0]
         n_empty_string.pitch_list = [klang_list[0].side_string_pitch]
         n_empty_string.playing_indicator_collection.tie.is_active = True
-        # Tie only works if duration isn't too long, because
+        # Hardcode empty string duration:
+        # Tie only works if duration doesn't need to be split, because
         # otherwise 'mutwo.abjad' adds 's' inbetween and Lilypond
         # won't tie over 'Skips'.
-        n_empty_string.duration = fractions.Fraction(1, 1)
+        n_empty_string.duration = fractions.Fraction(2, 1)
+        sequential_event[1].playing_indicator_collection.arpeggio.direction = None
+
+
+def add_arpeggio(sequential_event, klang_list, activity_level):
+    for n, klang in zip(sequential_event, klang_list):
+        if len(n.pitch_list) < 2:
+            continue
+        if sum(klang.main_string_pitch.exponent_tuple[2:]) == 0 and activity_level(6):
+            n.playing_indicator_collection.arpeggio.direction = (
+                "up" if klang.main_string_pitch > klang.side_string_pitch else "down"
+            )
+
+
+def add_pizzicato(sequential_event, klang_list, instrument):
+    for n, klang in zip(sequential_event, klang_list):
+        if klang_list[0].main_string_pitch in [
+            s.tuning for s in instrument.string_tuple
+        ]:
+            n.pitch_list = klang_list[0].main_string_pitch
+            n.playing_indicator_collection.string_contact_point.name = "pizzicato"
+
+
+def add_bend_after(sequential_event):
+    # If two pitches repeat, the second pitch should do something different: a
+    # glissando seems to be suitable.
+    for n0, n1, n2 in zip(sequential_event, sequential_event[1:], sequential_event[2:]):
+        if n1.playing_indicator_collection.string_contact_point.name == "pizzicato":
+            continue
+        if len(n1.pitch_list) == 1 and n1.pitch_list[0] in n0.pitch_list:
+            # If next pitch goes higher, we go down, and upside down.
+            bend_amount = 1.5
+            if any([p > n1.pitch_list[0] for p in n2.pitch_list]):
+                bend_amount *= -1
+            n1.playing_indicator_collection.bend_after.bend_amount = bend_amount
+            n1.playing_indicator_collection.bend_after.minimum_length = 5
+
+
+def remove_side_pitch(sequential_event, klang_list, activity_level):
+    for n, klang in zip(sequential_event[1:], klang_list[1:]):
+        if len(n.pitch_list) < 2:
+            continue
+        if sum(klang.main_string_pitch.exponent_tuple[2:]) == 0 and activity_level(4):
+            n.pitch_list = klang.main_string_pitch
 
 
 def range_(start, end):
