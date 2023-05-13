@@ -25,8 +25,10 @@ def main(
     tag = instrument.name
     duration = modal_event_to_convert.clock_event.duration
 
-    start_percentage = 0.25
+    start_percentage = 0.1
+    # start_percentage = random.uniform(0.1, 0.3)
     end_percentage = 0.885
+    # end_percentage = random.uniform(0.8, 0.92)
 
     real_duration = (duration * end_percentage) - (duration * start_percentage)
 
@@ -34,23 +36,8 @@ def main(
     klang_list = get_klang_list(
         modal_event_to_convert, scale, instrument, real_duration
     )
-
-    melody = core_events.SequentialEvent(
-        [
-            music_events.NoteLike(
-                [klang.main_string_pitch, klang.side_string_pitch],
-                random.choice([1.0, 1.5, 2.0, 2.5]),
-                "pp",
-            )
-            for klang in klang_list
-        ]
-    )
-    melody[-1].duration = 3
-
-    for n in melody:
-        n.notation_indicator_collection.duration_line.is_active = True
-
-    v_event = core_events.TaggedSimultaneousEvent([melody], tag=tag)
+    sequential_event = make_sequential_event(klang_list, random, instrument)
+    v_event = core_events.TaggedSimultaneousEvent([sequential_event], tag=tag)
 
     start_range = ranges.Range(
         duration * (start_percentage * 0.95), duration * start_percentage
@@ -107,6 +94,42 @@ def get_klang_list(modal_event_to_convert, scale, instrument, duration):
     klang_list = klang_interpolation_list[difference_tuple.index(min(difference_tuple))]
 
     return klang_list
+
+
+def make_sequential_event(klang_list, random, instrument):
+    sequential_event = core_events.SequentialEvent(
+        [
+            music_events.NoteLike(
+                [klang.main_string_pitch, klang.side_string_pitch],
+                random.choice([1.0, 1.5, 2.0, 2.5]),
+                "pp",
+            )
+            for klang in klang_list
+        ]
+    )
+    sequential_event[-1].duration = 3
+
+    started_with_empty_string = start_with_empty_string(sequential_event, instrument, klang_list)
+
+    for i, n in enumerate(sequential_event):
+        if i == 0 and started_with_empty_string:
+            continue
+        n.notation_indicator_collection.duration_line.is_active = True
+
+    return sequential_event
+
+
+def start_with_empty_string(sequential_event, instrument, klang_list):
+    if klang_list[0].side_string_pitch in [s.tuning for s in instrument.string_tuple]:
+        sequential_event[0].duration *= 1.5
+        sequential_event.split_child_at(sequential_event[0].duration / 2)
+        n_empty_string = sequential_event[0]
+        n_empty_string.pitch_list = [klang_list[0].side_string_pitch]
+        n_empty_string.playing_indicator_collection.tie.is_active = True
+        # Tie only works if duration isn't too long, because
+        # otherwise 'mutwo.abjad' adds 's' inbetween and Lilypond
+        # won't tie over 'Skips'.
+        n_empty_string.duration = fractions.Fraction(1, 1)
 
 
 def range_(start, end):
