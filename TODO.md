@@ -1,7 +1,7 @@
-- intersect partbooks with notation/poetry line
-- switch violin to viola/cello
-- illustrate harp scordatura
+- structural: the last part of  a gatra must be longer, e.g.
+
+    0 1 0 (1)   => the last 1 must be double long than the previous three parts
+
+
 - illustrate viola scordatra
 - illustrate glockenspiel scordatra
-- always notate 2 harp staves even if only 1 is used
-- don't notate dynamics
