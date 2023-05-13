@@ -5,7 +5,6 @@ import ranges
 
 from mutwo import clock_events
 from mutwo import core_events
-from mutwo import core_parameters
 
 
 def apply_clock_events(
@@ -46,12 +45,12 @@ def index_to_duration_range(index):
     r = ranges.Range
     match index % 4:
         case 0:
-            return r(20, 35)
+            return r(30, 45)
         case 1:
-            return r(30, 55)
+            return r(40, 65)
         case 2:
-            return r(20, 35)
+            return r(30, 45)
         case 3:
-            return r(45, 65)
+            return r(55, 95)
         case _:
             raise RuntimeError()

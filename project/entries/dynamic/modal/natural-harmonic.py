@@ -1,3 +1,4 @@
+import fractions
 import itertools
 import operator
 import ranges
@@ -7,6 +8,7 @@ from mutwo import core_events
 from mutwo import music_events
 from mutwo import music_parameters
 from mutwo import project_events
+from mutwo import project_utilities
 from mutwo import timeline_interfaces
 
 
@@ -89,7 +91,7 @@ def main(
 
     if activity_level(pizzicato_level):
         cpoint = "pizzicato"
-        repetition_count_range = ranges.Range(3, 6)
+        repetition_count_range = ranges.Range(1, 3)
         simultaneous_event.repetition_count_range = repetition_count_range
         simultaneous_event[0].repetition_count_range = repetition_count_range
     else:
@@ -99,8 +101,11 @@ def main(
     note.playing_indicator_collection.string_contact_point.contact_point = cpoint
 
     duration = context.modal_event.clock_event.duration
-    start_range = ranges.Range(duration * 0.05, duration * 0.1)
-    end_range = ranges.Range(duration * 0.95, duration * 0.985)
+
+    real_duration = fractions.Fraction(24, 16)
+    if real_duration > duration:
+        real_duration = duration
+    start_range, end_range = project_utilities.get_ranges(real_duration, duration, 0.5)
 
     return timeline_interfaces.EventPlacement(
         simultaneous_event, start_range, end_range

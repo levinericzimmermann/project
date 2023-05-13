@@ -4,14 +4,19 @@ import ranges
 
 from mutwo import clock_events
 from mutwo import core_events
+from mutwo import diary_interfaces
 from mutwo import music_events
 from mutwo import project_parameters
+from mutwo import project_utilities
 from mutwo import timeline_interfaces
 
 
 def is_supported(context, **kwargs):
     try:
+        assert isinstance(context, diary_interfaces.ModalContext0)
         assert isinstance(context_to_instrument(context), project_parameters.V)
+        assert context.modal_event.start_pitch != context.modal_event.end_pitch
+        assert context.index % 3 == 0
     except AssertionError:
         return False
     return True
@@ -25,12 +30,11 @@ def main(
     tag = instrument.name
     duration = modal_event_to_convert.clock_event.duration
 
-    start_percentage = 0.1
-    # start_percentage = random.uniform(0.1, 0.3)
-    end_percentage = 0.885
-    # end_percentage = random.uniform(0.8, 0.92)
+    real_duration = fractions.Fraction(30, 16)
+    if real_duration > duration:
+        real_duration = duration
 
-    real_duration = (duration * end_percentage) - (duration * start_percentage)
+    start_range, end_range = project_utilities.get_ranges(real_duration, duration, 0.5)
 
     scale = modal_event_to_convert.scale
     klang_list = get_klang_list(
@@ -40,13 +44,6 @@ def main(
         klang_list, random, instrument, activity_level
     )
     v_event = core_events.TaggedSimultaneousEvent([sequential_event], tag=tag)
-
-    start_range = ranges.Range(
-        duration * (start_percentage * 0.95), duration * start_percentage
-    )
-    end_range = ranges.Range(
-        duration * (end_percentage * 0.95), duration * end_percentage
-    )
 
     return timeline_interfaces.EventPlacement(
         core_events.SimultaneousEvent([v_event]), start_range, end_range
@@ -87,12 +84,19 @@ def get_klang_list(modal_event_to_convert, scale, instrument, duration):
         klang_list = [
             instrument.v_klang_tuple[i]
             for i in range_(start_klang_index, end_klang_index)
+            # if instrument.v_klang_tuple[i].main_string_pitch in scale.pitch_tuple
         ]
+        if klang_list[0].side_string_pitch not in [
+            s.tuning for s in instrument.string_tuple
+        ]:
+            continue
         klang_interpolation_list.append(tuple(klang_list))
 
     event_count = duration_to_event_count(duration)
     klang_count_tuple = tuple(len(k) for k in klang_interpolation_list)
     difference_tuple = tuple(abs(event_count - kc) for kc in klang_count_tuple)
+
+    # best_klang_interpolations = [klang_interpolation_list[i] for i, d in enumerate(difference_tuple) if i == min(difference_tuple)]
     klang_list = klang_interpolation_list[difference_tuple.index(min(difference_tuple))]
 
     return klang_list
@@ -103,8 +107,8 @@ def make_sequential_event(klang_list, random, instrument, activity_level):
         [
             music_events.NoteLike(
                 [klang.main_string_pitch, klang.side_string_pitch],
-                random.choice([1.0, 1.5, 2.0, 2.5]),
-                "pp",
+                random.choice([1.75, 2.0, 2.5]),
+                "mf",
             )
             for klang in klang_list
         ]
@@ -112,12 +116,12 @@ def make_sequential_event(klang_list, random, instrument, activity_level):
     sequential_event[-1].duration = 4
 
     for n in sequential_event:
-        n.playing_indicator_collection.string_contact_point.name = "ordinario"
+        n.playing_indicator_collection.string_contact_point.contact_point = "ordinario"
 
     # Order matters!
     add_pizzicato(sequential_event, klang_list, instrument)
     remove_side_pitch(sequential_event, klang_list, activity_level)
-    add_arpeggio(sequential_event, klang_list, activity_level)
+    # add_arpeggio(sequential_event, klang_list, activity_level)
     add_bend_after(sequential_event)
 
     started_with_empty_string = start_with_empty_string(
@@ -128,7 +132,7 @@ def make_sequential_event(klang_list, random, instrument, activity_level):
         if i == 0 and started_with_empty_string:
             continue
         if (
-            n.playing_indicator_collection.string_contact_point.name != "pizzicato"
+            n.playing_indicator_collection.string_contact_point.contact_point != "pizzicato"
             and n.playing_indicator_collection.bend_after.bend_amount is None
         ):
             n.notation_indicator_collection.duration_line.is_active = True
@@ -167,14 +171,14 @@ def add_pizzicato(sequential_event, klang_list, instrument):
             s.tuning for s in instrument.string_tuple
         ]:
             n.pitch_list = klang_list[0].main_string_pitch
-            n.playing_indicator_collection.string_contact_point.name = "pizzicato"
+            n.playing_indicator_collection.string_contact_point.contact_point = "pizzicato"
 
 
 def add_bend_after(sequential_event):
     # If two pitches repeat, the second pitch should do something different: a
     # glissando seems to be suitable.
     for n0, n1, n2 in zip(sequential_event, sequential_event[1:], sequential_event[2:]):
-        if n1.playing_indicator_collection.string_contact_point.name == "pizzicato":
+        if n1.playing_indicator_collection.string_contact_point.contact_point == "pizzicato":
             continue
         if len(n1.pitch_list) == 1 and n1.pitch_list[0] in n0.pitch_list:
             # If next pitch goes higher, we go down, and upside down.

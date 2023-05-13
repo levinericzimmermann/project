@@ -1,9 +1,11 @@
+import ranges
+
 from mutwo import core_events
 from mutwo import music_events
 from mutwo import music_parameters
 
 
-__all__ = ("split_harp",)
+__all__ = ("split_harp", "get_ranges")
 
 
 def split_harp(
@@ -47,3 +49,19 @@ def split_harp(
                 )
 
     return core_events.TaggedSimultaneousEvent([right, left], tag=tag)
+
+
+# balance:
+#   0.0: all delay at the end
+#   0.5: equal at the beginning and at the end
+#   1.0: all delay at the beginning
+def get_ranges(needed_duration, duration, balance):
+    assert balance >= 0 and balance <= 1
+
+    remaining = duration - needed_duration
+    assert remaining >= 0
+
+    left, right = remaining * balance, remaining * (1 - balance)
+    right = duration - right
+    # return ranges.Range(left, left * 0.01), ranges.Range(right * 0.99, right)
+    return left, right

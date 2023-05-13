@@ -22,6 +22,12 @@ def main(
     modal_event_to_convert = context.modal_event
     instrument = context.orchestration[0]
     tag = instrument.name
+    duration = modal_event_to_convert.clock_event.duration
+
+    real_duration = fractions.Fraction(25, 16)
+    if real_duration > duration:
+        real_duration = duration
+    start_range, end_range = project_utilities.get_ranges(real_duration, duration, 0.5)
 
     last_duration = 4
 
@@ -53,10 +59,6 @@ def main(
     harp_event = project_utilities.split_harp(melody, tag)
     for hand in harp_event:
         add_accent(hand, scale, end_pitch, has_inversion, activity_level)
-
-    duration = modal_event_to_convert.clock_event.duration
-    start_range = ranges.Range(duration * 0, duration * 0.3)
-    end_range = ranges.Range(duration * 0.7, duration * 0.98)
 
     return timeline_interfaces.EventPlacement(
         core_events.SimultaneousEvent([harp_event]), start_range, end_range

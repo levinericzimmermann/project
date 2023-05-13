@@ -1,9 +1,12 @@
+import fractions
+
 import ranges
 
 from mutwo import core_events
 from mutwo import clock_events
 from mutwo import diary_interfaces
 from mutwo import music_parameters
+from mutwo import project_utilities
 from mutwo import timeline_interfaces
 
 
@@ -41,8 +44,10 @@ def main(context, tremolo_middle, tremolo_long, grace, hit, random, **kwargs):
             raise RuntimeError()
 
     duration = context.modal_event.clock_event.duration
-    start_range = ranges.Range(duration * 0.05, duration * 0.1)
-    end_range = ranges.Range(duration * 0.95, duration * 0.985)
+    real_duration = fractions.Fraction(25, 16)
+    if real_duration > duration:
+        real_duration = duration
+    start_range, end_range = project_utilities.get_ranges(real_duration, duration, 0)
 
     return timeline_interfaces.EventPlacement(
         core_events.SimultaneousEvent([clock_event]), start_range, end_range

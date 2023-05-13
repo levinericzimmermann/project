@@ -1,8 +1,10 @@
+import fractions
 import ranges
 
 from mutwo import clock_events
 from mutwo import core_events
 from mutwo import music_events
+from mutwo import project_utilities
 from mutwo import timeline_interfaces
 
 
@@ -16,6 +18,10 @@ def is_supported(context, dyad, **kwargs):
         pitch_tuple = get_pitch_tuple(context)
     except AttributeError:
         return False
+
+    if context.index % 3 == 0:
+        return False
+
     return dyad.is_supported(
         context, pitch=pitch_tuple[0], **kwargs
     ) and dyad.is_supported(context, pitch=pitch_tuple[1], **kwargs)
@@ -29,6 +35,13 @@ def main(context, dyad, random, **kwargs) -> timeline_interfaces.EventPlacement:
     modal_event_to_convert = context.modal_event
     instrument = context.orchestration[0]
     tag = instrument.name
+    duration = modal_event_to_convert.clock_event.duration
+
+    real_duration = fractions.Fraction(20, 16)
+    if real_duration > duration:
+        real_duration = duration
+
+    start_range, end_range = project_utilities.get_ranges(real_duration, duration, 0.5)
 
     melody = core_events.SequentialEvent(
         [
@@ -44,10 +57,6 @@ def main(context, dyad, random, **kwargs) -> timeline_interfaces.EventPlacement:
     simultaneous_event = core_events.SimultaneousEvent(
         [core_events.TaggedSimultaneousEvent([melody], tag=tag)]
     )
-
-    duration = modal_event_to_convert.clock_event.duration
-    start_range = ranges.Range(duration * 0.1, duration * 0.2)
-    end_range = ranges.Range(duration * 0.7, duration * 0.9)
 
     return timeline_interfaces.EventPlacement(
         simultaneous_event,
