@@ -4,7 +4,6 @@ import numpy as np
 import ranges
 
 from mutwo import clock_converters
-from mutwo import clock_events
 from mutwo import clock_interfaces
 from mutwo import core_events
 from mutwo import core_parameters
@@ -42,6 +41,7 @@ def midi(clock_tuple: tuple[clock_interfaces.Clock, ...]):
             project_converters.TremoloConverter(0.21, 1.25),
             project_converters.ClusterConverter(project.constants.SCALE),
             project_converters.FlageoletConverter(),
+            project_converters.BendAfterConverter(),
         )
     )
 

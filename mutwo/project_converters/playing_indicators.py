@@ -9,7 +9,12 @@ from mutwo import core_parameters
 from mutwo import music_converters
 from mutwo import music_parameters
 
-__all__ = ("TremoloConverter", "ClusterConverter", "FlageoletConverter")
+__all__ = (
+    "TremoloConverter",
+    "ClusterConverter",
+    "FlageoletConverter",
+    "BendAfterConverter",
+)
 
 
 class TremoloConverter(music_converters.PlayingIndicatorConverter):
@@ -185,3 +190,45 @@ class FlageoletConverter(music_converters.PlayingIndicatorConverter):
     @property
     def default_playing_indicator(self) -> music_parameters.abc.PlayingIndicator:
         return music_parameters.abc.ExplicitPlayingIndicator()
+
+
+class BendAfterConverter(music_converters.PlayingIndicatorConverter):
+    def __init__(
+        self,
+        simple_event_to_playing_indicator_collection: typing.Callable[
+            [core_events.SimpleEvent],
+            music_parameters.PlayingIndicatorCollection,
+        ] = music_converters.SimpleEventToPlayingIndicatorCollection(),
+    ):
+        super().__init__(simple_event_to_playing_indicator_collection)
+
+    def _apply_playing_indicator(
+        self,
+        simple_event_to_convert: core_events.SimpleEvent,
+        playing_indicator: music_parameters.BendAfter,
+    ) -> core_events.SequentialEvent[core_events.SimpleEvent]:
+        sequential_event = core_events.SequentialEvent([])
+        simple_event_to_convert = simple_event_to_convert.copy()
+        if playing_indicator.bend_amount > 0:
+            i = music_parameters.DirectPitchInterval(50)
+        else:
+            i = music_parameters.DirectPitchInterval(-50)
+        for p in simple_event_to_convert.pitch_list:
+            p.envelope = [
+                [0, music_parameters.DirectPitchInterval(0)],
+                [
+                    simple_event_to_convert.duration * 0.5,
+                    music_parameters.DirectPitchInterval(0),
+                ],
+                [simple_event_to_convert.duration, i],
+            ]
+        sequential_event.append(simple_event_to_convert)
+        return sequential_event
+
+    @property
+    def playing_indicator_name(self) -> str:
+        return "bend_after"
+
+    @property
+    def default_playing_indicator(self) -> music_parameters.abc.PlayingIndicator:
+        return music_parameters.BendAfter()
