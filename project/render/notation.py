@@ -236,6 +236,10 @@ def v_converter():
                 pass
             else:
                 abjad.attach(abjad.Clef("bass"), first_leaf)
+                abjad.attach(
+                    abjad.LilyPondLiteral(r'\accidentalStyle "dodecaphonic"'),
+                    first_leaf,
+                )
 
     class EventPlacementToAbjadStaffGroup(
         clock_converters.EventPlacementToAbjadStaffGroup
@@ -248,16 +252,15 @@ def v_converter():
 
             return super().convert(event_placement, *args, **kwargs)
 
-    complex_event_to_abjad_container = (
-        clock_generators.make_complex_event_to_abjad_container(
-            duration_line=True,
-            sequential_event_to_abjad_staff_kwargs=dict(
-                mutwo_volume_to_abjad_attachment_dynamic=None,
-                post_process_abjad_container_routine_sequence=(
-                    PostProcessSequentialEvent(),
-                ),
+    complex_event_to_abjad_container = clock_generators.make_complex_event_to_abjad_container(
+        duration_line=True,
+        sequential_event_to_abjad_staff_kwargs=dict(
+            mutwo_volume_to_abjad_attachment_dynamic=None,
+            post_process_abjad_container_routine_sequence=(
+                PostProcessSequentialEvent(),
             ),
-        )
+            mutwo_pitch_to_abjad_pitch=abjad_converters.MutwoPitchToHEJIAbjadPitch(),
+        ),
     )
 
     v_tag = project.constants.ORCHESTRATION.V.name
@@ -428,6 +431,7 @@ def _notation(instrument, clock_tuple, executor, omit_notation):
     ).convert(abjad_score_block_list)
 
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ar.ily"')
+    lilypond_file.items.insert(0, r'\include "etc/lilypond/ekme-heji.ily"')
 
     executor.submit(abjad.persist.as_pdf, lilypond_file, notation_path)
     return notation_path
