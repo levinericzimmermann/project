@@ -84,6 +84,19 @@ diary_interfaces.DynamicEntry.from_file(
     relevance=50,
 )
 
+
+diary_interfaces.DynamicEntry.from_file(
+    "scale-event-chord-instruments",
+    diary_interfaces.ModalContext0.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/scale-event-chord-instruments.py",
+    abbreviation_to_path_dict=dict(
+        alternating_scale_chords=alternating_scale_chords.path
+    ),
+    relevance=5,
+)
+
 diary_interfaces.DynamicEntry.from_file(
     "two-dyads",
     diary_interfaces.ModalContext0.identifier,
