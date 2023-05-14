@@ -16,11 +16,6 @@ import project
 MAX_DENOMINATOR = 100000
 
 
-def run(f):
-    return f()
-
-
-@run
 def clock_event_to_abjad_staff_group():
     class PostProcessClockSequentialEvent(
         abjad_converters.ProcessAbjadContainerRoutine
@@ -60,7 +55,6 @@ def clock_event_to_abjad_staff_group():
     )
 
 
-@run
 def pclock_tag_to_converter():
     class PostProcessClockSequentialEvent(
         abjad_converters.ProcessAbjadContainerRoutine
@@ -143,7 +137,6 @@ def pclock_tag_to_converter():
     }
 
 
-@run
 def harp_converter():
     class PostProcessHarpSequentialEvent(abjad_converters.ProcessAbjadContainerRoutine):
         def __call__(
@@ -215,11 +208,10 @@ def harp_converter():
             max_denominator=MAX_DENOMINATOR,
         )
     }
-    harp_converter.update(pclock_tag_to_converter)
+    harp_converter.update(pclock_tag_to_converter())
     return harp_converter
 
 
-@run
 def v_converter():
     v_tag = project.constants.ORCHESTRATION.V.name
 
@@ -272,11 +264,10 @@ def v_converter():
             max_denominator=MAX_DENOMINATOR,
         ),
     }
-    v_converter.update(pclock_tag_to_converter)
+    v_converter.update(pclock_tag_to_converter())
     return v_converter
 
 
-@run
 def glockenspiel_converter():
     glockenspiel_tag = project.constants.ORCHESTRATION.GLOCKENSPIEL.name
 
@@ -334,7 +325,7 @@ def glockenspiel_converter():
             max_denominator=MAX_DENOMINATOR,
         ),
     }
-    glockenspiel_converter.update(pclock_tag_to_converter)
+    glockenspiel_converter.update(pclock_tag_to_converter())
     return glockenspiel_converter
 
 
@@ -369,7 +360,7 @@ def _notation(instrument, clock_tuple, executor, omit_notation):
 
     converter_name = f"{instrument.name}_converter"
     try:
-        tag_to_abjad_staff_group_converter = globals()[converter_name]
+        tag_to_abjad_staff_group_converter = globals()[converter_name]()
     except KeyError:
         return
 
@@ -377,7 +368,7 @@ def _notation(instrument, clock_tuple, executor, omit_notation):
 
     clock_to_abjad_score = clock_converters.ClockToAbjadScore(
         tag_to_abjad_staff_group_converter,
-        clock_event_to_abjad_staff_group=clock_event_to_abjad_staff_group,
+        clock_event_to_abjad_staff_group=clock_event_to_abjad_staff_group(),
     )
 
     abjad_score_block_list = []
