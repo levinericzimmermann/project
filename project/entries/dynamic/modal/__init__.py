@@ -31,6 +31,16 @@ dyad = diary_interfaces.DynamicEntry.from_file(
     relevance=1,
 )
 
+alternating_scale_chords = diary_interfaces.DynamicEntry.from_file(
+    "alternating-scale-chords",
+    diary_interfaces.ModalContext0.identifier,
+    tuple[tuple[music_parameters.abc.Pitch, ...], ...],
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/alternating-scale-chords.py",
+    abbreviation_to_path_dict=dict(scale=scale.path),
+    relevance=1,
+)
+
 scale_harp = diary_interfaces.DynamicEntry.from_file(
     "scale-harp",
     diary_interfaces.ModalContext0.identifier,
