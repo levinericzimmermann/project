@@ -55,7 +55,7 @@ def clock_event_to_abjad_staff_group():
     )
 
 
-def pclock_tag_to_converter():
+def _pclock_tag_to_converter(small=True):
     class PostProcessClockSequentialEvent(
         abjad_converters.ProcessAbjadContainerRoutine
     ):
@@ -70,6 +70,8 @@ def pclock_tag_to_converter():
             except IndexError:
                 pass
             else:
+                if small:
+                    _make_small(first_leaf)
                 abjad.attach(abjad.Clef("percussion"), first_leaf)
                 abjad.attach(
                     abjad.LilyPondLiteral(
@@ -137,7 +139,7 @@ def pclock_tag_to_converter():
     }
 
 
-def harp_converter():
+def _harp_converter(small=False):
     class PostProcessHarpSequentialEvent(abjad_converters.ProcessAbjadContainerRoutine):
         def __call__(
             self,
@@ -150,8 +152,8 @@ def harp_converter():
             except IndexError:
                 pass
             else:
-                # fill with custom code...
-                pass
+                if small:
+                    _make_small(first_leaf)
 
     complex_event_to_abjad_container = (
         clock_generators.make_complex_event_to_abjad_container(
@@ -208,11 +210,10 @@ def harp_converter():
             max_denominator=MAX_DENOMINATOR,
         )
     }
-    harp_converter.update(pclock_tag_to_converter())
     return harp_converter
 
 
-def v_converter():
+def _v_converter(small=False):
     v_tag = project.constants.ORCHESTRATION.V.name
 
     class PostProcessSequentialEvent(abjad_converters.ProcessAbjadContainerRoutine):
@@ -227,6 +228,8 @@ def v_converter():
             except IndexError:
                 pass
             else:
+                if small:
+                    _make_small(first_leaf)
                 abjad.attach(abjad.Clef("bass"), first_leaf)
                 abjad.attach(
                     abjad.LilyPondLiteral(r'\accidentalStyle "dodecaphonic"'),
@@ -264,12 +267,10 @@ def v_converter():
             max_denominator=MAX_DENOMINATOR,
         ),
     }
-    v_converter.update(pclock_tag_to_converter())
-
     return v_converter
 
 
-def glockenspiel_converter():
+def _glockenspiel_converter(small=False):
     glockenspiel_tag = project.constants.ORCHESTRATION.GLOCKENSPIEL.name
 
     class PostProcessSequentialEvent(abjad_converters.ProcessAbjadContainerRoutine):
@@ -284,6 +285,8 @@ def glockenspiel_converter():
             except IndexError:
                 pass
             else:
+                if small:
+                    _make_small(first_leaf)
                 abjad.attach(abjad.Clef("treble^15"), first_leaf)
 
     class EventPlacementToAbjadStaffGroup(
@@ -326,8 +329,40 @@ def glockenspiel_converter():
             max_denominator=MAX_DENOMINATOR,
         ),
     }
-    glockenspiel_converter.update(pclock_tag_to_converter())
     return glockenspiel_converter
+
+
+def harp_converter():
+    converter_dict = _harp_converter()
+    for c in (
+        _pclock_tag_to_converter(small=True),
+        _glockenspiel_converter(small=True),
+        _v_converter(small=True),
+    ):
+        converter_dict.update(c)
+    return converter_dict
+
+
+def v_converter():
+    converter_dict = _v_converter()
+    for c in (
+        _pclock_tag_to_converter(small=True),
+        _glockenspiel_converter(small=True),
+        _harp_converter(small=True),
+    ):
+        converter_dict.update(c)
+    return converter_dict
+
+
+def glockenspiel_converter():
+    converter_dict = _glockenspiel_converter()
+    for c in (
+        _pclock_tag_to_converter(small=False),
+        _v_converter(small=True),
+        _harp_converter(small=True),
+    ):
+        converter_dict.update(c)
+    return converter_dict
 
 
 abjad_score_to_abjad_score_block = clock_converters.AbjadScoreToAbjadScoreBlock()
@@ -493,4 +528,10 @@ def _add_intro(path_notation, path_with_intro):
             "output",
             path_with_intro,
         ]
+    )
+
+
+def _make_small(leaf, magnification_size=-2):
+    abjad.attach(
+        abjad.LilyPondLiteral(rf"\magnifyStaff #(magstep {magnification_size})"), leaf
     )
