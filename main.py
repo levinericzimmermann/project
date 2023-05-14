@@ -82,7 +82,12 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
     ).convert(modal_sequential_event)
 
     # Fix overlaps
-    main_clock_line.resolve_conflicts([timeline_interfaces.AlternatingStrategy()])
+    main_clock_line.resolve_conflicts(
+        [
+            timeline_interfaces.TagCountStrategy(),
+            timeline_interfaces.AlternatingStrategy()
+        ]
+    )
 
     start_clock_line = (
         _clock_rest(before_rest_duration) if before_rest_duration > 0 else None
