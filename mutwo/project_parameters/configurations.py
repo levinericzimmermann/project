@@ -74,3 +74,13 @@ DEFAULT_V_DICT = dict(
         ),
     ),
 )
+
+
+DEFAULT_INFINITE_PITCHED_INSTRUMENT_DICT = dict(
+    name="infinite pitched instrument",
+    short_name="i.",
+    pitch_ambitus=music_parameters.OctaveAmbitus(
+        music_parameters.WesternPitch("c", 0),
+        music_parameters.WesternPitch("c", 12),
+    ),
+)
