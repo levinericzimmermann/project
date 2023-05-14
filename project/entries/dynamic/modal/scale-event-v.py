@@ -30,7 +30,7 @@ def main(
     tag = instrument.name
     duration = modal_event_to_convert.clock_event.duration
 
-    real_duration = fractions.Fraction(30, 16)
+    real_duration = fractions.Fraction(37, 16)
     if real_duration > duration:
         real_duration = duration
 
@@ -208,4 +208,4 @@ def duration_to_event_count(duration):
 
 
 # For 7 seconds 1 attack
-density = (fractions.Fraction(7, 16), 1)
+density = (fractions.Fraction(9, 16), 1)
