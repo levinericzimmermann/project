@@ -365,6 +365,17 @@ def glockenspiel_converter():
     return converter_dict
 
 
+def score_converter():
+    converter_dict = _glockenspiel_converter(small=True)
+    for c in (
+        _pclock_tag_to_converter(small=True),
+        _v_converter(small=True),
+        _harp_converter(small=True),
+    ):
+        converter_dict.update(c)
+    return converter_dict
+
+
 abjad_score_to_abjad_score_block = clock_converters.AbjadScoreToAbjadScoreBlock()
 instrument_note_like_to_pitched_note_like = (
     project_converters.InstrumentNoteLikeToPitchedNoteLike(
@@ -402,6 +413,16 @@ def notation(clock_tuple, notate_item):
                 (
                     project.constants.ORCHESTRATION.PCLOCK.name,
                     project.constants.ORCHESTRATION.GLOCKENSPIEL.name,
+                ),
+            ),
+            (
+                "score",
+                score_converter(),
+                (
+                    project.constants.ORCHESTRATION.PCLOCK.name,
+                    project.constants.ORCHESTRATION.GLOCKENSPIEL.name,
+                    project.constants.ORCHESTRATION.V.name,
+                    project.constants.ORCHESTRATION.HARP.name,
                 ),
             ),
         ):
