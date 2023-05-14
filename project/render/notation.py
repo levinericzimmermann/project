@@ -373,7 +373,7 @@ instrument_note_like_to_pitched_note_like = (
 )
 
 
-def notation(clock_tuple):
+def notation(clock_tuple, notate_item):
     # set to true if you only want score creation but not expensive notation render
     omit_notation = False
 
@@ -405,6 +405,8 @@ def notation(clock_tuple):
                 ),
             ),
         ):
+            if notate_item not in ("all", name):
+                continue
             if p := _notation(
                 name,
                 tag_to_abjad_staff_group_converter,

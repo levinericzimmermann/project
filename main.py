@@ -132,7 +132,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(prog="project")
     parser.add_argument("-i", "--illustration", action="store_true")
-    parser.add_argument("-n", "--notation", action="store_true")
+    parser.add_argument("-n", "--notation", default="all")
     parser.add_argument("-s", "--sound", action="store_true")
     parser.add_argument("-m", "--max-index", default=16)
 
@@ -155,7 +155,7 @@ if __name__ == "__main__":
     clock_tuple = tuple(clock_list)
 
     if args.notation:
-        project.render.notation(clock_tuple)
+        project.render.notation(clock_tuple, args.notation)
 
     if args.sound:
         project.render.midi(clock_tuple)
