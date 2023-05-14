@@ -265,6 +265,7 @@ def v_converter():
         ),
     }
     v_converter.update(pclock_tag_to_converter())
+
     return v_converter
 
 
@@ -343,14 +344,36 @@ def notation(clock_tuple):
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         path_list = []
-        for name, tag_to_abjad_staff_group_converter in (
-            ("v", v_converter()),
-            ("harp", harp_converter()),
-            ("glockenspiel", glockenspiel_converter()),
+        for name, tag_to_abjad_staff_group_converter, tag_tuple in (
+            (
+                "v",
+                v_converter(),
+                (
+                    project.constants.ORCHESTRATION.PCLOCK.name,
+                    project.constants.ORCHESTRATION.V.name,
+                ),
+            ),
+            (
+                "harp",
+                harp_converter(),
+                (
+                    project.constants.ORCHESTRATION.PCLOCK.name,
+                    project.constants.ORCHESTRATION.HARP.name,
+                ),
+            ),
+            (
+                "glockenspiel",
+                glockenspiel_converter(),
+                (
+                    project.constants.ORCHESTRATION.PCLOCK.name,
+                    project.constants.ORCHESTRATION.GLOCKENSPIEL.name,
+                ),
+            ),
         ):
             if p := _notation(
                 name,
                 tag_to_abjad_staff_group_converter,
+                tag_tuple,
                 clock_tuple,
                 executor,
                 omit_notation,
@@ -363,7 +386,12 @@ def notation(clock_tuple):
 
 
 def _notation(
-    name, tag_to_abjad_staff_group_converter, clock_tuple, executor, omit_notation
+    name,
+    tag_to_abjad_staff_group_converter,
+    tag_tuple,
+    clock_tuple,
+    executor,
+    omit_notation,
 ):
     notation_path = f"builds/notations/{project.constants.TITLE}_{name}.pdf"
 
@@ -390,15 +418,7 @@ def _notation(
                         clock_line.clock_event
                     )
                 )
-        abjad_score = clock_to_abjad_score.convert(
-            clock,
-            tag_tuple=(
-                project.constants.ORCHESTRATION.PCLOCK.name,
-                project.constants.ORCHESTRATION.GLOCKENSPIEL.name,
-                project.constants.ORCHESTRATION.HARP.name,
-                project.constants.ORCHESTRATION.V.name,
-            ),
-        )
+        abjad_score = clock_to_abjad_score.convert(clock, tag_tuple=tag_tuple)
 
         # We get lilypond error for harp:
         #   Interpreting music...[8][16][24]ERROR: Wrong type (expecting exact integer): ()
