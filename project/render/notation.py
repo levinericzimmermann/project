@@ -343,8 +343,18 @@ def notation(clock_tuple):
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         path_list = []
-        for instrument in project.constants.ORCHESTRATION:
-            if p := _notation(instrument, clock_tuple, executor, omit_notation):
+        for name, tag_to_abjad_staff_group_converter in (
+            ("v", v_converter()),
+            ("harp", harp_converter()),
+            ("glockenspiel", glockenspiel_converter()),
+        ):
+            if p := _notation(
+                name,
+                tag_to_abjad_staff_group_converter,
+                clock_tuple,
+                executor,
+                omit_notation,
+            ):
                 path_list.append(p)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -352,19 +362,15 @@ def notation(clock_tuple):
             _score(path, executor)
 
 
-def _notation(instrument, clock_tuple, executor, omit_notation):
-    notation_path = f"builds/notations/{project.constants.TITLE}_{instrument.name}.pdf"
+def _notation(
+    name, tag_to_abjad_staff_group_converter, clock_tuple, executor, omit_notation
+):
+    notation_path = f"builds/notations/{project.constants.TITLE}_{name}.pdf"
 
     if omit_notation:
         return notation_path
 
-    converter_name = f"{instrument.name}_converter"
-    try:
-        tag_to_abjad_staff_group_converter = globals()[converter_name]()
-    except KeyError:
-        return
-
-    print("\n\nNotate", instrument.name)
+    print("\n\nNotate", name)
 
     clock_to_abjad_score = clock_converters.ClockToAbjadScore(
         tag_to_abjad_staff_group_converter,
@@ -399,7 +405,7 @@ def _notation(instrument, clock_tuple, executor, omit_notation):
         consist_timing_translator = True
         # We get lilypond error for v:
         #   Drawing systems...lilypond: skyline.cc:100: Building::Building(Real, Real, Real, Real): Assertion `start_height == end_height' failed.
-        if instrument.name == "v":
+        if name == "v":
             consist_timing_translator = False
 
         abjad_score_block = abjad_score_to_abjad_score_block.convert(
