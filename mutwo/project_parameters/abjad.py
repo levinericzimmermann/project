@@ -64,7 +64,7 @@ class Tremolo(abjad_parameters.abc.BangEachAttachment):
     def _add_varying_tremolo(self, leaf: abjad.Leaf):
         leaf_sequence = abjad.Container([abjad.mutate.copy(leaf)])
         leaf_duration = fractions.Fraction(1, 8)
-        line_length = int(leaf.written_duration / leaf_duration) * 2
+        line_length = int(leaf.written_duration / leaf_duration) * 0.5
         difference = leaf.written_duration - leaf_duration
         assert difference >= 0
         leaf_sequence[0].written_duration = leaf_duration
@@ -179,7 +179,7 @@ class NoteHead(abjad_parameters.abc.BangEachAttachment):
                 "\n"
                 r"\once \override NoteHead.text = \markup {"
                 "\n\t"
-                rf'{self.indicator.markup_content}'
+                rf"{self.indicator.markup_content}"
                 "\n"
                 "}"
             ),
