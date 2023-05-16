@@ -24,7 +24,7 @@ def main(
     no = n.notation_indicator_collection
     no.rhythmic_information.activity = True
     pl = n.playing_indicator_collection
-    pl.tremolo.flag_count = 32
+    pl.tremolo.flag_count = 32  # XXX: Need to be set, otherwise is not printed.
     pl.tremolo.dynamic = tremolo_dynamic
     r = note(context, min_duration=min_rest_duration, max_duration=max_rest_duration)
     return clock(context, event_list=[n, r])
