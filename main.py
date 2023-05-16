@@ -52,6 +52,7 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
             [core_events.SequentialEvent([core_events.SimpleEvent(1)])]
         )
 
+
     main_clock_line = clock_converters.Modal0SequentialEventToClockLine(
         (
             diary_converters.Modal0SequentialEventToEventPlacementTuple(
@@ -74,6 +75,14 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
             ),
             diary_converters.Modal0SequentialEventToEventPlacementTuple(
                 orchestration=project.constants.ORCHESTRATION.get_subset(
+                    "V",
+                    "HARP",
+                    # "GLOCKENSPIEL"
+                ),
+                add_mod1=False,
+            ),
+            diary_converters.Modal0SequentialEventToEventPlacementTuple(
+                orchestration=project.constants.ORCHESTRATION.get_subset(
                     "V", "HARP", "GLOCKENSPIEL"
                 ),
                 add_mod1=False,
@@ -85,7 +94,7 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
     main_clock_line.resolve_conflicts(
         [
             timeline_interfaces.TagCountStrategy(),
-            timeline_interfaces.AlternatingStrategy()
+            timeline_interfaces.AlternatingStrategy(),
         ]
     )
 
@@ -143,7 +152,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(prog="project")
     parser.add_argument("-i", "--illustration", action="store_true")
-    parser.add_argument("-n", "--notation", default="all")
+    parser.add_argument("-n", "--notation", default="")
     parser.add_argument("-s", "--sound", action="store_true")
     parser.add_argument("-m", "--max-index", default=16)
 
