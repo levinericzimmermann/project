@@ -14,6 +14,7 @@ def is_supported(context, tremolo_middle=None, **kwargs):
     try:
         assert isinstance(context, diary_interfaces.ModalContext1)
         assert isinstance(context.modal_event, clock_events.ModalEvent1)
+        assert context.modal_event.pitch is not None
         orchestration = context.orchestration
         assert len(orchestration) == 1
         instrument = orchestration[0]

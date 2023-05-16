@@ -14,6 +14,7 @@ from mutwo import timeline_interfaces
 
 def is_supported(context, pitch=None, **kwargs):
     try:
+        assert context.modal_event.pitch is not None
         assert isinstance(context.modal_event, clock_events.ModalEvent1)
         orchestration = context.orchestration
         assert len(orchestration) == 1

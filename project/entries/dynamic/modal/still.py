@@ -43,6 +43,7 @@ def is_supported(context, **kwargs):
         assert len(orchestration) == 1
         instrument = orchestration[0]
         assert isinstance(instrument, music_parameters.DiscreetPitchedInstrument)
+        assert context.modal_event.pitch is not None
     except AssertionError:
         return False
     return True

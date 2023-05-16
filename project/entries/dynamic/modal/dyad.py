@@ -11,6 +11,8 @@ from mutwo import music_parameters
 def is_supported(context, pitch=None, **kwargs):
     orchestration = context.orchestration
     try:
+        assert context.modal_event.start_pitch is not None
+        assert context.modal_event.end_pitch is not None
         assert len(orchestration) == 1
         instrument = orchestration[0]
         assert instrument.is_pitched

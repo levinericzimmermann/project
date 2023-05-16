@@ -6,6 +6,8 @@ from mutwo import music_parameters
 def is_supported(context, scale, dyad, **kwargs):
     try:
         assert isinstance(context_to_instrument(context), music_parameters.CelticHarp)
+        assert context.modal_event.start_pitch is not None
+        assert context.modal_event.end_pitch is not None
         assert context.index % 3 != 0
     except AssertionError:
         return False
