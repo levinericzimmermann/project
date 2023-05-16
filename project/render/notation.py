@@ -8,6 +8,7 @@ from mutwo import abjad_converters
 from mutwo import clock_converters
 from mutwo import clock_generators
 from mutwo import core_events
+from mutwo import music_parameters
 from mutwo import project_converters
 from mutwo import project_utilities
 
@@ -149,11 +150,13 @@ def _harp_converter(small=False):
             leaf_sequence = abjad.select.leaves(container_to_process)
             try:
                 first_leaf = leaf_sequence[0]
+                last_leaf = leaf_sequence[-1]
             except IndexError:
                 pass
             else:
                 if small:
                     _make_small(first_leaf)
+                abjad.attach(abjad.Ottava(n=0, site="after"), last_leaf)
 
     complex_event_to_abjad_container = (
         clock_generators.make_complex_event_to_abjad_container(
@@ -189,11 +192,25 @@ def _harp_converter(small=False):
 
                 # Split if it hasn't been split yet
                 if (seq_event_count := len(harp_event)) == 1:
-                    event_placement.event[harp_tag] = project_utilities.split_harp(
-                        harp_event[0], harp_tag
-                    )
+                    harp_event = event_placement.event[
+                        harp_tag
+                    ] = project_utilities.split_harp(harp_event[0], harp_tag)
                 elif seq_event_count > 2:
                     warnings.warn("Found harp event with more than 2 SequentialEvent")
+
+                for seq in harp_event:
+                    for note in seq:
+                        octave_count = 0
+                        if note.pitch_list:
+                            if (
+                                mpitch := max(note.pitch_list)
+                            ) > music_parameters.JustIntonationPitch("8/1"):
+                                octave_count = 2
+                            elif mpitch > music_parameters.JustIntonationPitch("5/2"):
+                                octave_count = 1
+                        note.notation_indicator_collection.ottava.octave_count = (
+                            octave_count
+                        )
 
                 # # We usually have a monophonic structure where both hands
                 # # behave equally. So it's sufficient to print the accent in
