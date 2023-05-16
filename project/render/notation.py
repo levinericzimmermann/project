@@ -156,6 +156,7 @@ def _harp_converter(small=False):
             else:
                 if small:
                     _make_small(first_leaf)
+                # Remove potential ottava again, so it doesn't span over all rests etc.
                 abjad.attach(abjad.Ottava(n=0, site="after"), last_leaf)
 
     complex_event_to_abjad_container = (
