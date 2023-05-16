@@ -45,21 +45,30 @@ def is_supported(context, **kwargs):
 
 
 def main(context, scale, **kwargs):
-    pitch_tuple = scale(
-        diary_interfaces.ModalContext0(
-            context.start,
-            context.end,
-            FAKE_ORCHESTRA,
-            modal_event=context.modal_event.copy(),
-        ),
-        **kwargs
+    pitch_tuple_options = tuple(
+        scale(
+            diary_interfaces.ModalContext0(
+                context.start,
+                context.end,
+                FAKE_ORCHESTRA,
+                modal_event=context.modal_event.copy(),
+            ),
+            direction=direction,
+            **kwargs,
+        )
+        for direction in (True, False)
     )
+
+    pitch_count_tuple = tuple(len(p) for p in pitch_tuple_options)
+
+    pitch_tuple = pitch_tuple_options[pitch_count_tuple.index(min(pitch_count_tuple))]
 
     tunable_chord_tuple = get_tunable_chord_tuple(context, pitch_tuple)
     untunable_chord_tuple = get_untunable_chord_tuple(tunable_chord_tuple)
-    return functools.reduce(
+    chord_tuple = functools.reduce(
         operator.add, zip(untunable_chord_tuple, tunable_chord_tuple)
     )
+    return chord_tuple[1:]
 
 
 def get_tunable_chord_tuple(context, pitch_tuple):
