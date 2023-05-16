@@ -132,8 +132,8 @@ SCALE = music_parameters.Scale(
 )
 
 HARP_AMBITUS = music_parameters.OctaveAmbitus(
-    music_parameters.JustIntonationPitch("1/16"),
-    music_parameters.JustIntonationPitch("16/1"),
+    music_parameters.JustIntonationPitch("1/8"),
+    music_parameters.JustIntonationPitch("7/1"),
 )
 
 GLOCKENSPIEL_AMBITUS = music_parameters.OctaveAmbitus(
@@ -157,6 +157,17 @@ RETUNED_INSTRUMENT_INTERVAL_TUPLE = tuple(
 )
 
 # Two simple minor scales starting from 'a'
+
+
+HARP_SCALE = music_parameters.Scale(
+    CONCERT_PITCH_JUST_INTONATION_PITCH,
+    music_parameters.RepeatingScaleFamily(
+        tuple(sorted(GENERATOR_INTERVAL_TUPLE)),
+        repetition_interval=music_parameters.JustIntonationPitch("2/1"),
+        min_pitch_interval=HARP_AMBITUS.minima_pitch,
+        max_pitch_interval=HARP_AMBITUS.maxima_pitch,
+    ),
+)
 
 HARP_WRITTEN_SCALE = music_parameters.Scale(
     CONCERT_PITCH_WESTERN_PITCH,
@@ -182,7 +193,7 @@ GLOCKENSPIEL_WRITTEN_SCALE = music_parameters.Scale(
 center = int(len(SCALE.pitch_tuple) // 2)
 ORCHESTRATION = music_parameters.Orchestration(
     V=project_parameters.V(),
-    HARP=music_parameters.CelticHarp(pitch_tuple=SCALE.pitch_tuple),
+    HARP=music_parameters.CelticHarp(pitch_tuple=HARP_SCALE.pitch_tuple),
     GLOCKENSPIEL=music_parameters.DiscreetPitchedInstrument(
         name="glockenspiel", short_name="g.", pitch_tuple=GLOCKENSPIEL_SCALE.pitch_tuple
     ),
@@ -217,7 +228,7 @@ INSTRUMENT_CLOCK_EVENT_TO_PITCHED_CLOCK_EVENT = (
 
 
 def sounding_harp_pitch_to_written_harp_pitch(harp_pitch):
-    return _sounding_pitch_to_written_pitch(harp_pitch, SCALE, HARP_WRITTEN_SCALE)
+    return _sounding_pitch_to_written_pitch(harp_pitch, HARP_SCALE, HARP_WRITTEN_SCALE)
 
 
 def sounding_glockenspiel_pitch_to_written_glockenspiel_pitch(p):
@@ -227,8 +238,13 @@ def sounding_glockenspiel_pitch_to_written_glockenspiel_pitch(p):
 
 
 def _sounding_pitch_to_written_pitch(pitch, sounding_scale, written_scale):
-    scale_position = sounding_scale.pitch_to_scale_position(pitch)
-    return written_scale.scale_position_to_pitch(scale_position)
+    try:
+        scale_position = sounding_scale.pitch_to_scale_position(pitch)
+        return written_scale.scale_position_to_pitch(scale_position)
+    except Exception as e:
+        print(str(e))
+        return pitch
+
 
 
 def _make_pentatonic_scale_tuple():
