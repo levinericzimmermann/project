@@ -40,8 +40,8 @@ DEFAULT_V_DICT = dict(
     name="v",
     short_name="v.",
     pitch_ambitus=music_parameters.OctaveAmbitus(
-        music_parameters.WesternPitch("c", 3),
-        music_parameters.WesternPitch("a", 6),
+        music_parameters.WesternPitch("c", 2),
+        music_parameters.WesternPitch("a", 4),
     ),
     string_tuple=(
         music_parameters.String(
