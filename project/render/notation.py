@@ -305,7 +305,7 @@ def _glockenspiel_converter(small=False):
             else:
                 if small:
                     _make_small(first_leaf)
-                abjad.attach(abjad.Clef("treble^15"), first_leaf)
+                abjad.attach(abjad.Clef("treble"), first_leaf)
 
     class EventPlacementToAbjadStaffGroup(
         clock_converters.EventPlacementToAbjadStaffGroup
