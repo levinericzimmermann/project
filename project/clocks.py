@@ -51,6 +51,6 @@ def index_to_duration_range(index):
         case 2:
             return r(20, 35)
         case 3:
-            return r(65, 95)
+            return r(75, 105)
         case _:
             raise RuntimeError()
