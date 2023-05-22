@@ -6,7 +6,10 @@ import project
 
 
 def is_supported(context, still, **kwargs):
-    return still.is_supported(context, **kwargs)
+    # return still.is_supported(context, **kwargs)
+
+    # deactivate
+    return False
 
 
 def main(context, still, **kwargs) -> timeline_interfaces.EventPlacement:
