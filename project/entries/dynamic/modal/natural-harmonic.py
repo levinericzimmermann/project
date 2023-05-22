@@ -31,8 +31,8 @@ def main(
     context,
     random,
     activity_level,
-    double_harmonic_level: int = 6,
-    pizzicato_level: int = 10,
+    double_harmonic_level: int = 8,
+    pizzicato_level: int = 0,
     # Double harmonics are even more difficult to play
     # with pizzicato, therefore we use a factor in order
     # to reduce likelihood of pizzicato in case we have
@@ -65,7 +65,7 @@ def main(
         activity_level,
     )
 
-    note = music_events.NoteLike(pitch_list, 1, volume="pp")
+    note = music_events.NoteLike(pitch_list, 1, volume="ppp")
     nhnl = note.playing_indicator_collection.natural_harmonic_node_list
     nhnl.extend(node_list)
     nhnl.parenthesize_lower_note_head = True  # Parenthesize string indicator
@@ -166,7 +166,10 @@ def get_pitch_list_and_node_list(
     else:
         node_list = [
             # Inner choice picks octave, first [0] picks natural harmonic
-            random.choice(pitch_harmonic_tuple_list)[0].node_tuple[0]
+            ## random.choice(pitch_harmonic_tuple_list)[0].node_tuple[0]
+            #
+            # => let's prefer higher octaves :)
+            pitch_harmonic_tuple_list[-1][0].node_tuple[0]
         ]
 
     pitch_list = [n.natural_harmonic.pitch for n in node_list]
