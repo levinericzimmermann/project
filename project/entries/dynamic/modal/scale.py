@@ -56,7 +56,13 @@ def get_start_pitch_and_end_pitch(
     remainder_left = int(remainder / 2)
     remainder_right = remainder - remainder_left
 
-    pitch_pair_tuple = pitch_pair_tuple[remainder_left:-remainder_right]
+    if remainder_right:
+        pitch_pair_tuple = pitch_pair_tuple[remainder_left:-remainder_right]
+    else:
+        pitch_pair_tuple = pitch_pair_tuple[remainder_left:]
+
+    if not pitch_pair_tuple:
+        return None
 
     if direction:
         start_pitch = pitch_pair_tuple[0][0]
@@ -88,9 +94,13 @@ def main(
     orchestration = context.orchestration
     instrument = orchestration[0]
 
-    start_pitch, end_pitch = get_start_pitch_and_end_pitch(
+    start_pitch_and_end_pitch = get_start_pitch_and_end_pitch(
         start_pitch_class, end_pitch_class, instrument, direction, octave_count
     )
+    if not start_pitch_and_end_pitch:
+        return tuple([])
+
+    start_pitch, end_pitch = start_pitch_and_end_pitch
 
     def range_(start, end):
         if end < start:
