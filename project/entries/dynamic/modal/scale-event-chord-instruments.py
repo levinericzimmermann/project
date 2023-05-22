@@ -27,9 +27,9 @@ def main(context, alternating_scale_chords, random, **kwargs):
 
     real_duration = fractions.Fraction(37, 16)
     if real_duration > duration:
-        real_duration = duration
+        real_duration = duration - fractions.Fraction(2, 16)
 
-    start_range, end_range = project_utilities.get_ranges(real_duration, duration, 0.35)
+    start_range, end_range = project_utilities.get_ranges(real_duration, duration, 0.3)
 
     simultaneous_event = core_events.SimultaneousEvent(
         [
