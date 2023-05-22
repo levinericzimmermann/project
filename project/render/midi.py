@@ -31,7 +31,9 @@ def midi(clock_tuple: tuple[clock_interfaces.Clock, ...]):
     post_process_instruments(simultaneous_event)
     adjust_tempo(simultaneous_event)
 
-    grace_notes_converter = music_converters.GraceNotesConverter()
+    grace_notes_converter = music_converters.GraceNotesConverter(
+        minima_grace_notes_duration_factor=0.08, maxima_grace_notes_duration_factor=0.1
+    )
     playing_indicators_converter = music_converters.PlayingIndicatorsConverter(
         (
             music_converters.TrillConverter(),
