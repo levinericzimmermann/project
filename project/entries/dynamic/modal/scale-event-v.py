@@ -34,7 +34,7 @@ def main(
 
     real_duration = fractions.Fraction(37, 16)
     if real_duration > duration:
-        real_duration = duration
+        real_duration = duration - fractions.Fraction(2, 16)
 
     start_range, end_range = project_utilities.get_ranges(real_duration, duration, 0.5)
 
@@ -119,6 +119,10 @@ def make_sequential_event(klang_list, random, instrument, activity_level):
 
     for n in sequential_event:
         n.playing_indicator_collection.string_contact_point.contact_point = "ordinario"
+
+    n0_n = sequential_event[0].notation_indicator_collection
+    n0_n.markup.content = '"arco mobile"'
+    n0_n.markup.direction = "up"
 
     # Order matters!
     add_pizzicato(sequential_event, klang_list, instrument)
