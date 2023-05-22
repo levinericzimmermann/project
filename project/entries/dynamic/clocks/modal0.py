@@ -42,13 +42,20 @@ def main(context, tremolo_middle, tremolo_long, grace, hit, random, **kwargs):
             position = 0.25
             real_duration = fractions.Fraction(12, 16)
         case 3:
-            clock_event = tremolo_long(
-                instrument_index_tuple=[2], **kwargs
-            ).concatenate_by_index(
-                hit(instrument_index_tuple=[random.choice((2, 3, 4))], **kwargs)
-            )
-            position = 0.85
-            real_duration = fractions.Fraction(25, 16)
+            if context.index % 8 == 7:
+                clock_event = tremolo_long(
+                    instrument_index_tuple=[2], **kwargs
+                ).concatenate_by_index(
+                    hit(instrument_index_tuple=[random.choice((2, 3, 4))], **kwargs)
+                )
+                position = 0.85
+                real_duration = fractions.Fraction(25, 16)
+            else:
+                clock_event = hit(
+                    instrument_index_tuple=[random.choice((2, 3, 4))], **kwargs
+                )
+                position = 0.5
+                real_duration = fractions.Fraction(5, 16)
         case _:
             raise RuntimeError()
 
@@ -56,7 +63,9 @@ def main(context, tremolo_middle, tremolo_long, grace, hit, random, **kwargs):
     if real_duration > duration:
         real_duration = duration - fractions.Fraction(1, 16)
 
-    start_range, end_range = project_utilities.get_ranges(real_duration, duration, position)
+    start_range, end_range = project_utilities.get_ranges(
+        real_duration, duration, position
+    )
 
     return timeline_interfaces.EventPlacement(
         core_events.SimultaneousEvent([clock_event]), start_range, end_range
