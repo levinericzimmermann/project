@@ -74,7 +74,10 @@ def main(
     for c in chord_tuple:
         if not champion or c.harmonicity > fitness:
             champion, fitness = c, c.harmonicity
-    chord = champion.pitch_tuple
+    if champion is not None:
+        chord = champion.pitch_tuple
+    else:
+        chord = (main_pitch_tuple[0],)
 
     available_pitch_list = []
     for p in chord:
@@ -91,12 +94,12 @@ def main(
         if previous_index == 0:
             index = 1
         elif previous_index == max_index:
-            index = -1
+            index = max_index - 1
         else:
             index = previous_index + (-1, 1)[activity_level(5)]
 
         if index > max_index:
-            index = 0
+            index = max_index
 
         pitch = last_pitch = available_pitch_list[index]
 
