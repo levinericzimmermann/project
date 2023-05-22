@@ -9,6 +9,7 @@ from mutwo import core_events
 from mutwo import core_parameters
 from mutwo import midi_converters
 from mutwo import music_converters
+from mutwo import music_events
 from mutwo import project_converters
 
 import project
@@ -73,21 +74,15 @@ def post_process_instruments(simultaneous_event):
                 event_to_remove_index_list.append(event_index)
                 event_to_add_list.append(event)
             case project.constants.ORCHESTRATION.GLOCKENSPIEL.name:
-
-                r = np.random.default_rng(10)
-
-                def _(c):
-                    if c.string_contact_point.contact_point is not None:
-                        return
-                    # Can be played or can be not played
-                    c.optional.is_active = True
-                    # Can be bowed or can be hit
-                    c.string_contact_point.contact_point = r.choice(
-                        ["pizzicato", "arco"], p=[0.3, 0.7]
-                        # ["pizzicato", "arco"], p=[0.625, 0.375]
-                    )
-
-                event.mutate_parameter("playing_indicator_collection", _)
+                for seq in event:
+                    for n in seq:
+                        if not isinstance(n, music_events.NoteLike):
+                            continue
+                        n.playing_indicator_collection.string_contact_point.contact_point = (
+                            "arco"
+                            if n.notation_indicator_collection.duration_line.is_active
+                            else "pizzicato"
+                        )
 
                 event_to_remove_index_list.append(event_index)
                 event_to_add_list.extend(
