@@ -45,11 +45,11 @@ def index_to_duration_range(index):
     r = ranges.Range
     match index % 4:
         case 0:
-            return r(30, 45)
+            return r(20, 35)
         case 1:
-            return r(40, 65)
+            return r(30, 55)
         case 2:
-            return r(30, 45)
+            return r(20, 35)
         case 3:
             return r(65, 95)
         case _:
