@@ -86,6 +86,17 @@ diary_interfaces.DynamicEntry.from_file(
 
 
 diary_interfaces.DynamicEntry.from_file(
+    "scale-event-g",
+    diary_interfaces.ModalContext0.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    abbreviation_to_path_dict=dict(scale=scale.path),
+    file_path=f"{path}/scale-event-g.py",
+    relevance=100,
+)
+
+
+diary_interfaces.DynamicEntry.from_file(
     "scale-event-chord-instruments",
     diary_interfaces.ModalContext0.identifier,
     timeline_interfaces.EventPlacement,
@@ -114,6 +125,16 @@ diary_interfaces.DynamicEntry.from_file(
     skip_check=project.constants.SKIP_CHECK,
     file_path=f"{path}/silence.py",
     relevance=10,
+)
+
+
+diary_interfaces.DynamicEntry.from_file(
+    "modal-1-silence",
+    diary_interfaces.ModalContext1.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/silence.py",
+    relevance=20,
 )
 
 diary_interfaces.DynamicEntry.from_file(
@@ -153,5 +174,5 @@ diary_interfaces.DynamicEntry.from_file(
     timeline_interfaces.EventPlacement,
     skip_check=project.constants.SKIP_CHECK,
     file_path=f"{path}/pattern.py",
-    relevance=100,
+    relevance=2,
 )
