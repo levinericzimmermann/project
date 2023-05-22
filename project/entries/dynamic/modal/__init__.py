@@ -133,5 +133,25 @@ diary_interfaces.DynamicEntry.from_file(
     skip_check=project.constants.SKIP_CHECK,
     abbreviation_to_path_dict=dict(still=still.path),
     file_path=f"{path}/still_glockenspiel.py",
-    relevance=80,
+    relevance=0,
+)
+
+
+diary_interfaces.DynamicEntry.from_file(
+    "bowed_tone_glockenspiel",
+    diary_interfaces.ModalContext1.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/bowed-tone-glockenspiel.py",
+    relevance=70,
+)
+
+
+diary_interfaces.DynamicEntry.from_file(
+    "pattern",
+    diary_interfaces.ModalContext1.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/pattern.py",
+    relevance=100,
 )
