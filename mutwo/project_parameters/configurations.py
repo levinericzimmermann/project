@@ -55,7 +55,7 @@ DEFAULT_V_DICT = dict(
             1,
             # music_parameters.JustIntonationPitch("4/9"),
             # music_parameters.WesternPitch("g", 3),
-            music_parameters.JustIntonationPitch("2/9"),
+            music_parameters.JustIntonationPitch("9/40"),
             music_parameters.WesternPitch("g", 2),
         ),
         music_parameters.String(

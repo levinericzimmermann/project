@@ -105,7 +105,7 @@ abjad_converters.configurations.DEFAULT_ABJAD_ATTACHMENT_CLASS_TUPLE = tuple(
 
 GENERATOR_INTERVAL_TUPLE = tuple(
     music_parameters.JustIntonationPitch(r)
-    for r in "7/6 16/9 4/3 1/1 3/2 9/8 12/7".split(" ")
+    for r in "7/6 9/5 4/3 1/1 3/2 10/9 12/7".split(" ")
 )
 
 # We need to use special intervals for the Glockenspiel,
@@ -114,7 +114,7 @@ GENERATOR_INTERVAL_TUPLE = tuple(
 # But that's fine: semantically it's still the same.
 GLOCKENSPIEL_GENERATOR_INTERVAL_TUPLE = tuple(
     music_parameters.JustIntonationPitch(r)
-    for r in "7/6 16/9 4/3 1/1 3/2 10/9 5/3".split(" ")
+    for r in "7/6 9/5 4/3 1/1 3/2 10/9 12/7".split(" ")
 )
 
 assert len(GENERATOR_INTERVAL_TUPLE) == 7
@@ -244,7 +244,6 @@ def _sounding_pitch_to_written_pitch(pitch, sounding_scale, written_scale):
     except Exception as e:
         print(str(e))
         return pitch
-
 
 
 def _make_pentatonic_scale_tuple():
