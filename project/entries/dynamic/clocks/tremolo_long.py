@@ -17,7 +17,7 @@ def main(
         context,
         min_duration=12,
         max_duration=20,
-        min_rest_duration=14,
-        max_rest_duration=24,
+        min_rest_duration=2,
+        max_rest_duration=4,
         **kwargs,
     )

@@ -15,6 +15,4 @@ def main(
     **kwargs,
 ):
     n = note(context, min_duration=1, max_duration=3, **kwargs)
-    # r = note(context, min_duration=5, max_duration=10)
-    r = note(context, min_duration=12, max_duration=17)
-    return clock(context, event_list=[n, r])
+    return clock(context, event_list=[n])

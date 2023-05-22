@@ -49,6 +49,4 @@ def main(
     for gn in n.grace_note_sequential_event:
         gn.notation_indicator_collection.rhythmic_information.activity = True
         gn.notation_indicator_collection.flag_stroke_style.style = "grace"
-    # r = note(context, min_duration=5, max_duration=12)
-    r = note(context, min_duration=18, max_duration=22)
-    return clock(context, event_list=[n, r])
+    return clock(context, event_list=[n])
