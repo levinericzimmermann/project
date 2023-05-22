@@ -32,15 +32,15 @@ def main(context, tremolo_middle, tremolo_long, grace, hit, random, **kwargs):
                 instrument_index_tuple=[random.choice((2, 3, 4))], **kwargs
             )
             position = 0
-            real_duration = fractions.Fraction(20, 16)
+            real_duration = fractions.Fraction(10, 16)
         case 1:
             clock_event = tremolo_middle(instrument_index_tuple=[4], **kwargs)
-            position = 0
+            position = 0.1
             real_duration = fractions.Fraction(21, 16)
         case 2:
             clock_event = grace(**kwargs)
             position = 0.25
-            real_duration = fractions.Fraction(20, 16)
+            real_duration = fractions.Fraction(12, 16)
         case 3:
             clock_event = tremolo_long(
                 instrument_index_tuple=[2], **kwargs
