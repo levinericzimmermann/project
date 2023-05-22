@@ -83,7 +83,10 @@ def get_tunable_chord_tuple(context, pitch_tuple):
         ):
             if not champion or c.harmonicity > fitness:
                 champion, fitness = c, c.harmonicity
-        chord = champion.pitch_tuple
+        if champion is not None:
+            chord = champion.pitch_tuple
+        else:
+            chord = tuple([])
         tunable_chord_list.append(chord)
     return tuple(tunable_chord_list)
 
