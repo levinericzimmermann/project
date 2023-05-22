@@ -1,5 +1,6 @@
 import ranges
 
+from mutwo import common_generators
 from mutwo import music_parameters
 
 
@@ -36,6 +37,8 @@ def main(
         )
         octave_count += 1
 
+    instrument = context_to_instrument(context)
+
     pitch_list_list = [[p] for p in pitch_tuple]
     if activity_level(6):
         add_dyad(
@@ -66,9 +69,13 @@ def main(
             prohibited_pitch_list=pitch_list_list[0],
         )
         if inversion:
-            add_inversion(context, pitch_list_list)
+            add_inversion(instrument, pitch_list_list)
 
-    add_octave_parallel(pitch_list_list, activity_level)
+    # add_octave_parallel(pitch_list_list, activity_level)
+
+    add_inverse_movement(
+        pitch_list_list, activity_level, scale, direction, context, kwargs, instrument
+    )
 
     # TODO: Consider to remove some pitches in order
     # to gain an easier fingering. Or to make some of them
@@ -97,11 +104,10 @@ def add_dyad(
 DISTANCE_RANGE_TUPLE = (ranges.Range(3, 5), ranges.Range(6, 9))
 
 
-def add_inversion(context, pitch_list_list):
+def add_inversion(instrument, pitch_list_list):
     dyad = pitch_list_list[-1]
     oct0, oct1 = (p.octave for p in dyad)
     inversion = list(p.register(o, mutate=False) for o, p in zip((oct1, oct0), dyad))
-    instrument = context_to_instrument(context)
     if all(p in instrument for p in inversion):
         pitch_list_list.append(inversion)
 
@@ -113,6 +119,64 @@ def add_octave_parallel(pitch_list_list, activity_level):
             if pl:
                 p = pl[0]
                 pl.append(p - music_parameters.JustIntonationPitch("2/1"))
+
+
+def add_inverse_movement(
+    pitch_list_list, activity_level, scale, direction, context, kwargs, instrument
+):
+    if all([len(pl) <= 1 for pl in pitch_list_list]) and activity_level(4):
+        event_count = len(pitch_list_list)
+        octave_count = 0
+        inverse_scale = []
+        while len(inverse_scale) < event_count:
+            previous_inverse_scale = inverse_scale
+            inverse_scale = scale(
+                context, direction=not direction, octave_count=octave_count, **kwargs
+            )
+            octave_count += 1
+
+        inverse_scale = previous_inverse_scale
+
+        if (difference := event_count - len(inverse_scale)) < 0:
+            end = inverse_scale[-1]
+            remove_cycle = common_generators.euclidean(
+                len(inverse_scale) - 1, event_count - 1
+            )
+            adjusted_inverse_scale = []
+            for p, is_alive in zip(inverse_scale, remove_cycle):
+                if is_alive:
+                    adjusted_inverse_scale.append(p)
+            adjusted_inverse_scale.append(end)
+
+            inverse_scale = adjusted_inverse_scale
+
+        else:
+            inverse_scale = list(inverse_scale)
+            for _ in range(difference):
+                inverse_scale.insert(0, None)
+
+        for p, pl in zip(inverse_scale, pitch_list_list):
+            if p:
+                p = p - music_parameters.JustIntonationPitch("2/1")
+                if p not in pl:
+                    pl.append(p)
+
+        if len(pitch_list_list[-1]) > 1:
+            return
+        last_pitch = pitch_list_list[-1][0]
+        fifth = last_pitch - music_parameters.JustIntonationPitch("3/2")
+        fourth = last_pitch - music_parameters.JustIntonationPitch("4/3")
+        octave = last_pitch - music_parameters.JustIntonationPitch("2/1")
+        if octave in instrument:
+            added = octave
+        elif fifth in instrument:
+            added = fifth
+        elif fourth in instrument:
+            added = fourth
+        else:
+            return
+        if added != p:  # no pitch repetition
+            pitch_list_list[-1].append(added)
 
 
 def context_to_instrument(context):
