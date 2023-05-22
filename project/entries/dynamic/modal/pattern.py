@@ -104,9 +104,9 @@ def main(
         pitch = last_pitch = available_pitch_list[index]
 
         pitch_list = [pitch]
-        if index == 0:
+        if index == 0 and len(available_pitch_list) > 3:
             pitch_list.append(available_pitch_list[-1])
-        elif index == max_index:
+        elif index == max_index and len(available_pitch_list) > 3:
             pitch_list.append(available_pitch_list[0])
         else:
             if (pitch in main_pitch_tuple and activity_level(6)) or activity_level(3):
