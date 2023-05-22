@@ -510,17 +510,29 @@ def _notation(
             # Setting a lower 'moment' decreases the likelihood that we catch
             # the following lilypond error:
             #   Drawing systems...lilypond: skyline.cc:100: Building::Building(Real, Real, Real, Real): Assertion `start_height == end_height' failed.
-            moment=1,  # 1/16 is one second
+            moment=4,  # 1/16 is one second
             strict_grace_spanning=False,
+            staff_staff_spacing_minimum_distance=9,
+            staff_staff_spacing_basic_distance=10,
         )
         abjad_score_block_list.append(abjad_score_block)
 
     lilypond_file = clock_converters.AbjadScoreBlockTupleToLilyPondFile(
-        system_system_padding=3,
-        system_system_basic_distance=12,
-        score_system_padding=3,
-        markup_system_padding=1,
+        system_system_basic_distance=5,
+        system_system_padding=1,
+        score_system_basic_distance=0,
+        score_system_padding=0,
+        markup_system_basic_distance=0,
+        markup_system_padding=0,
         staff_height=20,
+        top_margin=0,
+        bottom_margin=0.5,
+        right_margin=0,
+        left_margin=0.25,
+        page_top_space=0,
+        between_title_space=0,
+        after_title_space=0,
+        before_title_space=0,
     ).convert(abjad_score_block_list)
 
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ar.ily"')
