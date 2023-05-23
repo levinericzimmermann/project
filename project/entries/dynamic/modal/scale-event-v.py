@@ -116,7 +116,6 @@ def make_sequential_event(klang_list, random, instrument, activity_level):
         ]
     )
     sequential_event[-1].duration = 4
-
     for n in sequential_event:
         n.playing_indicator_collection.string_contact_point.contact_point = "ordinario"
 
@@ -138,10 +137,21 @@ def make_sequential_event(klang_list, random, instrument, activity_level):
         if i == 0 and started_with_empty_string:
             continue
         if (
-            n.playing_indicator_collection.string_contact_point.contact_point != "pizzicato"
+            n.playing_indicator_collection.string_contact_point.contact_point
+            != "pizzicato"
             and n.playing_indicator_collection.bend_after.bend_amount is None
         ):
             n.notation_indicator_collection.duration_line.is_active = True
+
+    event_count = len(sequential_event)
+
+    if event_count > 3 and activity_level(5):
+        rest_position = event_count - 2
+    else:
+        rest_position = event_count - 1
+
+    rest = music_events.NoteLike(duration=2)
+    sequential_event.insert(rest_position, rest)
 
     return sequential_event
 
@@ -177,14 +187,19 @@ def add_pizzicato(sequential_event, klang_list, instrument):
             s.tuning for s in instrument.string_tuple
         ]:
             n.pitch_list = klang_list[0].main_string_pitch
-            n.playing_indicator_collection.string_contact_point.contact_point = "pizzicato"
+            n.playing_indicator_collection.string_contact_point.contact_point = (
+                "pizzicato"
+            )
 
 
 def add_bend_after(sequential_event):
     # If two pitches repeat, the second pitch should do something different: a
     # glissando seems to be suitable.
     for n0, n1, n2 in zip(sequential_event, sequential_event[1:], sequential_event[2:]):
-        if n1.playing_indicator_collection.string_contact_point.contact_point == "pizzicato":
+        if (
+            n1.playing_indicator_collection.string_contact_point.contact_point
+            == "pizzicato"
+        ):
             continue
         if len(n1.pitch_list) == 1 and n1.pitch_list[0] in n0.pitch_list:
             # If next pitch goes higher, we go down, and upside down.
