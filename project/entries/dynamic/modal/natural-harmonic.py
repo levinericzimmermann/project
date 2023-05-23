@@ -103,10 +103,16 @@ def main(
 
     duration = context.modal_event.clock_event.duration
 
+
+    if context.index % 4 == 3:
+        position = 0.95
+    else:
+        position = 0.5
+
     real_duration = fractions.Fraction(24, 16)
     if real_duration > duration:
         real_duration = duration
-    start_range, end_range = project_utilities.get_ranges(real_duration, duration, 0.5)
+    start_range, end_range = project_utilities.get_ranges(real_duration, duration, position)
 
     return timeline_interfaces.EventPlacement(
         simultaneous_event, start_range, end_range
