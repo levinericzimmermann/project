@@ -2,6 +2,7 @@ import dataclasses
 import functools
 import typing
 
+import abjad
 import ranges
 
 from mutwo import abjad_converters
@@ -242,8 +243,12 @@ def _sounding_pitch_to_written_pitch(pitch, sounding_scale, written_scale):
         scale_position = sounding_scale.pitch_to_scale_position(pitch)
         return written_scale.scale_position_to_pitch(scale_position)
     except Exception as e:
+        print("Problems with pitch", pitch.ratio, ". Original error was:")
         print(str(e))
-        return pitch
+        abjad_pitch = abjad.NamedPitch.from_hertz(pitch.frequency)
+        return music_parameters.WesternPitch(
+            abjad_pitch.pitch_class.name, abjad_pitch.octave.number
+        ).round_to()
 
 
 def _make_pentatonic_scale_tuple():
