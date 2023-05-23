@@ -44,13 +44,13 @@ def illustrate_harp_tuning(orchestration, path):
 
 def illustrate_glockenspiel_tuning(orchestration, path):
     pitch_range = ranges.Range(
-        music_parameters.JustIntonationPitch("7/3"),
-        music_parameters.JustIntonationPitch("14/3"),
+        music_parameters.JustIntonationPitch("1/2"),
+        music_parameters.JustIntonationPitch("1/1"),
     )
     pitch_tuple = tuple(
         p for p in orchestration.GLOCKENSPIEL.pitch_tuple if p in pitch_range
     )
-    illustrate_tuning(path, pitch_tuple, clef_name="treble^15")
+    illustrate_tuning(path, pitch_tuple, clef_name="treble")
 
 
 def illustrate_tuning(path, pitch_tuple, clef_name=None, resolution=400, title=None):
