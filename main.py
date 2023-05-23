@@ -52,7 +52,6 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
             [core_events.SequentialEvent([core_events.SimpleEvent(1)])]
         )
 
-
     main_clock_line = clock_converters.Modal0SequentialEventToClockLine(
         (
             diary_converters.Modal0SequentialEventToEventPlacementTuple(
@@ -74,15 +73,14 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
                 add_mod1=True,
             ),
             diary_converters.Modal0SequentialEventToEventPlacementTuple(
-                orchestration=project.constants.ORCHESTRATION.get_subset(
-                    "V",
-                    "HARP"
-                ),
+                orchestration=project.constants.ORCHESTRATION.get_subset("V", "HARP"),
                 add_mod1=False,
             ),
             diary_converters.Modal0SequentialEventToEventPlacementTuple(
                 orchestration=project.constants.ORCHESTRATION.get_subset(
-                   "GLOCKENSPIEL", "V", "HARP",
+                    "GLOCKENSPIEL",
+                    "V",
+                    "HARP",
                 ),
                 add_mod1=False,
             ),
@@ -94,7 +92,8 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
         [
             timeline_interfaces.TagCountStrategy(),
             timeline_interfaces.AlternatingStrategy(),
-        ]
+        ],
+        is_conflict=is_conflict,
     )
 
     start_clock_line = (
@@ -104,6 +103,42 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
     clock = clock_interfaces.Clock(main_clock_line, start_clock_line, end_clock_line)
 
     return clock
+
+
+def is_conflict(event_placement_0, event_placement_1):
+    tag_tuple0, tag_tuple1 = (
+        ep.tag_tuple for ep in (event_placement_0, event_placement_1)
+    )
+
+    # Avoid overlaps between bowed tuning forks and other percussion
+    # sounds (because the player need to hold the tuning fork with one
+    # hand).
+    if (
+        project.constants.ORCHESTRATION.PCLOCK.name in tag_tuple0
+        and project.constants.ORCHESTRATION.GLOCKENSPIEL.name in tag_tuple1
+    ) or (
+        project.constants.ORCHESTRATION.PCLOCK.name in tag_tuple1
+        and project.constants.ORCHESTRATION.GLOCKENSPIEL.name in tag_tuple0
+    ):
+        if project.constants.ORCHESTRATION.GLOCKENSPIEL.name in tag_tuple0:
+            event_with_glockenspiel = event_placement_0.event
+        else:
+            event_with_glockenspiel = event_placement_1.event
+
+        glockenspiel_event = event_with_glockenspiel[
+            project.constants.ORCHESTRATION.GLOCKENSPIEL.name
+        ]
+        for sequential_event in glockenspiel_event:
+            for n in sequential_event:
+                if (
+                    hasattr(n, "notation_indicator_collection")
+                    and n.notation_indicator_collection.duration_line.is_active
+                ):
+                    return True
+
+    # Standard logic
+    share_instruments = bool(set(tag_tuple0).intersection(set(tag_tuple1)))
+    return share_instruments
 
 
 def scale_to_markov_chain(scale):
