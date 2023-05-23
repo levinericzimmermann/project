@@ -52,7 +52,7 @@ def main(
 
         pitch_tuple = tuple(pitch_list)
 
-    use_bow = activity_level(7)
+    use_bow = activity_level(10)
 
     sequential_event = core_events.SequentialEvent([])
     is_first = True
