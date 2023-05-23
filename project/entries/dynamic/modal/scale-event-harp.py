@@ -2,6 +2,7 @@ import quicktions as fractions
 import ranges
 
 from mutwo import clock_events
+from mutwo import common_generators
 from mutwo import core_events
 from mutwo import music_events
 from mutwo import music_parameters
@@ -29,6 +30,8 @@ def main(
         real_duration = duration
     start_range, end_range = project_utilities.get_ranges(real_duration, duration, 0.5)
 
+    pitch_tuple_tuple = control_density(pitch_tuple_tuple, real_duration)
+
     last_duration = 4
 
     melody = core_events.SequentialEvent(
@@ -53,7 +56,7 @@ def main(
     add_staccatto(melody, activity_level, random, has_inversion)
     xylophone = add_xylophone(melody, activity_level)
     if not xylophone:
-        add_cluster(melody, scale, activity_level, random, has_inversion)
+        add_cluster(melody, scale, activity_level, random, has_inversion, instrument)
         add_flageolet(melody, activity_level, random, has_inversion)
 
     harp_event = project_utilities.split_harp(melody, tag)
@@ -109,16 +112,16 @@ def add_repetition(melody, activity_level):
         )
 
 
-def add_cluster(melody, scale, activity_level, random, has_inversion):
+def add_cluster(melody, scale, activity_level, random, has_inversion, instrument):
     if has_inversion:
         index = -2
     else:
         index = -1
 
     if activity_level(3):
-        start_pitch = random.choice(
-            [scale.scale_position_to_pitch((i, 0)) for i in range(5)]
-        )
+        pitch_list = [scale.scale_position_to_pitch((i, 0)) for i in range(5)]
+        pitch_list = [p for p in pitch_list if p in instrument]
+        start_pitch = random.choice(pitch_list)
         p0, p1 = (
             start_pitch - music_parameters.JustIntonationPitch(r)
             for r in "16/1 8/1".split(" ")
@@ -188,3 +191,31 @@ def add_accent(melody, scale, end_pitch, has_inversion, activity_level):
         if add_accent and ((i == 0 and activity_level(6)) or activity_level(2)):
             e.playing_indicator_collection.articulation.name = ">"
             e.volume = "mf"
+
+
+def control_density(pitch_tuple_tuple, real_duration):
+    basic_event_count = len(pitch_tuple_tuple)
+    allowed_event_count = duration_to_event_count(real_duration)
+
+    if allowed_event_count < basic_event_count:
+        pitch_tuple_tuple = tuple(
+            pitch_tuple
+            for pitch_tuple, is_allowed in zip(
+                pitch_tuple_tuple,
+                common_generators.euclidean(
+                    basic_event_count - 1, allowed_event_count - 1
+                )
+                # Always take last event, because this is the
+                # ending tone.
+                + (True,),
+            )
+        )
+
+    return pitch_tuple_tuple
+
+
+def duration_to_event_count(duration):
+    return int(duration / density[0]) * density[1]
+
+
+density = (fractions.Fraction(4, 16), 1)
