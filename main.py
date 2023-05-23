@@ -7,6 +7,7 @@ from mutwo import core_converters
 from mutwo import clock_converters
 from mutwo import clock_events
 from mutwo import clock_interfaces
+from mutwo import common_generators
 from mutwo import core_events
 from mutwo import diary_converters
 from mutwo import project_converters
@@ -90,6 +91,7 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
     # Fix overlaps
     main_clock_line.resolve_conflicts(
         [
+            TuningForkHitStrategy(),
             timeline_interfaces.TagCountStrategy(),
             timeline_interfaces.AlternatingStrategy(),
         ],
@@ -113,17 +115,10 @@ def is_conflict(event_placement_0, event_placement_1):
     # Avoid overlaps between bowed tuning forks and other percussion
     # sounds (because the player need to hold the tuning fork with one
     # hand).
-    if (
-        project.constants.ORCHESTRATION.PCLOCK.name in tag_tuple0
-        and project.constants.ORCHESTRATION.GLOCKENSPIEL.name in tag_tuple1
-    ) or (
-        project.constants.ORCHESTRATION.PCLOCK.name in tag_tuple1
-        and project.constants.ORCHESTRATION.GLOCKENSPIEL.name in tag_tuple0
-    ):
-        if project.constants.ORCHESTRATION.GLOCKENSPIEL.name in tag_tuple0:
-            event_with_glockenspiel = event_placement_0.event
-        else:
-            event_with_glockenspiel = event_placement_1.event
+    if may_be_bowed_tuning_fork_conflict(event_placement_0, event_placement_1):
+        event_with_glockenspiel = get_event_with_glockenspiel(
+            event_placement_0, event_placement_1
+        )
 
         glockenspiel_event = event_with_glockenspiel[
             project.constants.ORCHESTRATION.GLOCKENSPIEL.name
@@ -139,6 +134,29 @@ def is_conflict(event_placement_0, event_placement_1):
     # Standard logic
     share_instruments = bool(set(tag_tuple0).intersection(set(tag_tuple1)))
     return share_instruments
+
+
+def may_be_bowed_tuning_fork_conflict(event_placement_0, event_placement_1):
+    tag_tuple0, tag_tuple1 = (
+        ep.tag_tuple for ep in (event_placement_0, event_placement_1)
+    )
+    return (
+        project.constants.ORCHESTRATION.PCLOCK.name in tag_tuple0
+        and project.constants.ORCHESTRATION.GLOCKENSPIEL.name in tag_tuple1
+    ) or (
+        project.constants.ORCHESTRATION.PCLOCK.name in tag_tuple1
+        and project.constants.ORCHESTRATION.GLOCKENSPIEL.name in tag_tuple0
+    )
+
+
+def get_event_with_glockenspiel(event_placement_0, event_placement_1):
+    tag_tuple0, tag_tuple1 = (
+        ep.tag_tuple for ep in (event_placement_0, event_placement_1)
+    )
+    if project.constants.ORCHESTRATION.GLOCKENSPIEL.name in tag_tuple0:
+        return event_placement_0.event
+    else:
+        return event_placement_1.event
 
 
 def scale_to_markov_chain(scale):
@@ -179,6 +197,37 @@ def _clock_end(scale):
     return clock_converters.Modal0SequentialEventToClockLine([]).convert(
         modal_sequential_event
     )
+
+
+class TuningForkHitStrategy(timeline_interfaces.ConflictResolutionStrategy):
+    def __init__(self, fix_level: int = 5):
+        # fix_level = 10    => always fix
+        # fix_level = 0     => never fix
+        self.fix_level = fix_level
+        self.activity_level = common_generators.ActivityLevel()
+
+    def resolve_conflict(self, timeline, conflict) -> bool:
+        event_placement_0, event_placement_1 = conflict.left, conflict.right
+        if may_be_bowed_tuning_fork_conflict(event_placement_0, event_placement_1):
+
+            # Don't fix always, because this would be a bit boring :)
+            if not self.activity_level(self.fix_level):
+                return False
+
+            event_with_glockenspiel = get_event_with_glockenspiel(
+                event_placement_0, event_placement_1
+            )
+            glockenspiel_event = event_with_glockenspiel[
+                project.constants.ORCHESTRATION.GLOCKENSPIEL.name
+            ]
+            for sequential_event in glockenspiel_event:
+                for n in sequential_event:
+                    try:
+                        n.notation_indicator_collection.duration_line.is_active = False
+                    except AttributeError:
+                        pass
+            return True
+        return False
 
 
 if __name__ == "__main__":
