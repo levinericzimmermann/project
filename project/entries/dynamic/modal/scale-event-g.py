@@ -1,6 +1,7 @@
 import quicktions as fractions
 
 from mutwo import core_events
+from mutwo import common_generators
 from mutwo import diary_interfaces
 from mutwo import music_events
 from mutwo import project_utilities
@@ -40,14 +41,31 @@ def main(
 
     pitch_tuple = max(pitch_tuple_list, key=lambda p: p[0])[1]
 
-    sequential_event = core_events.SequentialEvent([])
-    for p in pitch_tuple:
-        n = music_events.NoteLike(p, 1, 'ppp')
-        sequential_event.append(n)
+    pitch_count = len(pitch_tuple)
+    if pitch_count > 4:
+        allowed_pitch_tuple = common_generators.euclidean(pitch_count - 1, 3)
+        pitch_list = []
+        for p, is_allowed in zip(pitch_tuple, allowed_pitch_tuple):
+            if is_allowed:
+                pitch_list.append(p)
+        pitch_list.append(pitch_tuple[-1])
 
-    if len(sequential_event) < 4:
-        for n in sequential_event:
+        pitch_tuple = tuple(pitch_list)
+
+    use_bow = activity_level(7)
+
+    sequential_event = core_events.SequentialEvent([])
+    is_first = True
+    for p in pitch_tuple:
+        n = music_events.NoteLike(p, 1.5, "ppp")
+        if use_bow:
             n.notation_indicator_collection.duration_line.is_active = True
+            if not is_first:
+                sequential_event.append(
+                    music_events.NoteLike(duration=random.choice([0.25, 0.5, 0.75]))
+                )
+        sequential_event.append(n)
+        is_first = False
 
     simultaneous_event = core_events.TaggedSimultaneousEvent(
         [sequential_event], tag=instrument.name
