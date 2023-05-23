@@ -102,6 +102,7 @@ abjad_converters.configurations.DEFAULT_ABJAD_ATTACHMENT_CLASS_TUPLE = tuple(
     project_parameters.RhythmicInformation,
     project_parameters.FlagStrokeStyle,
     project_parameters.NoteHead,
+    project_parameters.SynchronizationPoint,
 )
 
 GENERATOR_INTERVAL_TUPLE = tuple(
@@ -193,13 +194,13 @@ GLOCKENSPIEL_WRITTEN_SCALE = music_parameters.Scale(
 
 center = int(len(SCALE.pitch_tuple) // 2)
 ORCHESTRATION = music_parameters.Orchestration(
-    V=project_parameters.V(),
-    HARP=music_parameters.CelticHarp(pitch_tuple=HARP_SCALE.pitch_tuple),
+    CLOCK=music_parameters.UnpitchedInstrument("clock", "c"),
+    PCLOCK=music_parameters.UnpitchedInstrument("pclock", "pc"),
     GLOCKENSPIEL=music_parameters.DiscreetPitchedInstrument(
         name="glockenspiel", short_name="g.", pitch_tuple=GLOCKENSPIEL_SCALE.pitch_tuple
     ),
-    CLOCK=music_parameters.UnpitchedInstrument("clock", "c"),
-    PCLOCK=music_parameters.UnpitchedInstrument("pclock", "pc"),
+    V=project_parameters.V(),
+    HARP=music_parameters.CelticHarp(pitch_tuple=HARP_SCALE.pitch_tuple),
 )
 
 CLOCK_INSTRUMENT_COUNT = 5

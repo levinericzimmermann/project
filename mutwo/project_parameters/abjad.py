@@ -17,6 +17,7 @@ __all__ = (
     "RhythmicInformation",
     "FlagStrokeStyle",
     "NoteHead",
+    "SynchronizationPoint",
 )
 
 
@@ -184,5 +185,22 @@ class NoteHead(abjad_parameters.abc.BangEachAttachment):
                 "}"
             ),
             leaf,
+        )
+        return leaf
+
+
+class SynchronizationPoint(abjad_parameters.abc.BangFirstAttachment):
+    def process_leaf(self, leaf: abjad.Leaf) -> LeafOrLeafSequence:
+        abjad.attach(
+            abjad.Markup(
+                r"\markup {"
+                "\n\t"
+                r"\override #'((thickness . 2) (off . 0.2))"
+                "\n\t"
+                rf"\draw-dotted-line #'(0 . {self.indicator.length})"
+                "\n}"
+            ),
+            leaf,
+            direction=abjad.DOWN,
         )
         return leaf

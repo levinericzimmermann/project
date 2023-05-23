@@ -25,6 +25,12 @@ class NoteHead(music_parameters.abc.NotationIndicator):
 
 
 @dataclasses.dataclass
+class SynchronizationPoint(music_parameters.abc.NotationIndicator):
+    length: typing.Optional[float] = None
+    direction: bool = True
+
+
+@dataclasses.dataclass
 class NotationIndicatorCollection(music_parameters_NotationIndicatorCollection):
     duration_line: music_parameters.abc.ExplicitPlayingIndicator = dataclasses.field(
         default_factory=music_parameters.abc.ExplicitPlayingIndicator
@@ -35,6 +41,9 @@ class NotationIndicatorCollection(music_parameters_NotationIndicatorCollection):
     )
     rhythmic_information: RhythmicInformation = dataclasses.field(
         default_factory=lambda: RhythmicInformation(activity=False)
+    )
+    synchronization_point: SynchronizationPoint = dataclasses.field(
+        default_factory=SynchronizationPoint
     )
 
 
