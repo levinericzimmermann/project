@@ -17,7 +17,7 @@ def is_supported(context, pitch=None, **kwargs):
         assert len(orchestration) == 1
         instrument = orchestration[0]
         assert isinstance(instrument, music_parameters.abc.PitchedInstrument)
-        assert instrument.name in ('glockenspiel',)
+        assert instrument.name in ("glockenspiel",)
         pitch = pitch or get_pitch(context)
         assert instrument.get_pitch_variant_tuple(pitch)
         assert context.index != 0
@@ -35,18 +35,28 @@ def main(
     pitch = pitch or get_pitch(context)
     pitch_tuple = instrument.get_pitch_variant_tuple(pitch)
 
-    note = music_events.NoteLike(random.choice(pitch_tuple), 1, volume="pp")
+    sequential_event = core_events.SequentialEvent([])
+
+    is_first = True
+    for _ in range(random.choice([1, 2, 3])):
+        if not is_first:
+            rest = core_events.SimpleEvent(duration=0.25)
+            sequential_event.append(rest)
+        else:
+            is_first = False
+        note = music_events.NoteLike(random.choice(pitch_tuple), 1, volume="pp")
+        note.notation_indicator_collection.duration_line.is_active = True
+        sequential_event.append(note)
 
     simultaneous_event = project_events.SimultaneousEventWithRepetition(
         [
             project_events.TaggedSimultaneousEventWithRepetition(
-                [core_events.SequentialEvent([note])],
+                [sequential_event],
                 tag=instrument.name,
             )
         ]
     )
 
-    note.notation_indicator_collection.duration_line.is_active = True
     duration = context.modal_event.clock_event.duration
 
     real_duration = fractions.Fraction(30, 16)
