@@ -35,8 +35,8 @@ def main(context, tremolo_middle, tremolo_long, grace, hit, random, **kwargs):
             real_duration = fractions.Fraction(10, 16)
         case 1:
             clock_event = tremolo_middle(instrument_index_tuple=[4], **kwargs)
-            position = 0.1
-            real_duration = fractions.Fraction(21, 16)
+            position = 0.2
+            real_duration = fractions.Fraction(24, 16)
         case 2:
             clock_event = grace(**kwargs)
             position = 0.25
