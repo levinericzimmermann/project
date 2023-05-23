@@ -103,5 +103,5 @@ diary_interfaces.DynamicEntry.from_file(
         grace=grace.path,
         hit=hit.path,
     ),
-    relevance=30,
+    relevance=90,
 )
