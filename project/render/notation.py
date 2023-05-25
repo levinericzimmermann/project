@@ -49,7 +49,6 @@ def clock_event_to_abjad_staff_group():
             mutwo_volume_to_abjad_attachment_dynamic=None,
         ),
         duration_line=True,
-        # duration_line=False,
     )
     return clock_converters.ClockEventToAbjadStaffGroup(
         complex_event_to_abjad_container
@@ -94,11 +93,6 @@ def _pclock_tag_to_converter(small=True):
             for leaf in leaf_sequence:
                 if isinstance(leaf, abjad.Rest):
                     abjad.mutate.replace(leaf, abjad.Skip(leaf.written_duration))
-
-            # # Explicit beams are never needed here.
-            # for leaf in leaf_sequence:
-            #     abjad.detach(abjad.StartBeam, leaf)
-            #     abjad.detach(abjad.StopBeam, leaf)
 
     complex_event_to_abjad_container = clock_generators.make_complex_event_to_abjad_container(
         sequential_event_to_abjad_staff_kwargs=dict(
