@@ -176,3 +176,23 @@ diary_interfaces.DynamicEntry.from_file(
     file_path=f"{path}/pattern.py",
     relevance=2,
 )
+
+
+diary_interfaces.DynamicEntry.from_file(
+    "explicit-silence-0",
+    diary_interfaces.ModalContext0.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/explicit-silence.py",
+    relevance=10000,
+)
+
+
+diary_interfaces.DynamicEntry.from_file(
+    "explicit-silence-1",
+    diary_interfaces.ModalContext1.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/explicit-silence.py",
+    relevance=10000,
+)
