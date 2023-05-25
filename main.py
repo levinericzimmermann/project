@@ -51,7 +51,7 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
     insert_modal_event(
         modal_sequential_event,
         scale,
-        energy=0,
+        energy=-2,
         index=7,
         duration=f(20, 16),
     )
@@ -59,7 +59,7 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
     insert_modal_event(
         modal_sequential_event,
         scale,
-        energy=0,
+        energy=-2,
         index=3,
         duration=f(20, 16),
     )
