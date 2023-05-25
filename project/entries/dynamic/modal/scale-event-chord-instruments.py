@@ -14,6 +14,7 @@ def is_supported(context, alternating_scale_chords, **kwargs):
         for i in orchestration:
             assert isinstance(i, music_parameters.abc.PitchedInstrument)
         assert context.index % 2 == 0
+        assert context.index != 0
     except AssertionError:
         return False
     return alternating_scale_chords.is_supported(context, **kwargs)
@@ -45,6 +46,20 @@ def main(context, alternating_scale_chords, random, **kwargs):
         distribute_chord(
             duration, chord, simultaneous_event, context.orchestration, random
         )
+
+    for tagged_simultaneous_event in simultaneous_event[:-1]:
+        sequential_event = tagged_simultaneous_event[0]
+        i = 0
+        n = sequential_event[i]
+        while not hasattr(n, "pitch_list") or not n.pitch_list:
+            i += 1
+            try:
+                n = sequential_event[i]
+            except IndexError:
+                n = None
+        if n:
+            n.notation_indicator_collection.synchronization_point.length = 5
+            n.notation_indicator_collection.synchronization_point.direction = False
 
     return timeline_interfaces.EventPlacement(
         simultaneous_event, start_range, end_range
@@ -79,7 +94,9 @@ def distribute_chord(duration, chord, simultaneous_event, orchestration, random)
                 pitch_variant_options_list, key=lambda d: d[0]
             )[0]
             pitch_count_dict[p.exponent_tuple] += 1
-            n = music_events.NoteLike(random.choice(pitch_variant_tuple), duration, "pp")
+            n = music_events.NoteLike(
+                random.choice(pitch_variant_tuple), duration, "pp"
+            )
             if instrument.name in ("v",):
                 n.playing_indicator_collection.string_contact_point.contact_point = (
                     "pizzicato"
