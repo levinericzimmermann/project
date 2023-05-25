@@ -207,12 +207,6 @@ def _harp_converter(small=False):
                             octave_count
                         )
 
-                # # We usually have a monophonic structure where both hands
-                # # behave equally. So it's sufficient to print the accent in
-                # # only the right hand.
-                # for i, e in enumerate(right):
-                #     if e.playing_indicator_collection.articulation.name == ">":
-                #         left[i].playing_indicator_collection.articulation.name = None
             return super().convert(event_placement, *args, **kwargs)
 
     harp_converter = {
