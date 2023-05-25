@@ -138,3 +138,31 @@ if 1:
             return abjad.NamedPitch.from_hertz(pitch_to_convert.frequency)
 
     abjad_converters.MutwoPitchToAbjadPitch.convert = MutwoPitchToAbjadPitch_convert
+
+
+# Attachments aren't added to multimeasure rests somehow.
+# So we need to ensure we don't replace rests with multimeasure rest.
+# (This should be added upstream!)
+if 1:
+
+    def SequentialEventToAbjadVoice__replace_rests_with_full_measure_rests(
+        abjad_voice: abjad.Voice,
+    ) -> None:
+        for bar in abjad_voice:
+            if all(
+                (isinstance(item, abjad.Rest) for item in bar)
+            ) and not abjad.get.indicators(bar[0]):
+                duration = sum((item.written_duration for item in bar))
+                numerator, denominator = duration.numerator, duration.denominator
+                abjad.mutate.replace(
+                    bar[0],
+                    abjad.MultimeasureRest(
+                        abjad.Duration(1, denominator), multiplier=numerator
+                    ),
+                    wrappers=True,
+                )
+                del bar[1:]
+
+    abjad_converters.SequentialEventToAbjadVoice._replace_rests_with_full_measure_rests = (
+        SequentialEventToAbjadVoice__replace_rests_with_full_measure_rests
+    )
