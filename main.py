@@ -41,12 +41,28 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
 
     modal_sequential_event = core_events.SequentialEvent(
         [
-            clock_events.ModalEvent0(start_pitch, end_pitch, scale)
+            clock_events.ModalEvent0(start_pitch, end_pitch, scale, energy=60)
             for start_pitch, end_pitch in zip(root_pitch_tuple, root_pitch_tuple[1:])
         ]
     )
 
     project.clocks.apply_clock_events(modal_sequential_event)
+
+    insert_modal_event(
+        modal_sequential_event,
+        scale,
+        energy=0,
+        index=7,
+        duration=f(20, 16),
+    )
+
+    insert_modal_event(
+        modal_sequential_event,
+        scale,
+        energy=0,
+        index=3,
+        duration=f(20, 16),
+    )
 
     for modal_event in modal_sequential_event:
         modal_event.control_event = core_events.SimultaneousEvent(
@@ -170,6 +186,28 @@ def scale_to_markov_chain(scale):
         ] = gatra_tuple_to_markov_chain.convert(gatra_tuple)
         markov_chain.make_deterministic_map()
     return markov_chain
+
+
+def insert_modal_event(
+    modal_sequential_event,
+    scale,
+    index: int = 3,
+    energy: float = 0,
+    duration: f = f(25, 16),
+):
+    assert index > 0, "Can't insert at first position"
+    modal_sequential_event.insert(
+        index,
+        clock_events.ModalEvent0(
+            modal_sequential_event[index - 1].end_pitch,
+            modal_sequential_event[index - 1].end_pitch,
+            scale,
+            energy=energy,
+            clock_event=clock_events.ClockEvent(
+                [core_events.SequentialEvent([core_events.SimpleEvent(duration)])]
+            ),
+        ),
+    )
 
 
 scale_to_gatra_tuple = project_converters.ScaleToGatraTuple()
