@@ -494,7 +494,9 @@ def _notation(
                         clock_line.clock_event
                     )
                 )
-        abjad_score = clock_to_abjad_score.convert(clock, tag_tuple=tag_tuple)
+        abjad_score = clock_to_abjad_score.convert(
+            clock, tag_tuple=tag_tuple, ordered_tag_tuple=tag_tuple
+        )
 
         # We get lilypond error for harp:
         #   Interpreting music...[8][16][24]ERROR: Wrong type (expecting exact integer): ()
