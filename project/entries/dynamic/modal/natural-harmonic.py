@@ -22,6 +22,7 @@ def is_supported(context, pitch=None, **kwargs):
         assert isinstance(instrument, music_parameters.StringInstrumentMixin)
         pitch = pitch or get_pitch(context)
         assert instrument.get_harmonic_pitch_variant_tuple(pitch, tolerance=TOLERANCE)
+        assert context.energy > 50
     except AssertionError:
         return False
     return True

@@ -11,6 +11,10 @@ from mutwo import timeline_interfaces
 
 
 def is_supported(context, scale_harp, **kwargs):
+    try:
+        assert context.energy > 50
+    except AssertionError:
+        return False
     return scale_harp.is_supported(context, **kwargs)
 
 

@@ -19,6 +19,11 @@ def is_supported(context, dyad, **kwargs):
     except AttributeError:
         return False
 
+    try:
+        assert context.energy > 50
+    except AssertionError:
+        return False
+
     if context.index % 3 == 0:
         return False
 

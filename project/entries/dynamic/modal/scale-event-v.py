@@ -19,6 +19,7 @@ def is_supported(context, **kwargs):
         assert isinstance(context_to_instrument(context), project_parameters.V)
         assert context.modal_event.start_pitch != context.modal_event.end_pitch
         assert context.index % 3 == 0
+        assert context.energy > 50
     except AssertionError:
         return False
     return True

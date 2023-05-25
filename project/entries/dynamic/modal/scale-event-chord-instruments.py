@@ -15,6 +15,7 @@ def is_supported(context, alternating_scale_chords, **kwargs):
             assert isinstance(i, music_parameters.abc.PitchedInstrument)
         assert context.index % 2 == 0
         assert context.index != 0
+        assert context.energy > 50
     except AssertionError:
         return False
     return alternating_scale_chords.is_supported(context, **kwargs)

@@ -25,6 +25,7 @@ def is_supported(context, pitch=None, **kwargs):
         assert instrument.get_pitch_variant_tuple(pitch)
         assert context.index != 0
         assert (context.index % 4) != 3
+        assert context.energy > 50
     except AssertionError:
         return False
     return True
