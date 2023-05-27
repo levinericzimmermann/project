@@ -234,7 +234,7 @@ CLOCK_INSTRUMENT_TO_ANNOTATED_PITCH_DICT = {
 
 CLOCK_INSTRUMENT_TO_INSTRUMENT_NAME = {
     ORCHESTRATION_CLOCK.CLOCK_I0: music_parameters.WesternPitch("g", 3),
-    ORCHESTRATION_CLOCK.CLOCK_I1: "wooden box (arco)",  # kiste (gestrichen)
+    ORCHESTRATION_CLOCK.CLOCK_I1: "wooden box",  # instrument selber
     ORCHESTRATION_CLOCK.CLOCK_I2: "can",  # blechbox
     ORCHESTRATION_CLOCK.CLOCK_I3: "wood",  # holzplatte
     ORCHESTRATION_CLOCK.CLOCK_I4: "lid",  # deckel

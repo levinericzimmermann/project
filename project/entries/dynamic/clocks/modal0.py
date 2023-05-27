@@ -29,15 +29,23 @@ def main(context, tremolo_middle, tremolo_long, grace, hit, random, **kwargs):
 
     match context.index % 4:
         case 0:
-            clock_event = hit(
-                instrument_index_tuple=[random.choice((2, 3, 4))], **kwargs
-            )
-            position = 0
-            real_duration = fractions.Fraction(10, 16)
+            if context.index % 2 == 0:
+                clock_event = hit(
+                    instrument_index_tuple=[random.choice((2, 3, 4))], **kwargs
+                )
+                position = 0
+                real_duration = fractions.Fraction(10, 16)
+            else:
+                clock_event = hit(instrument_index_tuple=[1], **kwargs)
+                clock_event[0][
+                    0
+                ].notation_indicator_collection.duration_line.is_active = True
+                position = 0.1
+                real_duration = fractions.Fraction(24, 16)
         case 1:
             clock_event = tremolo_middle(instrument_index_tuple=[4], **kwargs)
             position = 0.2
-            real_duration = fractions.Fraction(24, 16)
+            real_duration = fractions.Fraction(19, 16)
         case 2:
             clock_event = grace(**kwargs)
             position = 0.25
@@ -52,11 +60,17 @@ def main(context, tremolo_middle, tremolo_long, grace, hit, random, **kwargs):
                 position = 0.85
                 real_duration = fractions.Fraction(25, 16)
             else:
-                clock_event = hit(
-                    instrument_index_tuple=[random.choice((2, 3, 4))], **kwargs
-                )
-                position = 0.5
-                real_duration = fractions.Fraction(5, 16)
+                # clock_event = hit(
+                #     instrument_index_tuple=[random.choice((2, 3, 4))], **kwargs
+                # )
+                # position = 0.5
+                # real_duration = fractions.Fraction(5, 16)
+                clock_event = hit(instrument_index_tuple=[1], **kwargs)
+                clock_event[0][
+                    0
+                ].notation_indicator_collection.duration_line.is_active = True
+                position = 0.1
+                real_duration = fractions.Fraction(6, 16)
         case _:
             raise RuntimeError()
 
