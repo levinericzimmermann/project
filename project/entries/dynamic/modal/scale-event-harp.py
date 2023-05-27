@@ -143,6 +143,7 @@ def add_xylophone(melody, activity_level) -> bool:
             n.playing_indicator_collection.sons_xylo.activity = True
         melody[-2].playing_indicator_collection.sons_xylo.activity = False
         melody[-1].playing_indicator_collection.bartok_pizzicato.is_active = True
+        melody[-1].volume = "f"
         return True
     return False
 
