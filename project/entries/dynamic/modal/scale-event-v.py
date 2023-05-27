@@ -16,6 +16,7 @@ def is_supported(context, **kwargs):
         assert isinstance(context, diary_interfaces.ModalContext0)
         assert context.modal_event.start_pitch is not None
         assert context.modal_event.end_pitch is not None
+        assert len(context.orchestration) == 1
         assert isinstance(context_to_instrument(context), project_parameters.V)
         assert context.modal_event.start_pitch != context.modal_event.end_pitch
         assert context.index % 3 == 0
