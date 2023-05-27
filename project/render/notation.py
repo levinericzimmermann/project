@@ -120,7 +120,7 @@ def _pclock_tag_to_converter(small=True):
             if isinstance(pclock_event, core_events.TaggedSimultaneousEvent):
                 event_placement.event[
                     pclock_tag
-                ] = project.constants.INSTRUMENT_CLOCK_EVENT_TO_PITCHED_CLOCK_EVENT(
+                ] = project.constants.INSTRUMENT_CLOCK_EVENT_TO_ANNOTATED_PITCHED_CLOCK_EVENT(
                     pclock_event
                 )
             return super().convert(event_placement, *args, **kwargs)

@@ -222,11 +222,45 @@ CLOCK_INSTRUMENT_TO_PITCH_DICT = {
     ORCHESTRATION_CLOCK.CLOCK_I4: music_parameters.WesternPitch("d", 4),
 }
 
+
+CLOCK_INSTRUMENT_TO_ANNOTATED_PITCH_DICT = {
+    ORCHESTRATION_CLOCK.CLOCK_I0: music_parameters.WesternPitch("c", 4),
+    ORCHESTRATION_CLOCK.CLOCK_I1: music_parameters.WesternPitch("c", 4),
+    ORCHESTRATION_CLOCK.CLOCK_I2: music_parameters.WesternPitch("c", 4),
+    ORCHESTRATION_CLOCK.CLOCK_I3: music_parameters.WesternPitch("c", 4),
+    ORCHESTRATION_CLOCK.CLOCK_I4: music_parameters.WesternPitch("c", 4),
+}
+
+
+CLOCK_INSTRUMENT_TO_INSTRUMENT_NAME = {
+    ORCHESTRATION_CLOCK.CLOCK_I0: music_parameters.WesternPitch("g", 3),
+    ORCHESTRATION_CLOCK.CLOCK_I1: "wooden box (arco)",  # kiste (gestrichen)
+    ORCHESTRATION_CLOCK.CLOCK_I2: "can",  # blechbox
+    ORCHESTRATION_CLOCK.CLOCK_I3: "wood",  # holzplatte
+    ORCHESTRATION_CLOCK.CLOCK_I4: "lid",  # deckel
+}
+
 INSTRUMENT_CLOCK_EVENT_TO_PITCHED_CLOCK_EVENT = (
     project_converters.InstrumentNoteLikeToPitchedNoteLike(
         CLOCK_INSTRUMENT_TO_PITCH_DICT
     )
 )
+
+
+def INSTRUMENT_CLOCK_EVENT_TO_ANNOTATED_PITCHED_CLOCK_EVENT(instrument_clock_event):
+    instrument_clock_event = instrument_clock_event.copy()
+
+    for seq in instrument_clock_event:
+        for n in seq :
+            if hasattr(n, 'instrument_list') and n.instrument_list:
+                no = n.notation_indicator_collection
+                no.markup.content = rf'\markup {{ \tiny {{ \typewriter "{CLOCK_INSTRUMENT_TO_INSTRUMENT_NAME[n.instrument_list[0]]}" }} }}'
+                no.markup.direction = abjad.enums.UP
+
+    c = project_converters.InstrumentNoteLikeToPitchedNoteLike(
+        CLOCK_INSTRUMENT_TO_ANNOTATED_PITCH_DICT
+    )
+    return c.convert(instrument_clock_event)
 
 
 def sounding_harp_pitch_to_written_harp_pitch(harp_pitch):
