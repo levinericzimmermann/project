@@ -528,6 +528,7 @@ def _notation(
     ).convert(abjad_score_block_list)
 
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ar.ily"')
+    lilypond_file.items.insert(0, r'\include "etc/lilypond/sync.ily"')
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ekme-heji.ily"')
 
     executor.submit(abjad.persist.as_pdf, lilypond_file, notation_path)

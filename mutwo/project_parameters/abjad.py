@@ -102,11 +102,16 @@ class SonsXylo(abjad_parameters.abc.ToggleAttachment):
         previous_attachment: typing.Optional[abjad_parameters.abc.AbjadAttachment],
     ) -> LeafOrLeafSequence:
         if self.indicator.activity:
-            att_tuple = abjad.StartTextSpan(
-                left_text=abjad.Markup(r'\typewriter {\tiny { "sons xylo." }}'),
-                right_text=abjad.Markup(r'\markup { \hspace #5 \typewriter {\tiny { "]" }} }'),
-                # style="solid-line-with-arrow",
-            ), abjad.StartGroup()
+            att_tuple = (
+                abjad.StartTextSpan(
+                    left_text=abjad.Markup(r'\typewriter {\tiny { "sons xylo." }}'),
+                    right_text=abjad.Markup(
+                        r'\markup { \hspace #5 \typewriter {\tiny { "]" }} }'
+                    ),
+                    # style="solid-line-with-arrow",
+                ),
+                abjad.StartGroup(),
+            )
         else:
             att_tuple = abjad.StopTextSpan(), abjad.StopGroup()
 
@@ -193,16 +198,5 @@ class NoteHead(abjad_parameters.abc.BangEachAttachment):
 
 class SynchronizationPoint(abjad_parameters.abc.BangFirstAttachment):
     def process_leaf(self, leaf: abjad.Leaf) -> LeafOrLeafSequence:
-        abjad.attach(
-            abjad.Markup(
-                r"\markup {"
-                "\n\t"
-                r"\override #'((thickness . 2) (off . 0.2))"
-                "\n\t"
-                rf"\draw-dotted-line #'(0 . {self.indicator.length})"
-                "\n}"
-            ),
-            leaf,
-            direction=abjad.DOWN,
-        )
+        abjad.attach(abjad.LilyPondLiteral(r"\drawSyncPath"), leaf)
         return leaf
