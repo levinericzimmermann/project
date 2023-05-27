@@ -102,14 +102,16 @@ class SonsXylo(abjad_parameters.abc.ToggleAttachment):
         previous_attachment: typing.Optional[abjad_parameters.abc.AbjadAttachment],
     ) -> LeafOrLeafSequence:
         if self.indicator.activity:
-            att = abjad.StartTextSpan(
+            att_tuple = abjad.StartTextSpan(
                 left_text=abjad.Markup(r'\typewriter {\tiny { "sons xylo." }}'),
+                right_text=abjad.Markup(r'\markup { \hspace #5 \typewriter {\tiny { "]" }} }'),
                 # style="solid-line-with-arrow",
-            )
+            ), abjad.StartGroup()
         else:
-            att = abjad.StopTextSpan()
+            att_tuple = abjad.StopTextSpan(), abjad.StopGroup()
 
-        abjad.attach(att, leaf)
+        for att in att_tuple:
+            abjad.attach(att, leaf)
         return leaf
 
     def process_leaf_tuple(

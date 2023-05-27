@@ -139,9 +139,10 @@ def add_xylophone(melody, activity_level) -> bool:
     if all(
         [len(p) <= 1 for p in melody.get_parameter("pitch_list")]
     ) and activity_level(7):
-        for n in melody[:-1]:
+        for n in melody[:-2]:
             n.playing_indicator_collection.sons_xylo.activity = True
-        melody[-1].playing_indicator_collection.sons_xylo.activity = False
+        melody[-2].playing_indicator_collection.sons_xylo.activity = False
+        melody[-1].playing_indicator_collection.bartok_pizzicato.is_active = True
         return True
     return False
 
