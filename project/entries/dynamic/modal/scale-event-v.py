@@ -2,6 +2,8 @@ import quicktions as fractions
 import itertools
 import ranges
 
+import abjad
+
 from mutwo import clock_events
 from mutwo import core_events
 from mutwo import diary_interfaces
@@ -121,10 +123,6 @@ def make_sequential_event(klang_list, random, instrument, activity_level):
     for n in sequential_event:
         n.playing_indicator_collection.string_contact_point.contact_point = "ordinario"
 
-    n0_n = sequential_event[0].notation_indicator_collection
-    n0_n.markup.content = '"arco mobile"'
-    n0_n.markup.direction = "up"
-
     # Order matters!
     add_pizzicato(sequential_event, klang_list, instrument)
     remove_side_pitch(sequential_event, klang_list, activity_level)
@@ -154,6 +152,10 @@ def make_sequential_event(klang_list, random, instrument, activity_level):
 
     rest = music_events.NoteLike(duration=2)
     sequential_event.insert(rest_position, rest)
+
+    n0_n = sequential_event[0].notation_indicator_collection
+    n0_n.markup.content = r'\markup { \caps { \fontsize #-2.4 "arco mobile" }}'
+    n0_n.markup.direction = abjad.enums.UP
 
     return sequential_event
 
