@@ -207,11 +207,11 @@ def add_bend_after(sequential_event):
             continue
         if len(n1.pitch_list) == 1 and n1.pitch_list[0] in n0.pitch_list:
             # If next pitch goes higher, we go down, and upside down.
-            bend_amount = 1.5
+            bend_amount = 0.5
             if any([p > n1.pitch_list[0] for p in n2.pitch_list]):
                 bend_amount *= -1
             n1.playing_indicator_collection.bend_after.bend_amount = bend_amount
-            n1.playing_indicator_collection.bend_after.minimum_length = 5
+            n1.playing_indicator_collection.bend_after.minimum_length = 2
 
 
 def remove_side_pitch(sequential_event, klang_list, activity_level):
