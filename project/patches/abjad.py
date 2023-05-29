@@ -16,7 +16,7 @@ if 1:
         self, leaf_to_process: abjad.Chord
     ):
         for indicator in abjad.get.indicators(leaf_to_process):
-            if not isinstance(indicator, abjad.LilyPondLiteral):
+            if indicator != abjad.LilyPondLiteral(r"\-", site="after"):
                 abjad.detach(indicator, leaf_to_process)
 
     abjad_parameters.NaturalHarmonicNodeList._detach_all_indicators = (
@@ -165,4 +165,44 @@ if 1:
 
     abjad_converters.SequentialEventToAbjadVoice._replace_rests_with_full_measure_rests = (
         SequentialEventToAbjadVoice__replace_rests_with_full_measure_rests
+    )
+
+
+# This fix ensures the direction of the string contact point
+# is ABOVE the staff.
+#
+# Somehow 'direction=abjad.enums.UP' isn't sufficient, maybe
+# this is a bug within abjad?
+#
+# (don't forget that we are still using a rather old abjad version).
+#
+# Futhermore we use 'abjad.LilyPondLiteral' instead of 'abjad.Markup'
+# to improve control of markup position. This needs to be after a lot
+# of other stuff, otherwise we won't see the markup but only a ^
+# articulation.
+if 1:
+
+    def _attach_string_contact_point(
+        self,
+        leaf: abjad.Leaf,
+        previous_attachment: typing.Optional[abjad_parameters.abc.AbjadAttachment],
+        string_contact_point_markup_string: str,
+    ):
+        if previous_attachment:
+            if previous_attachment.indicator.contact_point == "pizzicato":  # type: ignore
+                string_contact_point_markup_string = (
+                    rf"\caps {{ \arco {string_contact_point_markup_string} }}"
+                )
+
+        final_markup = abjad.LilyPondLiteral(
+            rf"^ \markup \fontsize #-2.4 {{ {string_contact_point_markup_string} }}", site="absolute_after"
+        )
+        abjad.attach(
+            final_markup,
+            leaf,
+            direction=abjad.enums.UP,
+        )
+
+    abjad_parameters.StringContactPoint._attach_string_contact_point = (
+        _attach_string_contact_point
     )
