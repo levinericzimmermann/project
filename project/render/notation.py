@@ -510,8 +510,8 @@ def _notation(
             #   Drawing systems...lilypond: skyline.cc:100: Building::Building(Real, Real, Real, Real): Assertion `start_height == end_height' failed.
             moment=4,  # 1/16 is one second
             strict_grace_spanning=False,
-            staff_staff_spacing_minimum_distance=9,
-            staff_staff_spacing_basic_distance=10,
+            staff_staff_spacing_minimum_distance=8,
+            staff_staff_spacing_basic_distance=9,
         )
         abjad_score_block_list.append(abjad_score_block)
 
@@ -526,7 +526,7 @@ def _notation(
         top_margin=-1,
         foot_separation=0,
         head_separation=0,
-        bottom_margin=0.5,
+        bottom_margin=0.2,
         line_width=29,
         left_margin=0.5,
         page_top_space=0,
@@ -585,7 +585,7 @@ def _add_intro(path_notation, path_with_intro):
     )
 
 
-def _make_small(leaf, magnification_size=-2.5):
+def _make_small(leaf, magnification_size=-2.85):
     abjad.attach(
         abjad.LilyPondLiteral(rf"\magnifyStaff #(magstep {magnification_size})"), leaf
     )
