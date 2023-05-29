@@ -125,17 +125,20 @@ def adjust_tempo(simultaneous_event):
     step = core_parameters.DirectDuration(10)
     index_count = int(simultaneous_event.duration / step) or 1
 
-    tempo_main = 15 / 4
+    tempo_main = 14 / 4
     # tempo_main = 30 / 4
     derivation = 3 / 4
 
     tempo_envelope = core_events.TempoEnvelope(
         [
             [
-                step * index,
-                core_parameters.DirectTempoPoint(random.gauss(tempo_main, derivation)),
+                # step * index,
+                # core_parameters.DirectTempoPoint(random.gauss(tempo_main, derivation)),
+                d,
+                core_parameters.DirectTempoPoint(tempo_main),
             ]
-            for index in range(index_count)
+            for d in (0, simultaneous_event.duration)
+            # for index in range(index_count)
         ]
     )
 
