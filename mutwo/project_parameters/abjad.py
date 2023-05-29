@@ -20,6 +20,7 @@ __all__ = (
     "SynchronizationPoint",
     "Bridge",
     "MovingOverpressure",
+    "BowedBox",
 )
 
 
@@ -256,3 +257,36 @@ def prepare_string_body_notation(leaf):
         ),
         leaf,
     )
+
+
+class BowedBox(abjad_parameters.abc.BangEachAttachment):
+    def process_leaf(self, leaf: abjad.Leaf) -> LeafOrLeafSequence:
+        abjad.attach(
+            abjad.LilyPondLiteral(
+                "\n".join(
+                    [
+                        r"\override Staff.StaffSymbol.line-count = #1",
+                        r'\clef "percussion"',
+                    ]
+                )
+            ),
+            leaf,
+        )
+        abjad.attach(abjad.LilyPondLiteral(r"\-", site="after"), leaf)
+        abjad.attach(
+            abjad.LilyPondLiteral(
+                # r"\once \override DurationLine.style = #'zigzag"
+                # "\n"
+                # r"\once \hide NoteHead"
+                r"\once \override DurationLine.thickness = 11"
+            ),
+            leaf,
+        )
+        abjad.attach(
+            abjad.LilyPondLiteral(
+                r'^ \markup { \typewriter { \tiny "bowing wood box" }}',
+                site="after",
+            ),
+            leaf,
+        )
+        return leaf

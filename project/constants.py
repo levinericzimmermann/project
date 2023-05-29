@@ -103,6 +103,7 @@ abjad_converters.configurations.DEFAULT_ABJAD_ATTACHMENT_CLASS_TUPLE = tuple(
     project_parameters.SynchronizationPoint,
     project_parameters.Bridge,
     project_parameters.MovingOverpressure,
+    project_parameters.BowedBox,
 )
 
 GENERATOR_INTERVAL_TUPLE = tuple(
@@ -278,7 +279,7 @@ def _sounding_pitch_to_written_pitch(pitch, sounding_scale, written_scale):
         scale_position = sounding_scale.pitch_to_scale_position(pitch)
         return written_scale.scale_position_to_pitch(scale_position)
     except Exception as e:
-        print("Problems with pitch", pitch.ratio, ". Original error was:")
+        print("Problems with pitch", (pitch,), ". Original error was:")
         print(str(e))
         abjad_pitch = abjad.NamedPitch.from_hertz(pitch.frequency)
         return music_parameters.WesternPitch(

@@ -17,6 +17,7 @@ __all__ = (
     "BendAfterConverter",
     "BridgeConverter",
     "MovingOverpressureConverter",
+    "BowedBoxConverter",
 )
 
 
@@ -263,7 +264,6 @@ class BridgeConverter(music_converters.PlayingIndicatorConverter):
         return music_parameters.abc.ExplicitPlayingIndicator()
 
 
-
 class MovingOverpressureConverter(music_converters.PlayingIndicatorConverter):
     def _apply_playing_indicator(
         self,
@@ -284,6 +284,32 @@ class MovingOverpressureConverter(music_converters.PlayingIndicatorConverter):
     @property
     def playing_indicator_name(self) -> str:
         return "moving_overpressure"
+
+    @property
+    def default_playing_indicator(self) -> music_parameters.abc.PlayingIndicator:
+        return music_parameters.abc.ExplicitPlayingIndicator()
+
+
+class BowedBoxConverter(music_converters.PlayingIndicatorConverter):
+    def _apply_playing_indicator(
+        self,
+        simple_event_to_convert: core_events.SimpleEvent,
+        playing_indicator: music_parameters.abc.ExplicitPlayingIndicator,
+    ) -> core_events.SequentialEvent[core_events.SimpleEvent]:
+        sequential_event = core_events.SequentialEvent([])
+        if not hasattr(simple_event_to_convert, "pitch_list"):
+            simple_event_to_convert = music_events.NoteLike(
+                duration=simple_event_to_convert.duration
+            )
+        else:
+            simple_event_to_convert = simple_event_to_convert.copy()
+        simple_event_to_convert.pitch_list = music_parameters.WesternPitch("c", 0)
+        sequential_event.append(simple_event_to_convert)
+        return sequential_event
+
+    @property
+    def playing_indicator_name(self) -> str:
+        return "bowed_box"
 
     @property
     def default_playing_indicator(self) -> music_parameters.abc.PlayingIndicator:

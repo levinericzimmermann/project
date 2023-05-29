@@ -47,6 +47,7 @@ def midi(clock_tuple: tuple[clock_interfaces.Clock, ...]):
             project_converters.BendAfterConverter(),
             project_converters.BridgeConverter(),
             project_converters.MovingOverpressureConverter(),
+            project_converters.BowedBoxConverter(),
         )
     )
 

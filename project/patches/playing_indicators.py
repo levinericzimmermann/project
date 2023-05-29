@@ -41,6 +41,9 @@ music_parameters_PlayingIndicatorCollection = (
 
 @dataclasses.dataclass
 class PlayingIndicatorCollection(music_parameters_PlayingIndicatorCollection):
+    bowed_box: music_parameters.abc.PlayingIndicator = dataclasses.field(
+        default_factory=music_parameters.abc.ExplicitPlayingIndicator
+    )
     bridge: music_parameters.abc.PlayingIndicator = dataclasses.field(
         default_factory=music_parameters.abc.ExplicitPlayingIndicator
     )
