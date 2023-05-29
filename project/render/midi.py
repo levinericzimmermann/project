@@ -122,6 +122,29 @@ def post_process_instruments(simultaneous_event):
                     )
                 )
 
+            case project.constants.ORCHESTRATION.HARP.name:
+                for seq in event:
+                    for n in seq:
+                        if not isinstance(n, music_events.NoteLike):
+                            continue
+                        n.playing_indicator_collection.string_contact_point.contact_point = (
+                            "arco"
+                            if n.notation_indicator_collection.duration_line.is_active
+                            else "pizzicato"
+                        )
+
+                event_to_remove_index_list.append(event_index)
+                event_to_add_list.extend(
+                    (
+                        filter_pizz(
+                            event.set("tag", f"{event.tag}_pizz", mutate=False)
+                        ),
+                        filter_arco(
+                            event.set("tag", f"{event.tag}_arco", mutate=False)
+                        ),
+                    )
+                )
+
     for event_to_remove_index in reversed(event_to_remove_index_list):
         del simultaneous_event[event_to_remove_index]
 
