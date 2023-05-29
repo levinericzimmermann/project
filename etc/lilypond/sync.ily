@@ -10,6 +10,7 @@ syncPath = #'(
     (moveto 0.5 -3.5)
     (lineto 0.5 -3.6)
     (moveto 0.5 -4)
+    (moveto 0.5 -3.6)
     (closepath)
 )
 
