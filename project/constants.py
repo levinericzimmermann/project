@@ -134,8 +134,8 @@ SCALE = music_parameters.Scale(
 )
 
 HARP_AMBITUS = music_parameters.OctaveAmbitus(
-    music_parameters.JustIntonationPitch("1/8"),
-    music_parameters.JustIntonationPitch("7/1"),
+    music_parameters.JustIntonationPitch("3/20"),
+    music_parameters.JustIntonationPitch("15/4"),
 )
 
 GLOCKENSPIEL_AMBITUS = music_parameters.OctaveAmbitus(
