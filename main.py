@@ -21,9 +21,19 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
 
     scale = project.constants.PENTATONIC_SCALE_TUPLE[poem_index]
 
-    part_count = project.constants.GATRA_COUNT
+    match poem_index % 4:
+        case 0:
+            part_count = 2
+        case 1:
+            part_count = 3
+        case 2:
+            part_count = 2
+        case 3:
+            part_count = 1
+
+    # part_count = project.constants.GATRA_COUNT
     if not poem_line:
-        scale_position_tuple = tuple((0, 0) for _ in range(part_count))
+        scale_position_tuple = tuple((0, 0) for _ in range(part_count * 4))
     else:
         markov_chain = scale_to_markov_chain(scale)
         g = markov_chain.walk_deterministic(tuple(markov_chain.keys())[0])
@@ -48,21 +58,23 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
 
     project.clocks.apply_clock_events(modal_sequential_event)
 
-    insert_modal_event(
-        modal_sequential_event,
-        scale,
-        energy=-2,
-        index=7,
-        duration=f(20, 16),
-    )
+    if part_count >= 2:
+        insert_modal_event(
+            modal_sequential_event,
+            scale,
+            energy=-2,
+            index=7,
+            duration=f(8, 16),
+        )
 
-    insert_modal_event(
-        modal_sequential_event,
-        scale,
-        energy=-2,
-        index=3,
-        duration=f(20, 16),
-    )
+    if part_count >= 2:
+        insert_modal_event(
+            modal_sequential_event,
+            scale,
+            energy=-2,
+            index=3,
+            duration=f(8, 16),
+        )
 
     for modal_event in modal_sequential_event:
         modal_event.control_event = core_events.SimultaneousEvent(
@@ -108,7 +120,7 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
     main_clock_line.resolve_conflicts(
         [
             TuningForkHitStrategy(),
-            timeline_interfaces.TagCountStrategy(),
+            TagCountStrategy(),
             timeline_interfaces.AlternatingStrategy(),
         ],
         is_conflict=is_conflict,
@@ -238,6 +250,8 @@ def insert_modal_event(
     energy: float = 0,
     duration: f = f(25, 16),
 ):
+    if not (len(modal_sequential_event) > index):
+        return
     assert index > 0, "Can't insert at first position"
     modal_sequential_event.insert(
         index,
@@ -306,6 +320,20 @@ class TuningForkHitStrategy(timeline_interfaces.ConflictResolutionStrategy):
                 pass
 
 
+class TagCountStrategy(timeline_interfaces.TagCountStrategy):
+    def __init__(self, prefer_more_level: int = 8):
+        self.prefer_more_level = prefer_more_level
+        self.activity_level = common_generators.ActivityLevel()
+        self.tag_count_more = timeline_interfaces.TagCountStrategy()
+        self.tag_count_fewer = timeline_interfaces.TagCountStrategy(False)
+
+    def resolve_conflict(self, timeline, conflict) -> bool:
+        if self.activity_level(self.prefer_more_level):
+            return self.tag_count_more.resolve_conflict(timeline, conflict)
+        else:
+            return self.tag_count_fewer.resolve_conflict(timeline, conflict)
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -321,11 +349,9 @@ if __name__ == "__main__":
     if args.illustration:
         project.render.illustration()
 
-    import logging
-
-    from mutwo import diary_converters
-
-    diary_converters.configurations.LOGGING_LEVEL = logging.DEBUG
+    # import logging
+    # from mutwo import diary_converters
+    # diary_converters.configurations.LOGGING_LEVEL = logging.DEBUG
 
     from mutwo import diary_interfaces
 
