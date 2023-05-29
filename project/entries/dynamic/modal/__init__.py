@@ -196,3 +196,23 @@ diary_interfaces.DynamicEntry.from_file(
     file_path=f"{path}/explicit-silence.py",
     relevance=10000,
 )
+
+
+diary_interfaces.DynamicEntry.from_file(
+    "v_noise_0",
+    diary_interfaces.ModalContext0.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/v_noise.py",
+    relevance=10,
+)
+
+
+diary_interfaces.DynamicEntry.from_file(
+    "v_noise_1",
+    diary_interfaces.ModalContext1.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/v_noise.py",
+    relevance=8.5,
+)
