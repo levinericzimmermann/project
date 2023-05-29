@@ -150,7 +150,7 @@ def make_sequential_event(klang_list, random, instrument, activity_level):
     else:
         rest_position = event_count - 1
 
-    rest = music_events.NoteLike(duration=2)
+    rest = music_events.NoteLike(duration=1.25)
     sequential_event.insert(rest_position, rest)
 
     n0_n = sequential_event[0].notation_indicator_collection
