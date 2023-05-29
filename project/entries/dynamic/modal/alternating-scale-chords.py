@@ -68,7 +68,7 @@ def main(context, scale, **kwargs):
     chord_tuple = functools.reduce(
         operator.add, zip(untunable_chord_tuple, tunable_chord_tuple)
     )
-    return chord_tuple[1:]
+    return chord_tuple
 
 
 def get_tunable_chord_tuple(context, pitch_tuple):
