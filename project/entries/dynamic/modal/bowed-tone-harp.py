@@ -31,7 +31,7 @@ def main(
     orchestration = context.orchestration
     instrument = orchestration[0]
     pitch = pitch or get_pitch(context)
-    pitch_tuple = instrument.get_pitch_variant_tuple(pitch)[:2]
+    pitch_tuple = instrument.get_pitch_variant_tuple(pitch)[:1]
     pitch = random.choice(pitch_tuple)
 
     sequential_event = core_events.SequentialEvent([])
