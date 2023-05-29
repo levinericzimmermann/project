@@ -41,10 +41,16 @@ music_parameters_PlayingIndicatorCollection = (
 
 @dataclasses.dataclass
 class PlayingIndicatorCollection(music_parameters_PlayingIndicatorCollection):
+    bridge: music_parameters.abc.PlayingIndicator = dataclasses.field(
+        default_factory=music_parameters.abc.ExplicitPlayingIndicator
+    )
     cluster: music_parameters.abc.PlayingIndicator = dataclasses.field(
         default_factory=music_parameters.abc.ExplicitPlayingIndicator
     )
     flageolet: music_parameters.abc.PlayingIndicator = dataclasses.field(
+        default_factory=music_parameters.abc.ExplicitPlayingIndicator
+    )
+    moving_overpressure: music_parameters.abc.PlayingIndicator = dataclasses.field(
         default_factory=music_parameters.abc.ExplicitPlayingIndicator
     )
     sons_xylo: SonsXylo = dataclasses.field(default_factory=SonsXylo)

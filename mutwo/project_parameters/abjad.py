@@ -18,6 +18,8 @@ __all__ = (
     "FlagStrokeStyle",
     "NoteHead",
     "SynchronizationPoint",
+    "Bridge",
+    "MovingOverpressure",
 )
 
 
@@ -200,3 +202,57 @@ class SynchronizationPoint(abjad_parameters.abc.BangFirstAttachment):
     def process_leaf(self, leaf: abjad.Leaf) -> LeafOrLeafSequence:
         abjad.attach(abjad.LilyPondLiteral(r"\drawSyncPath", site="after"), leaf)
         return leaf
+
+
+class Bridge(abjad_parameters.abc.BangEachAttachment):
+    def process_leaf(self, leaf: abjad.Leaf) -> LeafOrLeafSequence:
+        prepare_string_body_notation(leaf)
+        abjad.attach(abjad.LilyPondLiteral(r"\-", site="after"), leaf)
+        abjad.attach(
+            abjad.LilyPondLiteral(
+                # r"\once \override DurationLine.style = #'zigzag"
+                # "\n"
+                r"\once \hide NoteHead"
+                r"\once \override DurationLine.thickness = 11"
+            ),
+            leaf,
+        )
+        return leaf
+
+
+class MovingOverpressure(abjad_parameters.abc.BangEachAttachment):
+    def process_leaf(self, leaf: abjad.Leaf) -> LeafOrLeafSequence:
+        prepare_string_body_notation(leaf)
+        abjad.attach(
+            abjad.LilyPondLiteral(
+                # r"\once \override DurationLine.style = #'zigzag"
+                # "\n"
+                r"\once \hide NoteHead"
+            ),
+            leaf,
+        )
+        abjad.attach(
+            abjad.LilyPondLiteral(
+                r'^ \markup { \typewriter { \tiny "overpressure" }}'
+                "\n"
+                r"\drawOverpressurePath",
+                site="after",
+            ),
+            leaf,
+        )
+        return leaf
+
+
+def prepare_string_body_notation(leaf):
+    abjad.attach(
+        abjad.LilyPondLiteral(
+            "\n".join(
+                [
+                    r"\override Staff.StaffSymbol.line-count = #1",
+                    r'\clef "percussion"',
+                    r"\once \omit Accidental" r"\bridgeClef",
+                ]
+            )
+        ),
+        leaf,
+    )

@@ -101,6 +101,8 @@ abjad_converters.configurations.DEFAULT_ABJAD_ATTACHMENT_CLASS_TUPLE = tuple(
     project_parameters.FlagStrokeStyle,
     project_parameters.NoteHead,
     project_parameters.SynchronizationPoint,
+    project_parameters.Bridge,
+    project_parameters.MovingOverpressure,
 )
 
 GENERATOR_INTERVAL_TUPLE = tuple(

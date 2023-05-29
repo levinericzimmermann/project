@@ -536,6 +536,8 @@ def _notation(
     ).convert(abjad_score_block_list)
 
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ar.ily"')
+    lilypond_file.items.insert(0, r'\include "etc/lilypond/bridge.ily"')
+    lilypond_file.items.insert(0, r'\include "etc/lilypond/overpressure.ily"')
     lilypond_file.items.insert(0, r'\include "etc/lilypond/sync.ily"')
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ekme-heji.ily"')
 
