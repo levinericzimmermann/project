@@ -577,7 +577,7 @@ def _add_intro(path_notation, path_with_intro):
     )
 
 
-def _make_small(leaf, magnification_size=-2):
+def _make_small(leaf, magnification_size=-2.5):
     abjad.attach(
         abjad.LilyPondLiteral(rf"\magnifyStaff #(magstep {magnification_size})"), leaf
     )
