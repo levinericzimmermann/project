@@ -132,20 +132,14 @@ def is_conflict(event_placement_0, event_placement_1):
     # sounds (because the player need to hold the tuning fork with one
     # hand).
     if may_be_bowed_tuning_fork_conflict(event_placement_0, event_placement_1):
-        event_with_glockenspiel = get_event_with_glockenspiel(
+        for n in get_overlapping_tuning_fork_note_tuple(
             event_placement_0, event_placement_1
-        )
-
-        glockenspiel_event = event_with_glockenspiel[
-            project.constants.ORCHESTRATION.GLOCKENSPIEL.name
-        ]
-        for sequential_event in glockenspiel_event:
-            for n in sequential_event:
-                if (
-                    hasattr(n, "notation_indicator_collection")
-                    and n.notation_indicator_collection.duration_line.is_active
-                ):
-                    return True
+        ):
+            if (
+                hasattr(n, "notation_indicator_collection")
+                and n.notation_indicator_collection.duration_line.is_active
+            ):
+                return True
 
     # Standard logic
     share_instruments = bool(set(tag_tuple0).intersection(set(tag_tuple1)))
@@ -165,14 +159,63 @@ def may_be_bowed_tuning_fork_conflict(event_placement_0, event_placement_1):
     )
 
 
-def get_event_with_glockenspiel(event_placement_0, event_placement_1):
+def get_overlapping_tuning_fork_note_tuple(event_placement_0, event_placement_1):
+    glockenspiel_event, glockenspiel_ep = get_glockenspiel_event(
+        event_placement_0, event_placement_1
+    )
+    adjusted_glockenspiel_event = glockenspiel_event.set(
+        "duration", glockenspiel_ep.duration, mutate=False
+    )
+    _, pclock_ep = get_pclock_event(event_placement_0, event_placement_1)
+    pclock_duration_range = pclock_ep.time_range
+    overlapping_tuning_fork_note_list = []
+    for sequential_event_copy, sequential_event in zip(
+        # We need the duration information from the copied event
+        # (because we only copied the event in order to scale to real
+        # duration), but want to have the original note (because this
+        # is the one which needs to be adjusted).
+        adjusted_glockenspiel_event,
+        glockenspiel_event,
+    ):
+        (
+            absolute_time_tuple,
+            duration,
+        ) = sequential_event_copy._absolute_time_tuple_and_duration
+        for start, end, n in zip(
+            absolute_time_tuple, absolute_time_tuple[1:] + (duration,), sequential_event
+        ):
+            r_start = start + glockenspiel_ep.min_start
+            r_end = end + glockenspiel_ep.min_start
+            if r_start in pclock_duration_range or r_end in pclock_duration_range:
+                overlapping_tuning_fork_note_list.append(n)
+    return tuple(overlapping_tuning_fork_note_list)
+
+
+def get_glockenspiel_event(event_placement_0, event_placement_1):
+    return get_tag_event(
+        event_placement_0,
+        event_placement_1,
+        project.constants.ORCHESTRATION.GLOCKENSPIEL.name,
+    )
+
+
+def get_pclock_event(event_placement_0, event_placement_1):
+    return get_tag_event(
+        event_placement_0,
+        event_placement_1,
+        project.constants.ORCHESTRATION.PCLOCK.name,
+    )
+
+
+def get_tag_event(event_placement_0, event_placement_1, tag):
     tag_tuple0, tag_tuple1 = (
         ep.tag_tuple for ep in (event_placement_0, event_placement_1)
     )
-    if project.constants.ORCHESTRATION.GLOCKENSPIEL.name in tag_tuple0:
-        return event_placement_0.event
+    if tag in tag_tuple0:
+        ep = event_placement_0
     else:
-        return event_placement_1.event
+        ep = event_placement_1
+    return ep.event[tag], ep
 
 
 def scale_to_markov_chain(scale):
@@ -247,25 +290,20 @@ class TuningForkHitStrategy(timeline_interfaces.ConflictResolutionStrategy):
     def resolve_conflict(self, timeline, conflict) -> bool:
         event_placement_0, event_placement_1 = conflict.left, conflict.right
         if may_be_bowed_tuning_fork_conflict(event_placement_0, event_placement_1):
-
             # Don't fix always, because this would be a bit boring :)
-            if not self.activity_level(self.fix_level):
-                return False
-
-            event_with_glockenspiel = get_event_with_glockenspiel(
-                event_placement_0, event_placement_1
-            )
-            glockenspiel_event = event_with_glockenspiel[
-                project.constants.ORCHESTRATION.GLOCKENSPIEL.name
-            ]
-            for sequential_event in glockenspiel_event:
-                for n in sequential_event:
-                    try:
-                        n.notation_indicator_collection.duration_line.is_active = False
-                    except AttributeError:
-                        pass
-            return True
+            if self.activity_level(self.fix_level):
+                self._solve(event_placement_0, event_placement_1)
+                return True
         return False
+
+    def _solve(self, event_placement_0, event_placement_1):
+        for n in get_overlapping_tuning_fork_note_tuple(
+            event_placement_0, event_placement_1
+        ):
+            try:
+                n.notation_indicator_collection.duration_line.is_active = False
+            except AttributeError:
+                pass
 
 
 if __name__ == "__main__":
@@ -282,6 +320,12 @@ if __name__ == "__main__":
 
     if args.illustration:
         project.render.illustration()
+
+    import logging
+
+    from mutwo import diary_converters
+
+    diary_converters.configurations.LOGGING_LEVEL = logging.DEBUG
 
     from mutwo import diary_interfaces
 
