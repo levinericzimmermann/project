@@ -159,6 +159,7 @@ def _harp_converter(small=False):
 
     complex_event_to_abjad_container = (
         clock_generators.make_complex_event_to_abjad_container(
+            duration_line=True,
             sequential_event_to_abjad_staff_kwargs=dict(
                 post_process_abjad_container_routine_sequence=(
                     PostProcessHarpSequentialEvent(),
