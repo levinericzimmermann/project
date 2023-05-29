@@ -198,5 +198,5 @@ class NoteHead(abjad_parameters.abc.BangEachAttachment):
 
 class SynchronizationPoint(abjad_parameters.abc.BangFirstAttachment):
     def process_leaf(self, leaf: abjad.Leaf) -> LeafOrLeafSequence:
-        abjad.attach(abjad.LilyPondLiteral(r"\drawSyncPath"), leaf)
+        abjad.attach(abjad.LilyPondLiteral(r"\drawSyncPath", site="after"), leaf)
         return leaf
