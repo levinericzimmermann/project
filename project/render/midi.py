@@ -53,14 +53,23 @@ def midi(clock_tuple: tuple[clock_interfaces.Clock, ...]):
     event_to_midi_file = midi_converters.EventToMidiFile()
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        task_list = []
         for event in simultaneous_event:
             event = grace_notes_converter(playing_indicators_converter(event))
 
-            executor.submit(
-                event_to_midi_file.convert,
-                event,
-                f"builds/midi/{project.constants.TITLE}_{event.tag}.mid",
+            task_list.append(
+                executor.submit(
+                    event_to_midi_file.convert,
+                    event,
+                    f"builds/midi/{project.constants.TITLE}_{event.tag}.mid",
+                )
             )
+
+        done, not_done = concurrent.futures.wait(
+            task_list, return_when=concurrent.futures.FIRST_EXCEPTION
+        )
+        for task in done:
+            task.result()
 
 
 def post_process_instruments(simultaneous_event):
