@@ -21,7 +21,7 @@ def is_supported(context, alternating_scale_chords, **kwargs):
     return alternating_scale_chords.is_supported(context, **kwargs)
 
 
-def main(context, alternating_scale_chords, random, **kwargs):
+def main(context, alternating_scale_chords, random, activity_level, **kwargs):
     # This invariant is always true for our chords:
     #
     #     index % 2 == 0 => untunable
@@ -62,6 +62,7 @@ def main(context, alternating_scale_chords, random, **kwargs):
             random,
             chord_index,
             max_chord_index,
+            activity_level,
         )
 
     for tagged_simultaneous_event in simultaneous_event[:-1]:
@@ -91,6 +92,7 @@ def distribute_chord(
     random,
     chord_index,
     max_chord_index,
+    activity_level,
 ):
     pitch_count_dict = {p.normalize().exponent_tuple: 0 for p in chord}
     for instrument in orchestration:
@@ -110,6 +112,7 @@ def distribute_chord(
             random,
             chord_index,
             max_chord_index,
+            activity_level,
         )
 
 
@@ -122,6 +125,7 @@ def pop_cello(
     random,
     chord_index,
     max_chord_index,
+    activity_level,
 ):
     if not simultaneous_event:
         simultaneous_event.append(core_events.SequentialEvent())
@@ -142,8 +146,8 @@ def pop_cello(
             pitch, tolerance=TOLERANCE
         ):
             # Activate, if you don't want arco sounds
-            # if instrument.pitch_to_natural_harmonic_tuple(v)[0].index < 6:
-            possible_pitch_list.append((v, FLAGEOLET))
+            if instrument.pitch_to_natural_harmonic_tuple(v)[0].index < 6:
+                possible_pitch_list.append((v, FLAGEOLET))
 
         #   (c) pythagorean intervals
         #       We avoid other microtonal pitches (difficult to intonate).
@@ -248,6 +252,7 @@ def pop_harp(
     random,
     chord_index,
     max_chord_index,
+    activity_level,
 ):
     while len(simultaneous_event) < 2:
         simultaneous_event.append(core_events.SequentialEvent())
@@ -267,13 +272,44 @@ def pop_harp(
     right.extend(t_right)
     left.extend(t_left)
 
+    if is_right_hand_playing := (not left[-1].pitch_list):
+        last_note = right[-1]
+    else:
+        last_note = left[-1]
+
     if max_chord_index == chord_index:  # is_last
-        if not left[-1].pitch_list:
+        pass
+
+    if chord_index % 2 == 0:  # if is untunable:
+
+        # CLUSTER left hand
+        if is_right_hand_playing and activity_level(2):
             left[-1].pitch_list = (
-                music_parameters.JustIntonationPitch("1/6"),
-                music_parameters.JustIntonationPitch("1/3"),
+                music_parameters.JustIntonationPitch("1/4"),
+                music_parameters.JustIntonationPitch("3/8"),
             )
             left[-1].playing_indicator_collection.cluster.is_active = True
+
+        # CLUSTER right hand
+        elif (not is_right_hand_playing) and activity_level(1):
+            right[-1].pitch_list = (
+                music_parameters.JustIntonationPitch("1/1"),
+                music_parameters.JustIntonationPitch("3/2"),
+            )
+            right[-1].playing_indicator_collection.cluster.is_active = True
+
+        elif activity_level(3):
+            last_note.playing_indicator_collection.bartok_pizzicato.is_active = True
+            last_note.volume = "f"
+
+        # octave flageolet
+        else:
+            last_note.playing_indicator_collection.flageolet.is_active = True
+            # We don't adjust pitch list, so this tone will really be
+            # an octave higher. This is simpler, because otherwise we would
+            # need to check again if we need to re-distribute this note from
+            # the left to the right hand (or upside down). It also doesn't
+            # matter, because the pitch octave is found randomly anyway.
 
 
 def pop_generic(
@@ -285,6 +321,7 @@ def pop_generic(
     random,
     chord_index,
     max_chord_index,
+    activity_level,
 ):
     if not simultaneous_event:
         simultaneous_event.append(core_events.SequentialEvent())
