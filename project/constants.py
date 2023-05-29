@@ -37,8 +37,6 @@ river
 
 assert len(POEM.split("\n")) == PAGE_COUNT
 
-GATRA_COUNT = 3
-
 SCALE_INDEX_TUPLE = (
     # Pentatonics.
     # Scale indices, but as their generator index from 1 to 7.
