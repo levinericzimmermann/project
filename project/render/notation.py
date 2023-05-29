@@ -207,9 +207,12 @@ def _harp_converter(small=False):
                                 octave_count = 2
                             elif mpitch > music_parameters.JustIntonationPitch("5/2"):
                                 octave_count = 1
-                        note.notation_indicator_collection.ottava.octave_count = (
-                            octave_count
-                        )
+                        try:
+                            note.notation_indicator_collection.ottava.octave_count = (
+                                octave_count
+                            )
+                        except AttributeError:
+                            pass
 
             return super().convert(event_placement, *args, **kwargs)
 
