@@ -224,4 +224,4 @@ def duration_to_event_count(duration):
     return int(duration / density[0]) * density[1]
 
 
-density = (fractions.Fraction(4, 16), 1)
+density = (fractions.Fraction(5, 16), 1)
