@@ -41,14 +41,16 @@ def clock_event_to_abjad_staff_group():
                     first_leaf,
                 )
 
-    complex_event_to_abjad_container = clock_generators.make_complex_event_to_abjad_container(
-        sequential_event_to_abjad_staff_kwargs=dict(
-            post_process_abjad_container_routine_sequence=(
-                PostProcessClockSequentialEvent(),
+    complex_event_to_abjad_container = (
+        clock_generators.make_complex_event_to_abjad_container(
+            sequential_event_to_abjad_staff_kwargs=dict(
+                post_process_abjad_container_routine_sequence=(
+                    PostProcessClockSequentialEvent(),
+                ),
+                mutwo_volume_to_abjad_attachment_dynamic=None,
             ),
-            mutwo_volume_to_abjad_attachment_dynamic=None,
-        ),
-        duration_line=True,
+            duration_line=True,
+        )
     )
     return clock_converters.ClockEventToAbjadStaffGroup(
         complex_event_to_abjad_container
@@ -72,6 +74,7 @@ def _pclock_tag_to_converter(small=True):
             else:
                 if small:
                     _make_small(first_leaf)
+                _make_thick_duration_line(first_leaf, 7)
                 abjad.attach(abjad.Clef("percussion"), first_leaf)
                 abjad.attach(
                     abjad.LilyPondLiteral(
@@ -152,6 +155,7 @@ def _harp_converter(small=False):
                     _make_small(first_leaf)
                 # Remove potential ottava again, so it doesn't span over all rests etc.
                 abjad.attach(abjad.Ottava(n=0, site="after"), last_leaf)
+                _make_thick_duration_line(first_leaf)
 
     complex_event_to_abjad_container = (
         clock_generators.make_complex_event_to_abjad_container(
@@ -242,6 +246,9 @@ def _v_converter(small=False):
                     first_leaf,
                 )
 
+            for leaf in leaf_sequence:
+                _make_thick_duration_line(leaf)
+
     class EventPlacementToAbjadStaffGroup(
         clock_converters.EventPlacementToAbjadStaffGroup
     ):
@@ -294,6 +301,7 @@ def _glockenspiel_converter(small=False):
                 if small:
                     _make_small(first_leaf)
                 abjad.attach(abjad.Clef("treble"), first_leaf)
+                _make_thick_duration_line(first_leaf)
 
     class EventPlacementToAbjadStaffGroup(
         clock_converters.EventPlacementToAbjadStaffGroup
@@ -580,4 +588,10 @@ def _add_intro(path_notation, path_with_intro):
 def _make_small(leaf, magnification_size=-2.5):
     abjad.attach(
         abjad.LilyPondLiteral(rf"\magnifyStaff #(magstep {magnification_size})"), leaf
+    )
+
+
+def _make_thick_duration_line(leaf, thickness=5):
+    abjad.attach(
+        abjad.LilyPondLiteral(rf"\override DurationLine.thickness = {thickness}"), leaf
     )
