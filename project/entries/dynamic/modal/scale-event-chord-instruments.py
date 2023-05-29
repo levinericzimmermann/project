@@ -1,5 +1,3 @@
-import operator
-
 import quicktions as fractions
 
 from mutwo import core_events
@@ -24,7 +22,15 @@ def is_supported(context, alternating_scale_chords, **kwargs):
 
 
 def main(context, alternating_scale_chords, random, **kwargs):
+    # This invariant is always true for our chords:
+    #
+    #     index % 2 == 0 => untunable
+    #     index % 2 == 1 => tunable
+    #
+    # To keep this true, we don't filter chords without
+    # any pitches!
     chord_tuple = alternating_scale_chords(context, **kwargs)
+    assert len(chord_tuple) % 2 == 0, "please repair 'alternating_scale_chords'"
 
     modal_event_to_convert = context.modal_event
     duration = modal_event_to_convert.clock_event.duration
@@ -135,6 +141,8 @@ def pop_cello(
         for v in instrument.get_harmonic_pitch_variant_tuple(
             pitch, tolerance=TOLERANCE
         ):
+            # Activate, if you don't want arco sounds
+            # if instrument.pitch_to_natural_harmonic_tuple(v)[0].index < 6:
             possible_pitch_list.append((v, FLAGEOLET))
 
         #   (c) pythagorean intervals
@@ -147,7 +155,37 @@ def pop_cello(
         add_rest(simultaneous_event, duration)
         return
 
-    pitch, pitchtype = sorted(possible_pitch_list, key=operator.itemgetter(1))[0]
+    # untunable
+    if is_untunable := (chord_index % 2 == 0):
+        # We prefer unstable sounds for untunable intervals.
+        # We try to avoid pythagorean (e.g. pitches which need
+        # to be intonated).
+        mapping = {
+            FLAGEOLET: 0,
+            OPEN: 1,
+            PYTHAGOREAN: 2,
+        }
+    # tunable
+    else:
+        # We prefer stable sounds for tunable intervals.
+        mapping = {
+            OPEN: 0,
+            PYTHAGOREAN: 1,
+            FLAGEOLET: 2,
+        }
+
+    def sortkey(data):
+        _, pitchtype = data
+        return mapping[pitchtype]
+
+    minfitness = sortkey(min(possible_pitch_list, key=sortkey))
+    filtered_pitch_tuple = tuple(
+        filter(lambda d: sortkey(d) == minfitness, possible_pitch_list)
+    )
+    pitch, pitchtype = filtered_pitch_tuple[
+        next(HARP_PITCH_INDEX_GENERATOR) % len(filtered_pitch_tuple)
+    ]
+
     pitch_count_dict[pitch.normalize(mutate=False).exponent_tuple] += 1
 
     note = music_events.NoteLike(pitch, duration=duration, volume="pp")
@@ -161,13 +199,44 @@ def pop_cello(
         )
 
         if natural_harmonic.index > 5:
-            contact_point = "arco"
+            contact_point = "ordinario"
 
     note.playing_indicator_collection.string_contact_point.contact_point = contact_point
     if contact_point != "pizzicato":
-        note.notation_indicator_collection.duration_list.is_active = True
+        note.notation_indicator_collection.duration_line.is_active = True
+        # This is a very lightly structure, we don't want anything
+        # which attacks the unisono rests too much.
+        note.playing_indicator_collection.articulation.name = "staccato"
+    else:  # only if pizzicato
+
+        # ! Deactivated due to odd notation !
+        #   -> fix notation first
+        #
+        # # We add accents on last stable tone
+        # if (
+        #     # it should be on the last tone, which should be emphazied
+        #     (chord_index == max_chord_index)
+        #     # but only on the last tone if it's the stable one
+        #     and (not is_untunable)
+        # ):
+        #     note.playing_indicator_collection.articulation.name = "accent"
+
+        # We add bartok pizz on unstable tones
+        # (but not on flageolet, they are already unstable enough)
+        if pitchtype != FLAGEOLET and is_untunable:
+            note.playing_indicator_collection.bartok_pizzicato.is_active = True
 
     simultaneous_event[0].append(note)
+
+
+def _hgen():
+    n = 0
+    while 1:
+        yield n
+        n += 1
+
+
+HARP_PITCH_INDEX_GENERATOR = _hgen()
 
 
 def pop_harp(
