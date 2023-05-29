@@ -36,9 +36,10 @@ from mutwo import project_parameters
 import project
 
 
-def is_supported(context, **kwargs):
+def is_supported(context, scale, **kwargs):
     try:
         assert isinstance(context, diary_interfaces.ModalContext0)
+        assert context.modal_event.start_pitch != context.modal_event.end_pitch
     except AssertionError:
         return False
     return True
@@ -79,7 +80,8 @@ def get_tunable_chord_tuple(context, pitch_tuple):
         for c in project_generators.find_chord_tuple(
             (p.normalize(),),
             available_pitch_tuple,
-            pitch_count_range=ranges.Range(2, 4),
+            pitch_count_range=ranges.Range(3, 4),
+            min_harmonicity=None,
         ):
             if not champion or c.harmonicity > fitness:
                 champion, fitness = c, c.harmonicity
