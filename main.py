@@ -31,7 +31,6 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
         case 3:
             part_count = 1
 
-    # part_count = project.constants.GATRA_COUNT
     if not poem_line:
         scale_position_tuple = tuple((0, 0) for _ in range(part_count * 4))
     else:
@@ -95,7 +94,7 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
             ),
             diary_converters.Modal0SequentialEventToEventPlacementTuple(
                 orchestration=project.constants.ORCHESTRATION.get_subset("HARP"),
-                add_mod1=False,
+                add_mod1=True,
             ),
             diary_converters.Modal0SequentialEventToEventPlacementTuple(
                 orchestration=project.constants.ORCHESTRATION.get_subset("V"),
