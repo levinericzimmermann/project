@@ -94,8 +94,24 @@ def distribute_chord(
     max_chord_index,
     activity_level,
 ):
+    if chord_index % 2 == 0:
+        play_likelihood = 3
+    elif chord_index == max_chord_index:
+        play_likelihood = 9
+    else:
+        play_likelihood = 5
+
+    play = activity_level(play_likelihood)
+
     pitch_count_dict = {p.normalize().exponent_tuple: 0 for p in chord}
+    selected_pitch_list = []
     for instrument in orchestration:
+        tagged_simultaneous_event = simultaneous_event[instrument.name]
+
+        if not play:
+            add_rest(tagged_simultaneous_event, duration)
+            continue
+
         match instrument.name:
             case "v":
                 pop = pop_cello
@@ -103,17 +119,19 @@ def distribute_chord(
                 pop = pop_harp
             case _:
                 pop = pop_generic
-        pop(
+        if p := pop(
             chord,
             pitch_count_dict,
             duration,
-            simultaneous_event[instrument.name],
+            tagged_simultaneous_event,
             instrument,
             random,
             chord_index,
             max_chord_index,
             activity_level,
-        )
+            selected_pitch_list,
+        ):
+            selected_pitch_list.append(p)
 
 
 def pop_cello(
@@ -126,6 +144,7 @@ def pop_cello(
     chord_index,
     max_chord_index,
     activity_level,
+    selected_pitch_list,
 ):
     if not simultaneous_event:
         simultaneous_event.append(core_events.SequentialEvent())
@@ -158,6 +177,16 @@ def pop_cello(
     if not possible_pitch_list:
         add_rest(simultaneous_event, duration)
         return
+
+    # Try to avoid already used pitches (absolute, two
+    # octave separated pitches are considered unequal).
+    filtered_possible_pitch_list = list(
+        filter(lambda d: d[0] not in selected_pitch_list, possible_pitch_list)
+    )
+    if filtered_possible_pitch_list:
+        possible_pitch_list = filtered_possible_pitch_list
+
+    # Now filter according to playing technique.
 
     # untunable
     if is_untunable := (chord_index % 2 == 0):
@@ -213,24 +242,25 @@ def pop_cello(
         note.playing_indicator_collection.articulation.name = "staccato"
     else:  # only if pizzicato
 
-        # ! Deactivated due to odd notation !
-        #   -> fix notation first
-        #
-        # # We add accents on last stable tone
-        # if (
-        #     # it should be on the last tone, which should be emphazied
-        #     (chord_index == max_chord_index)
-        #     # but only on the last tone if it's the stable one
-        #     and (not is_untunable)
-        # ):
-        #     note.playing_indicator_collection.articulation.name = "accent"
+        # We add accents on last stable tone
+        if (
+            # it should be on the last tone, which should be emphazied
+            (chord_index == max_chord_index)
+            # but only on the last tone if it's the stable one
+            and (not is_untunable)
+        ):
+            note.playing_indicator_collection.articulation.name = "accent"
+            note.volume = "mf"
 
         # We add bartok pizz on unstable tones
         # (but not on flageolet, they are already unstable enough)
         if pitchtype != FLAGEOLET and is_untunable:
             note.playing_indicator_collection.bartok_pizzicato.is_active = True
+            note.volume = "mf"
 
     simultaneous_event[0].append(note)
+
+    return pitch
 
 
 def _hgen():
@@ -253,11 +283,14 @@ def pop_harp(
     chord_index,
     max_chord_index,
     activity_level,
+    selected_pitch_list,
 ):
     while len(simultaneous_event) < 2:
         simultaneous_event.append(core_events.SequentialEvent())
 
-    pitch = generic_pitch_popper(pitch_set, pitch_count_dict, instrument, random)
+    pitch = generic_pitch_popper(
+        pitch_set, pitch_count_dict, instrument, random, selected_pitch_list
+    )
     if pitch is None:
         return add_rest(simultaneous_event, duration)
 
@@ -283,7 +316,7 @@ def pop_harp(
     if chord_index % 2 == 0:  # if is untunable:
 
         # CLUSTER left hand
-        if is_right_hand_playing and activity_level(2):
+        if is_right_hand_playing and activity_level(0):
             left[-1].pitch_list = (
                 music_parameters.JustIntonationPitch("1/4"),
                 music_parameters.JustIntonationPitch("3/8"),
@@ -298,9 +331,9 @@ def pop_harp(
             )
             right[-1].playing_indicator_collection.cluster.is_active = True
 
-        elif activity_level(3):
+        elif activity_level(2):
             last_note.playing_indicator_collection.bartok_pizzicato.is_active = True
-            last_note.volume = "f"
+            last_note.volume = "mf"
 
         # octave flageolet
         else:
@@ -310,6 +343,8 @@ def pop_harp(
             # need to check again if we need to re-distribute this note from
             # the left to the right hand (or upside down). It also doesn't
             # matter, because the pitch octave is found randomly anyway.
+
+    return pitch
 
 
 def pop_generic(
@@ -322,11 +357,14 @@ def pop_generic(
     chord_index,
     max_chord_index,
     activity_level,
+    selected_pitch_list,
 ):
     if not simultaneous_event:
         simultaneous_event.append(core_events.SequentialEvent())
 
-    pitch = generic_pitch_popper(pitch_set, pitch_count_dict, instrument, random)
+    pitch = generic_pitch_popper(
+        pitch_set, pitch_count_dict, instrument, random, selected_pitch_list
+    )
     if pitch is None:
         return add_rest(simultaneous_event, duration)
 
@@ -334,8 +372,12 @@ def pop_generic(
         music_events.NoteLike(pitch, duration=duration, volume="ppp")
     )
 
+    return pitch
 
-def generic_pitch_popper(pitch_set, pitch_count_dict, instrument, random):
+
+def generic_pitch_popper(
+    pitch_set, pitch_count_dict, instrument, random, selected_pitch_list
+):
     if not pitch_count_dict:
         return
 
@@ -351,6 +393,12 @@ def generic_pitch_popper(pitch_set, pitch_count_dict, instrument, random):
 
     if not pitch_list:
         return
+
+    filtered_pitch_list = list(
+        filter(lambda p: p not in selected_pitch_list, pitch_list)
+    )
+    if filtered_pitch_list:
+        pitch_list = filtered_pitch_list
 
     pitch = random.choice(pitch_list)
     pitch_count_dict[pitch.normalize(mutate=False).exponent_tuple] += 1
