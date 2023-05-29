@@ -167,6 +167,15 @@ diary_interfaces.DynamicEntry.from_file(
     relevance=70,
 )
 
+diary_interfaces.DynamicEntry.from_file(
+    "bowed_tone_harp",
+    diary_interfaces.ModalContext1.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/bowed-tone-harp.py",
+    relevance=80,
+)
+
 
 diary_interfaces.DynamicEntry.from_file(
     "pattern",
@@ -204,7 +213,7 @@ diary_interfaces.DynamicEntry.from_file(
     timeline_interfaces.EventPlacement,
     skip_check=project.constants.SKIP_CHECK,
     file_path=f"{path}/v_noise.py",
-    relevance=10,
+    relevance=3,
 )
 
 
@@ -214,5 +223,5 @@ diary_interfaces.DynamicEntry.from_file(
     timeline_interfaces.EventPlacement,
     skip_check=project.constants.SKIP_CHECK,
     file_path=f"{path}/v_noise.py",
-    relevance=8.5,
+    relevance=5,
 )
