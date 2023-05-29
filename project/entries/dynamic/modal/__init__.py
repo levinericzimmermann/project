@@ -115,7 +115,7 @@ diary_interfaces.DynamicEntry.from_file(
     skip_check=project.constants.SKIP_CHECK,
     abbreviation_to_path_dict=dict(dyad=dyad.path),
     file_path=f"{path}/two-dyads.py",
-    relevance=5,
+    relevance=35,
 )
 
 diary_interfaces.DynamicEntry.from_file(
