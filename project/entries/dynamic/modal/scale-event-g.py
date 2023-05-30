@@ -53,7 +53,14 @@ def main(
 
         pitch_tuple = tuple(pitch_list)
 
-    use_bow = activity_level(10)
+    if context.energy >= 60:
+        bow_level = 10
+    elif context.energy >= 55:
+        bow_level = 8
+    elif context.energy >= 50:
+        bow_level = 6
+
+    use_bow = activity_level(bow_level)
 
     sequential_event = core_events.SequentialEvent([])
     is_first = True
