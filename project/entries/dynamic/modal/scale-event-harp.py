@@ -189,7 +189,10 @@ def add_accent(melody, scale, end_pitch, has_inversion, activity_level):
     stop_index = -1 if has_inversion else None
     for i, e in enumerate(reversed(melody[:stop_index])):
         # No accents for flageolets, those are rather quite sounds
-        if e.playing_indicator_collection.flageolet.is_active:
+        if (
+            e.playing_indicator_collection.flageolet.is_active
+            or e.playing_indicator_collection.cluster.is_active
+        ):
             continue
 
         add_accent = False
