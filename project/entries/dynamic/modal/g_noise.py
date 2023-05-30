@@ -8,7 +8,7 @@ from mutwo import timeline_interfaces
 
 def is_supported(context, **kwargs):
     try:
-        # assert context.energy < 50
+        assert context.energy >= 40 and context.energy <= 60
         orchestration = context.orchestration
         assert len(orchestration) == 1
         assert orchestration[0].name == "glockenspiel"
@@ -18,7 +18,6 @@ def is_supported(context, **kwargs):
 
 
 def main(context, activity_level, **kwargs) -> timeline_interfaces.EventPlacement:
-    print("BOWED BOX")
     orchestration = context.orchestration
 
     duration = context.modal_event.clock_event.duration

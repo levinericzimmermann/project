@@ -15,3 +15,11 @@ So that:
 
 (e.g. when saying something should take 5 seconds it is 5/16)
 
+
+## energy level
+
+- > 60      :       only pitched entries
+- 50 - 60   :       pitched and non-pitched entries
+- 40 - 50   :       only non-pitched entries
+- < 40      :       only rests
+- < 0       :       explicit rests (with fermata)
