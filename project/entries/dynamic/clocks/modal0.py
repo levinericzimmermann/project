@@ -19,7 +19,7 @@ def is_supported(context, tremolo_middle=None, **kwargs):
         assert len(orchestration) == 1
         instrument = orchestration[0]
         assert isinstance(instrument, music_parameters.UnpitchedInstrument)
-        assert context.energy > 50
+        assert context.energy > 40
     except AssertionError:
         return False
     return True
