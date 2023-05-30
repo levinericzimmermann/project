@@ -16,6 +16,7 @@ def is_supported(context, **kwargs):
         assert len(orchestration) == 1
         instrument = orchestration[0]
         assert instrument.name in ("glockenspiel",)
+        assert context.energy > 50
     except AssertionError:
         return False
     return True
