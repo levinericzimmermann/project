@@ -24,12 +24,16 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
     match poem_index % 4:
         case 0:
             part_count = 2
+            energy = 61
         case 1:
             part_count = 3
+            energy = 51
         case 2:
             part_count = 2
+            energy = 41
         case 3:
             part_count = 1
+            energy = 51
 
     if not poem_line:
         scale_position_tuple = tuple((0, 0) for _ in range(part_count * 4))
@@ -50,7 +54,7 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
 
     modal_sequential_event = core_events.SequentialEvent(
         [
-            clock_events.ModalEvent0(start_pitch, end_pitch, scale, energy=60)
+            clock_events.ModalEvent0(start_pitch, end_pitch, scale, energy=energy)
             for start_pitch, end_pitch in zip(root_pitch_tuple, root_pitch_tuple[1:])
         ]
     )
