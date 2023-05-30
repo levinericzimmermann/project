@@ -34,7 +34,9 @@ def main(
         real_duration = duration
     start_range, end_range = project_utilities.get_ranges(real_duration, duration, 0.5)
 
-    pitch_tuple_tuple = control_density(pitch_tuple_tuple, real_duration)
+    pitch_tuple_tuple = control_density(
+        pitch_tuple_tuple, real_duration, context.energy
+    )
 
     last_duration = 4
 
@@ -199,9 +201,9 @@ def add_accent(melody, scale, end_pitch, has_inversion, activity_level):
             e.volume = "mf"
 
 
-def control_density(pitch_tuple_tuple, real_duration):
+def control_density(pitch_tuple_tuple, real_duration, energy):
     basic_event_count = len(pitch_tuple_tuple)
-    allowed_event_count = duration_to_event_count(real_duration)
+    allowed_event_count = duration_to_event_count(real_duration, energy)
 
     if allowed_event_count < basic_event_count:
         pitch_tuple_tuple = tuple(
@@ -220,8 +222,15 @@ def control_density(pitch_tuple_tuple, real_duration):
     return pitch_tuple_tuple
 
 
-def duration_to_event_count(duration):
+def duration_to_event_count(duration, energy):
+    density = energy_to_density(energy)
     return int(duration / density[0]) * density[1]
 
 
-density = (fractions.Fraction(5, 16), 1)
+def energy_to_density(energy):
+    if energy > 60:
+        return (fractions.Fraction(5, 16), 1)
+    elif energy > 55:
+        return (fractions.Fraction(6, 16), 1)
+    else:
+        return (fractions.Fraction(7, 16), 1)
