@@ -60,17 +60,11 @@ def main(context, tremolo_middle, tremolo_long, grace, hit, random, **kwargs):
                 position = 0.85
                 real_duration = fractions.Fraction(30, 16)
             else:
-                # clock_event = hit(
-                #     instrument_index_tuple=[random.choice((2, 3, 4))], **kwargs
-                # )
-                # position = 0.5
-                # real_duration = fractions.Fraction(5, 16)
-                clock_event = hit(instrument_index_tuple=[1], **kwargs)
-                clock_event[0][
-                    0
-                ].notation_indicator_collection.duration_line.is_active = True
-                position = 0.1
-                real_duration = fractions.Fraction(14, 16)
+                clock_event = hit(
+                    instrument_index_tuple=[random.choice((2, 3, 4))], **kwargs
+                )
+                position = 0.5
+                real_duration = fractions.Fraction(5, 16)
         case _:
             raise RuntimeError()
 
