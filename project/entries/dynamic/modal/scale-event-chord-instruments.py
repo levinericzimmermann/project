@@ -75,6 +75,7 @@ def main(context, alternating_scale_chords, random, activity_level, **kwargs):
                 n = sequential_event[i]
             except IndexError:
                 n = None
+                break
         if n:
             n.notation_indicator_collection.synchronization_point.length = 5
             n.notation_indicator_collection.synchronization_point.direction = False
