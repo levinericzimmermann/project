@@ -284,7 +284,7 @@ class BowedBox(abjad_parameters.abc.BangEachAttachment):
         )
         abjad.attach(
             abjad.LilyPondLiteral(
-                r'^ \markup { \typewriter { \tiny "bowing wood box" }}',
+                r'^ \markup { \typewriter { \tiny "wood box" }}',
                 site="after",
             ),
             leaf,
