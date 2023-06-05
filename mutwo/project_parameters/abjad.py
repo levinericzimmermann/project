@@ -21,6 +21,7 @@ __all__ = (
     "Bridge",
     "MovingOverpressure",
     "BowedBox",
+    "ExplicitFermata",
 )
 
 
@@ -285,6 +286,37 @@ class BowedBox(abjad_parameters.abc.BangEachAttachment):
         abjad.attach(
             abjad.LilyPondLiteral(
                 r'^ \markup { \typewriter { \tiny "wood box" }}',
+                site="after",
+            ),
+            leaf,
+        )
+        return leaf
+
+
+class ExplicitFermata(abjad_parameters.abc.BangFirstAttachment):
+    def process_leaf(self, leaf: abjad.Leaf) -> LeafOrLeafSequence:
+        abjad.attach(
+            abjad.LilyPondLiteral(
+                "\n".join(
+                    [
+                        r"\override Staff.StaffSymbol.line-count = #0",
+                        r"\once \override Staff.Clef.stencil = ##f",
+                    ]
+                ),
+                site="before",
+            ),
+            leaf,
+        )
+        abjad.attach(
+            abjad.LilyPondLiteral(
+                r"^ \markup { "
+                "\n\t"
+                r"\hspace #3"
+                "\n\t"
+                r"\scale #'(2.4 . 2.4)"
+                "\n\t"
+                r'\musicglyph "scripts.ufermata"'
+                "\n}",
                 site="after",
             ),
             leaf,

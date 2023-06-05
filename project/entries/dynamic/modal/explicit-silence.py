@@ -26,7 +26,7 @@ def main(context, **kwargs) -> timeline_interfaces.EventPlacement:
 
     simultaneous_event = core_events.SimultaneousEvent([])
     for instrument in orchestration:
-        if instrument.name == "pclock":
+        if instrument.name != "glockenspiel":
             continue
 
         tagged_simultaneous_event = core_events.TaggedSimultaneousEvent(
@@ -45,7 +45,7 @@ def main(context, **kwargs) -> timeline_interfaces.EventPlacement:
                 fermata_type = FERMATA_TYPE_TUPLE[abs(context.energy) - 1]
             except IndexError:
                 fermata_type = FERMATA_TYPE_TUPLE[-1]
-            note_like.playing_indicator_collection.fermata.type = fermata_type
+            note_like.playing_indicator_collection.explicit_fermata.type = fermata_type
             sequential_event = core_events.SequentialEvent([note_like])
             tagged_simultaneous_event.append(sequential_event)
 

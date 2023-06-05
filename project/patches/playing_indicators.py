@@ -34,6 +34,11 @@ class SonsXylo(music_parameters.abc.ImplicitPlayingIndicator):
     activity: typing.Optional[bool] = None
 
 
+@dataclasses.dataclass()
+class ExplicitFermata(music_parameters.abc.ImplicitPlayingIndicator):
+    type: typing.Optional[music_parameters.constants.FERMATA_TYPE_LITERAL] = None
+
+
 music_parameters_PlayingIndicatorCollection = (
     music_parameters.PlayingIndicatorCollection
 )
@@ -49,6 +54,9 @@ class PlayingIndicatorCollection(music_parameters_PlayingIndicatorCollection):
     )
     cluster: music_parameters.abc.PlayingIndicator = dataclasses.field(
         default_factory=music_parameters.abc.ExplicitPlayingIndicator
+    )
+    explicit_fermata: ExplicitFermata = dataclasses.field(
+        default_factory=ExplicitFermata
     )
     flageolet: music_parameters.abc.PlayingIndicator = dataclasses.field(
         default_factory=music_parameters.abc.ExplicitPlayingIndicator
