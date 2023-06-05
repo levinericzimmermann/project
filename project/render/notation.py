@@ -88,14 +88,20 @@ def _pclock_tag_to_converter(small=True):
                     ),
                     first_leaf,
                 )
-            # This is a fix for a very strange bug: for reasons I don't
-            # understand the code which replaces rests with skips is never
-            # executed for the 'pclock'. So in order to still replace the rests
-            # with the skips we add the next three lines. Of course it would be
-            # much better if we would simply know what's the actual problem.
             for leaf in leaf_sequence:
+
+                # This is a fix for a very strange bug: for reasons I don't
+                # understand the code which replaces rests with skips is never
+                # executed for the 'pclock'. So in order to still replace the rests
+                # with the skips we add the next three lines. Of course it would be
+                # much better if we would simply know what's the actual problem.
                 if isinstance(leaf, abjad.Rest):
                     abjad.mutate.replace(leaf, abjad.Skip(leaf.written_duration))
+
+                # Fix broke tremolo (\AccRit) notation:
+                # if the note has a beam (which goes to nowhere) the \AccRit
+                # beam isn't printed.
+                abjad.detach(abjad.StartBeam, leaf)
 
     complex_event_to_abjad_container = clock_generators.make_complex_event_to_abjad_container(
         sequential_event_to_abjad_staff_kwargs=dict(
