@@ -26,7 +26,7 @@ let
     '';
   };
 
-  python94 = pkgs.python310.buildEnv.override {
+  mypython = pkgs.python310.buildEnv.override {
     extraLibs = with pkgs.python310Packages; [
       ipython
       ortools
@@ -41,7 +41,7 @@ in
 
   pkgs.mkShell {
       buildInputs = with pkgs; [
-          python94
+          mypython
           lilypond-with-fonts
       ];
   }
