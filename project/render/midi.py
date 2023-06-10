@@ -9,7 +9,6 @@ from mutwo import core_events
 from mutwo import core_parameters
 from mutwo import midi_converters
 from mutwo import music_converters
-from mutwo import music_events
 from mutwo import project_converters
 
 import project
@@ -17,7 +16,7 @@ import project
 
 def midi(clock_tuple: tuple[clock_interfaces.Clock, ...]):
     clock2sim = clock_converters.ClockToSimultaneousEvent(
-        project_converters.ClockLineToSimultaneousEvent()
+        clock_converters.ClockLineToSimultaneousEvent()
     ).convert
 
     simultaneous_event = core_events.SimultaneousEvent([])
@@ -28,7 +27,6 @@ def midi(clock_tuple: tuple[clock_interfaces.Clock, ...]):
         )
         simultaneous_event.concatenate_by_tag(clock_simultaneous_event)
 
-    post_process_instruments(simultaneous_event)
     adjust_tempo(simultaneous_event)
 
     grace_notes_converter = music_converters.GraceNotesConverter(
@@ -42,7 +40,6 @@ def midi(clock_tuple: tuple[clock_interfaces.Clock, ...]):
             music_converters.StacattoConverter(),
             music_converters.ArpeggioConverter(duration_for_each_attack=0.3),
             project_converters.TremoloConverter(0.21, 1.25),
-            project_converters.ClusterConverter(project.constants.SCALE),
             project_converters.FlageoletConverter(),
             project_converters.BendAfterConverter(),
             project_converters.BridgeConverter(),
@@ -73,107 +70,16 @@ def midi(clock_tuple: tuple[clock_interfaces.Clock, ...]):
             task.result()
 
 
-def post_process_instruments(simultaneous_event):
-    filter_pizz = project_converters.FilterPizzicatoNoteLike()
-    filter_arco = project_converters.FilterArcoNoteLike()
-
-    event_to_remove_index_list = []
-    event_to_add_list = []
-    for event_index, event in enumerate(simultaneous_event):
-        match event.tag:
-            case project.constants.ORCHESTRATION.PCLOCK.name:
-                event = project.constants.INSTRUMENT_CLOCK_EVENT_TO_PITCHED_CLOCK_EVENT(
-                    event
-                )
-                event_to_remove_index_list.append(event_index)
-                event_to_add_list.append(event)
-            case project.constants.ORCHESTRATION.GLOCKENSPIEL.name:
-                for seq in event:
-                    for n in seq:
-                        if not isinstance(n, music_events.NoteLike):
-                            continue
-                        n.playing_indicator_collection.string_contact_point.contact_point = (
-                            "arco"
-                            if n.notation_indicator_collection.duration_line.is_active
-                            else "pizzicato"
-                        )
-
-                event_to_remove_index_list.append(event_index)
-                event_to_add_list.extend(
-                    (
-                        filter_pizz(
-                            event.set("tag", f"{event.tag}_pizz", mutate=False)
-                        ),
-                        filter_arco(
-                            event.set("tag", f"{event.tag}_arco", mutate=False)
-                        ),
-                    )
-                )
-
-            case project.constants.ORCHESTRATION.V.name:
-                event_to_remove_index_list.append(event_index)
-                event_to_add_list.extend(
-                    (
-                        filter_pizz(
-                            event.set("tag", f"{event.tag}_pizz", mutate=False)
-                        ),
-                        filter_arco(
-                            event.set("tag", f"{event.tag}_arco", mutate=False)
-                        ),
-                    )
-                )
-
-            case project.constants.ORCHESTRATION.HARP.name:
-                for seq in event:
-                    for n in seq:
-                        if not isinstance(n, music_events.NoteLike):
-                            continue
-                        n.playing_indicator_collection.string_contact_point.contact_point = (
-                            "arco"
-                            if n.notation_indicator_collection.duration_line.is_active
-                            else "pizzicato"
-                        )
-
-                event_to_remove_index_list.append(event_index)
-                event_to_add_list.extend(
-                    (
-                        filter_pizz(
-                            event.set("tag", f"{event.tag}_pizz", mutate=False)
-                        ),
-                        filter_arco(
-                            event.set("tag", f"{event.tag}_arco", mutate=False)
-                        ),
-                    )
-                )
-
-    for event_to_remove_index in reversed(event_to_remove_index_list):
-        del simultaneous_event[event_to_remove_index]
-
-    simultaneous_event.extend(event_to_add_list)
-
-
 def adjust_tempo(simultaneous_event):
-    import random
-
-    random.seed(10)
-    # SPEED UP. should later be slowed down again :)
-    step = core_parameters.DirectDuration(10)
-    index_count = int(simultaneous_event.duration / step) or 1
-
     tempo_main = 14 / 4
-    # tempo_main = 30 / 4
-    derivation = 3 / 4
 
     tempo_envelope = core_events.TempoEnvelope(
         [
             [
-                # step * index,
-                # core_parameters.DirectTempoPoint(random.gauss(tempo_main, derivation)),
                 d,
                 core_parameters.DirectTempoPoint(tempo_main),
             ]
             for d in (0, simultaneous_event.duration)
-            # for index in range(index_count)
         ]
     )
 
