@@ -2,6 +2,7 @@ import quicktions as fractions
 
 from mutwo import core_events
 from mutwo import diary_interfaces
+from mutwo import music_events
 from mutwo import project_utilities
 from mutwo import timeline_interfaces
 
@@ -15,7 +16,7 @@ def is_supported(context, **kwargs):
 
 
 def main(
-    context, random, activity_level, scale, **kwargs
+    context, random, activity_level, **kwargs
 ) -> timeline_interfaces.EventPlacement:
     duration = context.end - context.start
 
@@ -26,11 +27,11 @@ def main(
     start_range, end_range = project_utilities.get_ranges(real_duration, duration, 0.5)
 
     sequential_event = core_events.SequentialEvent(
-        [core_events.NoteLike(context.pitch, 1)]
+        [music_events.NoteLike(context.pitch, 1)]
     )
 
     simultaneous_event = core_events.TaggedSimultaneousEvent(
-        [sequential_event], tag="test"
+        [sequential_event], tag=context.attr
     )
 
     return timeline_interfaces.EventPlacement(

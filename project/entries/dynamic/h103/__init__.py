@@ -12,6 +12,6 @@ diary_interfaces.DynamicEntry.from_file(
     diary_interfaces.H103Context.identifier,
     timeline_interfaces.EventPlacement,
     skip_check=project.constants.SKIP_CHECK,
-    file_path=f"{path}/h103s.py",
+    file_path=f"{path}/h130s.py",
     relevance=50,
 )

@@ -54,7 +54,7 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
             previous = None
             previous_start = None
             for start, e in zip(absolute_time_tuple, sequential_event):
-                item = getattr(e, attr)
+                item = getattr(e.chord, attr)
 
                 if item != previous:
                     append()
