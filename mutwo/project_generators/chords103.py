@@ -87,3 +87,12 @@ class Chord103(object):
 
     def common_pitch_count(self, other: Chord103) -> int:
         return len(self.common_pitch_tuple(other))
+
+    def __hash__(self) -> int:
+        return hash(
+            (
+                self.tonic.exponent_tuple,
+                self.partner.exponent_tuple,
+                self.written_instable_pitch.exponent_tuple,
+            )
+        )
