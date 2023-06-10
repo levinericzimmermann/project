@@ -29,9 +29,27 @@ def main(
     if energy < 2 and context.attr != "tonic" and activity_level(4):
         return
 
+    # First the reference tones which are easier to intonate, and then
+    # we add up the more complex intonations.
+    match context.attr:
+        case "tonic":
+            position = 0.25
+            duration_diff = fractions.Fraction(1, 8)
+        case "partner":
+            position = 0.5
+            duration_diff = fractions.Fraction(1, 4)
+        case _:
+            position = 0.75
+            duration_diff = fractions.Fraction(1, 2)
+
     duration = context.end - context.start
-    real_duration = duration - fractions.Fraction(1, 4)
-    start_range, end_range = project_utilities.get_ranges(real_duration, duration, 0.5)
+
+    while duration_diff > duration:
+        duration_diff -= fractions.Fraction(1, 16)
+
+    real_duration = duration - duration_diff
+
+    start_range, end_range = project_utilities.get_ranges(real_duration, duration, position)
 
     n = music_events.NoteLike(context.pitch, 1)
     n.notation_indicator_collection.duration_line.is_active = True
