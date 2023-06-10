@@ -3,85 +3,61 @@ from quicktions import Fraction as f
 import numpy as np
 import ranges
 
-from mutwo import core_converters
-from mutwo import clock_converters
 from mutwo import clock_events
 from mutwo import clock_interfaces
 from mutwo import core_events
+from mutwo import diary_converters
 from mutwo import project_converters
 from mutwo import timeline_interfaces
 
 import project
 
+tonic_movement_tuple_to_c103_sequential_event = (
+    project_converters.TonicMovementTupleToC103SequentialEvent()
+)
+c103_sequential_event_to_context_tuple = (
+    project_converters.C103SequentialEventToContextTuple()
+)
+context_tuple_to_event_placement_tuple = (
+    diary_converters.ContextTupleToEventPlacementTuple()
+)
 
-def make_clock(before_rest_duration=0) -> clock_interfaces.Clock:
-    modal_sequential_event = core_events.SequentialEvent([])
 
-    project.clocks.apply_clock_events(modal_sequential_event)
+def make_clock(week_day, before_rest_duration=0) -> clock_interfaces.Clock:
+    if week_day in (project.constants.WeekDay.MONDAY, project.constants.WeekDay.SUNDAY):
+        return clock_interfaces.Clock(_clock_rest(1))
 
-    for modal_event in modal_sequential_event:
-        modal_event.control_event = core_events.SimultaneousEvent(
-            [core_events.SequentialEvent([core_events.SimpleEvent(1)])]
+    tonic_movement_tuple = project.constants.WEEK_DAY_TO_TONIC_MOVEMENT_TUPLE[week_day]
+    c103_sequential_event = tonic_movement_tuple_to_c103_sequential_event(
+        tonic_movement_tuple
+    )
+    context_tuple = c103_sequential_event_to_context_tuple(c103_sequential_event)
+    event_placement_tuple = context_tuple_to_event_placement_tuple(context_tuple)
+
+    main_clock_line = clock_interfaces.ClockLine(
+        clock_event=clock_events.ClockEvent(
+            [
+                core_events.SequentialEvent(
+                    [core_events.SimpleEvent(c103_sequential_event.duration)]
+                )
+            ]
         )
-
-    main_clock_line = clock_converters.Modal0SequentialEventToClockLine(()).convert(
-        modal_sequential_event
     )
+    for ep in event_placement_tuple:
+        main_clock_line.register(ep)
 
-    # Fix overlaps
-    main_clock_line.resolve_conflicts(
-        [
-            timeline_interfaces.AlternatingStrategy(),
-        ],
-    )
+    # # Fix overlaps
+    # main_clock_line.resolve_conflicts(
+    #     [
+    #         timeline_interfaces.AlternatingStrategy(),
+    #     ],
+    # )
 
     start_clock_line = None
     end_clock_line = None
     clock = clock_interfaces.Clock(main_clock_line, start_clock_line, end_clock_line)
 
     return clock
-
-
-def scale_to_markov_chain(scale):
-    key = tuple(p.ratio for p in scale.scale_family.interval_tuple)
-    try:
-        markov_chain = _scale_to_markov_chain[key]
-    except KeyError:
-        gatra_tuple = scale_to_gatra_tuple.convert(scale)
-        markov_chain = _scale_to_markov_chain[
-            key
-        ] = gatra_tuple_to_markov_chain.convert(gatra_tuple)
-        markov_chain.make_deterministic_map()
-    return markov_chain
-
-
-def insert_modal_event(
-    modal_sequential_event,
-    scale,
-    index: int = 3,
-    energy: float = 0,
-    duration: f = f(25, 16),
-):
-    if not (len(modal_sequential_event) > index):
-        return
-    assert index > 0, "Can't insert at first position"
-    modal_sequential_event.insert(
-        index,
-        clock_events.ModalEvent0(
-            modal_sequential_event[index - 1].end_pitch,
-            modal_sequential_event[index - 1].end_pitch,
-            scale,
-            energy=energy,
-            clock_event=clock_events.ClockEvent(
-                [core_events.SequentialEvent([core_events.SimpleEvent(duration)])]
-            ),
-        ),
-    )
-
-
-scale_to_gatra_tuple = project_converters.ScaleToGatraTuple()
-gatra_tuple_to_markov_chain = project_converters.GatraTupleToMarkovChain()
-_scale_to_markov_chain = {}
 
 
 def _clock_rest(rest_duration):
@@ -97,7 +73,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(prog="project")
     parser.add_argument("-i", "--illustration", action="store_true")
-    parser.add_argument("-n", "--notation", default="")
+    parser.add_argument("-n", "--notation", action="store_true")
     parser.add_argument("-s", "--sound", action="store_true")
     parser.add_argument("-m", "--max-index", default=16)
 
@@ -115,13 +91,15 @@ if __name__ == "__main__":
 
     with diary_interfaces.open():
         clock_list = []
-        for _ in range(1):
-            clock_list.append(make_clock())
+        for i, week_day in enumerate(project.constants.WeekDay):
+            if i >= max_index:
+                break
+            clock_list.append(make_clock(week_day))
 
     clock_tuple = tuple(clock_list)
 
     if args.notation:
-        project.render.notation(clock_tuple, args.notation)
+        project.render.notation(clock_tuple, [])
 
     if args.sound:
         project.render.midi(clock_tuple)
