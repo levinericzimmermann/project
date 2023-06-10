@@ -57,6 +57,10 @@ def pclock_tag_to_converter(small=True):
     class PostProcessClockSequentialEvent(
         abjad_converters.ProcessAbjadContainerRoutine
     ):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.c = 1
+
         def __call__(
             self,
             complex_event_to_convert: core_events.abc.ComplexEvent,
@@ -81,9 +85,19 @@ def pclock_tag_to_converter(small=True):
                         r"\override Staff.NoteHead.duration-log = 2 "
                         r"\hide Staff.Clef "
                         r"\hide Staff.BarLine "
+                        "\n"
+                        r"\override NoteHead.stencil = #ly:text-interface::print "
+                        "\n"
+                        r"\override NoteHead.text = \markup { "
+                        "\n"
+                        rf'\typewriter \tiny "{self.c}" '
+                        "\n"
+                        r"}"
+                        "\n"
                     ),
                     first_leaf,
                 )
+                self.c += 1
             for leaf in leaf_sequence:
 
                 # This is a fix for a very strange bug: for reasons I don't
@@ -94,14 +108,16 @@ def pclock_tag_to_converter(small=True):
                 if isinstance(leaf, abjad.Rest):
                     abjad.mutate.replace(leaf, abjad.Skip(leaf.written_duration))
 
-    complex_event_to_abjad_container = clock_generators.make_complex_event_to_abjad_container(
-        sequential_event_to_abjad_staff_kwargs=dict(
-            post_process_abjad_container_routine_sequence=(
-                PostProcessClockSequentialEvent(),
+    complex_event_to_abjad_container = (
+        clock_generators.make_complex_event_to_abjad_container(
+            sequential_event_to_abjad_staff_kwargs=dict(
+                post_process_abjad_container_routine_sequence=(
+                    PostProcessClockSequentialEvent(),
+                ),
+                mutwo_volume_to_abjad_attachment_dynamic=None,
             ),
-            mutwo_volume_to_abjad_attachment_dynamic=None,
-        ),
-        duration_line=True,
+            duration_line=True,
+        )
     )
 
     pclock_tag = "pclock"
