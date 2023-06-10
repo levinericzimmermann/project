@@ -15,3 +15,13 @@ diary_interfaces.DynamicEntry.from_file(
     file_path=f"{path}/h130s.py",
     relevance=50,
 )
+
+
+diary_interfaces.DynamicEntry.from_file(
+    "h103-pclock",
+    diary_interfaces.H103Context.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/pclock.py",
+    relevance=50,
+)

@@ -10,6 +10,7 @@ from mutwo import timeline_interfaces
 def is_supported(context, **kwargs):
     try:
         assert isinstance(context, diary_interfaces.H103Context)
+        assert context.attr != "pclock"
     except AssertionError:
         return False
     return True

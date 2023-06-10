@@ -53,6 +53,77 @@ def clock_event_to_abjad_staff_group():
     )
 
 
+def pclock_tag_to_converter(small=True):
+    class PostProcessClockSequentialEvent(
+        abjad_converters.ProcessAbjadContainerRoutine
+    ):
+        def __call__(
+            self,
+            complex_event_to_convert: core_events.abc.ComplexEvent,
+            container_to_process: abjad.Container,
+        ):
+            leaf_sequence = abjad.select.leaves(container_to_process)
+            try:
+                first_leaf = leaf_sequence[0]
+            except IndexError:
+                pass
+            else:
+                _make_small(first_leaf, -6)
+                abjad.attach(abjad.Clef("percussion"), first_leaf)
+                abjad.attach(
+                    abjad.LilyPondLiteral(
+                        r"\override Staff.StaffSymbol.line-count = #0 "
+                        # Parts of PrepareForDurationLineBasedNotation which
+                        # are useful here.
+                        r"\override Staff.Dots.dot-count = #0 "
+                        r"\omit Staff.MultiMeasureRest "
+                        r"\override Staff.Dots.dot-count = #0 "
+                        r"\override Staff.NoteHead.duration-log = 2 "
+                        r"\hide Staff.Clef "
+                        r"\hide Staff.BarLine "
+                    ),
+                    first_leaf,
+                )
+            for leaf in leaf_sequence:
+
+                # This is a fix for a very strange bug: for reasons I don't
+                # understand the code which replaces rests with skips is never
+                # executed for the 'pclock'. So in order to still replace the rests
+                # with the skips we add the next three lines. Of course it would be
+                # much better if we would simply know what's the actual problem.
+                if isinstance(leaf, abjad.Rest):
+                    abjad.mutate.replace(leaf, abjad.Skip(leaf.written_duration))
+
+    complex_event_to_abjad_container = clock_generators.make_complex_event_to_abjad_container(
+        sequential_event_to_abjad_staff_kwargs=dict(
+            post_process_abjad_container_routine_sequence=(
+                PostProcessClockSequentialEvent(),
+            ),
+            mutwo_volume_to_abjad_attachment_dynamic=None,
+        ),
+        duration_line=True,
+    )
+
+    pclock_tag = "pclock"
+
+    class EventPlacementToAbjadStaffGroup(
+        clock_converters.EventPlacementToAbjadStaffGroup
+    ):
+        def convert(self, event_placement, *args, **kwargs):
+            pclock_event = event_placement.event[pclock_tag]
+            if isinstance(pclock_event, core_events.TaggedSimultaneousEvent):
+                pass
+            return super().convert(event_placement, *args, **kwargs)
+
+    return {
+        pclock_tag: EventPlacementToAbjadStaffGroup(
+            complex_event_to_abjad_container,
+            staff_count=1,
+            max_denominator=MAX_DENOMINATOR,
+        ),
+    }
+
+
 def get_converter(tag, small=False):
     class PostProcessSequentialEvent(abjad_converters.ProcessAbjadContainerRoutine):
         def __call__(
@@ -134,8 +205,9 @@ def get_converter(tag, small=False):
 
 
 def score_converter():
-    converter_dict = get_converter("tonic")
+    converter_dict = pclock_tag_to_converter()
     for c in (
+        get_converter("tonic"),
         get_converter("partner"),
         get_converter("written_instable_pitch"),
     ):
@@ -152,7 +224,7 @@ def notation(clock_tuple, notate_item):
         if p := _notation(
             "score",
             score_converter(),
-            ("tonic", "partner", "written_instable_pitch"),
+            ("pclock", "tonic", "partner", "written_instable_pitch"),
             clock_tuple,
             executor,
             omit_notation,

@@ -19,7 +19,8 @@ C103SequentialEvent: typing.TypeAlias = core_events.SequentialEvent[
 class TonicMovementTupleToC103SequentialEvent(core_converters.abc.Converter):
     def __init__(self):
         self._activity_level = common_generators.ActivityLevel()
-        self._chord_count_cycle = itertools.cycle((3, 4, 2, 4, 3))
+        # self._chord_count_cycle = itertools.cycle((3, 4, 2, 4, 3))
+        self._chord_count_cycle = itertools.cycle((3, 4, 5, 6, 5))
 
     def convert(
         self, tonic_movement_tuple: tuple[music_parameters.JustIntonationPitch, ...]
@@ -136,7 +137,11 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
         def append(start, end, previous, repetition_count):
             if previous is not None:
                 context = diary_interfaces.H103Context(
-                    start=start, end=end, attr=attr, pitch=previous, energy=repetition_count
+                    start=start,
+                    end=end,
+                    attr=attr,
+                    pitch=previous,
+                    energy=repetition_count,
                 )
                 context_list.append(context)
 
@@ -162,5 +167,13 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
                 repetition_count += 1
 
             append(previous_start, start + e.duration, previous, repetition_count)
+
+        for start, end, e in zip(
+            absolute_time_tuple,
+            absolute_time_tuple[1:] + (sequential_event.duration,),
+            sequential_event,
+        ):
+            if e.chord:
+                context_list.append(diary_interfaces.H103Context(start=start, end=end, attr="pclock"))
 
         return tuple(context_list)
