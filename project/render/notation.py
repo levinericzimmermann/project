@@ -142,6 +142,10 @@ def pclock_tag_to_converter(small=True):
 
 def get_converter(tag, small=False):
     class PostProcessSequentialEvent(abjad_converters.ProcessAbjadContainerRoutine):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.c = 0
+
         def __call__(
             self,
             complex_event_to_convert: core_events.abc.ComplexEvent,
@@ -166,6 +170,13 @@ def get_converter(tag, small=False):
                 )
                 _set_duration_line(first_leaf)
 
+                if self.c > 0:
+                    abjad.attach(
+                        abjad.LilyPondLiteral(r"\omit Staff.Clef", site="before"),
+                        first_leaf,
+                    )
+
+
             # If we have instable pitches, they can either be a
             # minor or a major interval. We show this to others by
             # adding parenthesis to the accidental (= can be added, but
@@ -188,6 +199,8 @@ def get_converter(tag, small=False):
                     ),
                     leaf,
                 )
+
+            self.c += 1
 
     class EventPlacementToAbjadStaffGroup(
         clock_converters.EventPlacementToAbjadStaffGroup
