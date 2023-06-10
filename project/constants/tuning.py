@@ -109,7 +109,7 @@ WEEK_DAY_TO_TONIC = _()
 # pitches. The idea is to show the 'natural' neighbours of the
 # current planet, which are not the real 'day' / 'week-based'
 # neighbours.
-# So we move to the pythagorean neighbours 3/2 & 4/3.
+# So we move to the Pythagorean neighbours 3/2 & 4/3.
 # In order to improve the movement in the other pitch dimension -
 # interval distance in cents - we add some interpolation pitches,
 # so that we always move thirds up & down.
