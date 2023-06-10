@@ -18,14 +18,19 @@ def is_supported(context, **kwargs):
 def main(
     context, random, activity_level, **kwargs
 ) -> timeline_interfaces.EventPlacement:
+
+    # The energy parameter is mapped to how often a pitch can be repeated
+    # over different chords. (It's ok to remove the more frequent notes
+    # which are only valid for 1 chord, but it would be rather unfortunate
+    # to remove notes which span over multiple chords).
+    energy = context.energy
+    # Sometimes drop tones if they aren't the tonic & don't span over
+    # multiple chords.
+    if energy < 2 and context.attr != "tonic" and activity_level(4):
+        return
+
     duration = context.end - context.start
-
-    # real_duration = fractions.Fraction(22, 16)
-    # if real_duration > duration:
-    #     real_duration = duration - fractions.Fraction(1, 16)
     real_duration = duration - fractions.Fraction(1, 4)
-    # real_duration = fractions.Fraction(1, 1)
-
     start_range, end_range = project_utilities.get_ranges(real_duration, duration, 0.5)
 
     n = music_events.NoteLike(context.pitch, 1)
