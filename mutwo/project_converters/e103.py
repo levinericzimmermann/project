@@ -133,10 +133,10 @@ _tonic_to_130_chord_tuple = {}
 
 class C103SequentialEventToContextTuple(core_converters.abc.Converter):
     def convert(self, sequential_event: C103SequentialEvent) -> tuple:
-        def append(start, end, previous):
+        def append(start, end, previous, repetition_count):
             if previous is not None:
                 context = diary_interfaces.H103Context(
-                    start=start, end=end, attr=attr, pitch=previous
+                    start=start, end=end, attr=attr, pitch=previous, energy=repetition_count
                 )
                 context_list.append(context)
 
@@ -146,6 +146,7 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
         for attr in ("tonic", "partner", "written_instable_pitch"):
             previous = None
             previous_start = None
+            repetition_count = 0
             for start, e in zip(absolute_time_tuple, sequential_event):
                 if e.chord is not None:
                     item = getattr(e.chord, attr)
@@ -153,10 +154,13 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
                     item = None
 
                 if item != previous:
-                    append(previous_start, start, previous)
+                    append(previous_start, start, previous, repetition_count)
+                    repetition_count = 0
                     previous = item
                     previous_start = start
 
-            append(previous_start, start + e.duration, previous)
+                repetition_count += 1
+
+            append(previous_start, start + e.duration, previous, repetition_count)
 
         return tuple(context_list)
