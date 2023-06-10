@@ -1,4 +1,8 @@
+import inspect
+
+
 from mutwo import abjad_converters
+from mutwo import abjad_parameters
 from mutwo import diary_interfaces
 from mutwo import music_parameters
 from mutwo import project_parameters
@@ -25,19 +29,9 @@ abjad_converters.configurations.DEFAULT_ABJAD_ATTACHMENT_CLASS_TUPLE = tuple(
     a
     for a in abjad_converters.configurations.DEFAULT_ABJAD_ATTACHMENT_CLASS_TUPLE
     if a.__name__ not in ("Tremolo",)
-) + (
-    project_parameters.Optional,
-    project_parameters.Tremolo,
-    project_parameters.DurationLine,
-    project_parameters.Cluster,
-    project_parameters.SonsXylo,
-    project_parameters.Flageolet,
-    project_parameters.RhythmicInformation,
-    project_parameters.FlagStrokeStyle,
-    project_parameters.NoteHead,
-    project_parameters.SynchronizationPoint,
-    project_parameters.Bridge,
-    project_parameters.MovingOverpressure,
-    project_parameters.BowedBox,
-    project_parameters.ExplicitFermata,
+) + tuple(
+    cls
+    for _, cls in inspect.getmembers(project_parameters, inspect.isclass)
+    if not inspect.isabstract(cls)
+    and abjad_parameters.abc.AbjadAttachment in inspect.getmro(cls)
 )
