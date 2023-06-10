@@ -12,9 +12,6 @@ from mutwo import timeline_interfaces
 
 import project
 
-tonic_movement_tuple_to_c103_sequential_event = (
-    project_converters.TonicMovementTupleToC103SequentialEvent()
-)
 c103_sequential_event_to_context_tuple = (
     project_converters.C103SequentialEventToContextTuple()
 )
@@ -28,30 +25,35 @@ def make_clock(week_day, before_rest_duration=0) -> clock_interfaces.Clock:
         return clock_interfaces.Clock(_clock_rest(1))
 
     tonic_movement_tuple = project.constants.WEEK_DAY_TO_TONIC_MOVEMENT_TUPLE[week_day]
+
+    tonic_movement_tuple_to_c103_sequential_event = (
+        project_converters.TonicMovementTupleToC103SequentialEvent()
+    )
+
     c103_sequential_event = tonic_movement_tuple_to_c103_sequential_event(
         tonic_movement_tuple
     )
     context_tuple = c103_sequential_event_to_context_tuple(c103_sequential_event)
     event_placement_tuple = context_tuple_to_event_placement_tuple(context_tuple)
 
-    main_clock_line = clock_interfaces.ClockLine(
-        clock_event=clock_events.ClockEvent(
-            [
-                core_events.SequentialEvent(
-                    [core_events.SimpleEvent(c103_sequential_event.duration)]
-                )
-            ]
-        )
+    clock_event = clock_events.ClockEvent(
+        [
+            core_events.SequentialEvent(
+                [core_events.SimpleEvent(c103_sequential_event.duration)]
+            )
+        ]
     )
+
+    main_clock_line = clock_interfaces.ClockLine(clock_event=clock_event)
     for ep in event_placement_tuple:
         main_clock_line.register(ep)
 
-    # # Fix overlaps
-    # main_clock_line.resolve_conflicts(
-    #     [
-    #         timeline_interfaces.AlternatingStrategy(),
-    #     ],
-    # )
+    # Fix overlaps
+    main_clock_line.resolve_conflicts(
+        [
+            timeline_interfaces.AlternatingStrategy(),
+        ],
+    )
 
     start_clock_line = None
     end_clock_line = None
