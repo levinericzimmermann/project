@@ -1,14 +1,21 @@
+import typing
+
 from mutwo import core_converters
 from mutwo import core_events
+from mutwo import diary_interfaces
 from mutwo import music_parameters
 from mutwo import project_events
 from mutwo import project_generators
+
+C103SequentialEvent: typing.TypeAlias = core_events.SequentialEvent[
+    project_events.C103Event
+]
 
 
 class TonicMovementTupleToC103SequentialEvent(core_converters.abc.Converter):
     def convert(
         self, tonic_movement_tuple: tuple[music_parameters.JustIntonationPitch, ...]
-    ) -> core_events.SequentialEvent[project_events.C103Event]:
+    ) -> C103SequentialEvent:
         seq = core_events.SequentialEvent([])
         for tonic in tonic_movement_tuple:
             chord_tuple = self._tonic_to_chord_tuple(tonic)
@@ -28,3 +35,32 @@ class TonicMovementTupleToC103SequentialEvent(core_converters.abc.Converter):
 
 
 _tonic_to_130_chord_tuple = {}
+
+
+class C103SequentialEventToContextTuple(core_converters.abc.Converter):
+    def convert(self, sequential_event: C103SequentialEvent) -> tuple:
+        def append():
+            if previous is not None:
+                end = e.duration + start
+                context = diary_interfaces.H103Context(
+                    start=previous_start, end=end, attr=attr, pitch=previous
+                )
+                context_list.append(context)
+
+        context_list = []
+        absolute_time_tuple = sequential_event.absolute_time_tuple
+
+        for attr in ("tonic", "partner", "written_instable_pitch"):
+            previous = None
+            previous_start = None
+            for start, e in zip(absolute_time_tuple, sequential_event):
+                item = getattr(e, attr)
+
+                if item != previous:
+                    append()
+                    previous = item
+                    previous_start = start
+
+            append()
+
+        return tuple(context_list)
