@@ -69,7 +69,22 @@ def get_converter(tag, small=False):
                 if small:
                     _make_small(first_leaf)
                 abjad.attach(abjad.Clef("treble"), first_leaf)
+                abjad.attach(
+                    abjad.LilyPondLiteral(r'\accidentalStyle "dodecaphonic"'),
+                    first_leaf,
+                )
                 _make_thick_duration_line(first_leaf)
+
+            # If we have instable pitches, they can either be a
+            # minor or a major interval. We show this to others by
+            # adding parenthesis to the accidental (= can be added, but
+            # doesn't need to).
+            if tag in ("written_instable_pitch",):
+                for leaf in leaf_sequence:
+                    try:
+                        leaf.note_head.is_cautionary = True
+                    except AttributeError:
+                        pass
 
     class EventPlacementToAbjadStaffGroup(
         clock_converters.EventPlacementToAbjadStaffGroup
