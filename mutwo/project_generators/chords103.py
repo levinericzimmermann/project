@@ -32,7 +32,7 @@ def _103chord(
     instable_list = [(tonic + main_instable_interval).normalize()]
     pn0 = instable_list[0].get_closest_pythagorean_pitch_name()
     for instable_interval in instable_interval_tuple:
-        p = instable_interval + tonic
+        p = (instable_interval + tonic).normalize()
         pn1 = p.get_closest_pythagorean_pitch_name()
         # We need to be sure that both pitches are written with the
         # same diatonic pitch, otherwise the 'optional accidental trick'
