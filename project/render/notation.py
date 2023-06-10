@@ -69,11 +69,15 @@ def get_converter(tag, small=False):
                 if small:
                     _make_small(first_leaf)
                 abjad.attach(abjad.Clef("treble"), first_leaf)
+                # abjad.attach(
+                #     abjad.LilyPondLiteral(r'\accidentalStyle "dodecaphonic"'),
+                #     first_leaf,
+                # )
                 abjad.attach(
-                    abjad.LilyPondLiteral(r'\accidentalStyle "dodecaphonic"'),
+                    abjad.LilyPondLiteral(r"\hide NoteHead" "\n"),
                     first_leaf,
                 )
-                _make_thick_duration_line(first_leaf)
+                _set_duration_line(first_leaf)
 
             # If we have instable pitches, they can either be a
             # minor or a major interval. We show this to others by
@@ -85,6 +89,18 @@ def get_converter(tag, small=False):
                         leaf.note_head.is_cautionary = True
                     except AttributeError:
                         pass
+
+            for leaf in leaf_sequence:
+                abjad.attach(
+                    # abjad.LilyPondLiteral(r"-\tweak X-offset #1", site="absolute_after"), leaf
+                    abjad.LilyPondLiteral(
+                        r"\override Accidental.X-offset = 0.5"
+                        "\n"
+                        r"\override AccidentalCautionary.X-offset = -0.6",
+                        site="before",
+                    ),
+                    leaf,
+                )
 
     class EventPlacementToAbjadStaffGroup(
         clock_converters.EventPlacementToAbjadStaffGroup
@@ -176,17 +192,13 @@ def _notation(
             clock, tag_tuple=tag_tuple, ordered_tag_tuple=tag_tuple
         )
 
-        # We get lilypond error for harp:
-        #   Interpreting music...[8][16][24]ERROR: Wrong type (expecting exact integer): ()
-        consist_timing_translator = True
-
         abjad_score_block = abjad_score_to_abjad_score_block.convert(
             abjad_score,
-            consist_timing_translator=consist_timing_translator,
+            consist_timing_translator=True,
             # Setting a lower 'moment' decreases the likelihood that we catch
             # the following lilypond error:
             #   Drawing systems...lilypond: skyline.cc:100: Building::Building(Real, Real, Real, Real): Assertion `start_height == end_height' failed.
-            moment=4,  # 1/16 is one second
+            moment=1,  # 1/16 is one second
             strict_grace_spanning=False,
             staff_staff_spacing_minimum_distance=7,
             staff_staff_spacing_basic_distance=8,
@@ -274,7 +286,16 @@ def _make_small(leaf, magnification_size=-3):
     )
 
 
-def _make_thick_duration_line(leaf, thickness=5):
+def _set_duration_line(leaf, thickness=7):
     abjad.attach(
-        abjad.LilyPondLiteral(rf"\override DurationLine.thickness = {thickness}"), leaf
+        abjad.LilyPondLiteral(
+            rf"\override DurationLine.thickness = {thickness}"
+            "\n"
+            r"\override DurationLine.style = #'line"
+            "\n"
+            r"\override DurationLine.bound-details.right.padding = 1"
+            "\n"
+            r"\override DurationLine.bound-details.left.padding = 1"
+        ),
+        leaf,
     )
