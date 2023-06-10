@@ -53,66 +53,68 @@ def clock_event_to_abjad_staff_group():
     )
 
 
-def pclock_tag_to_converter(small=True):
-    class PostProcessClockSequentialEvent(
-        abjad_converters.ProcessAbjadContainerRoutine
+class PClockPostProcessClockSequentialEvent(
+    abjad_converters.ProcessAbjadContainerRoutine
+):
+    c = 1
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def __call__(
+        self,
+        complex_event_to_convert: core_events.abc.ComplexEvent,
+        container_to_process: abjad.Container,
     ):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.c = 1
+        leaf_sequence = abjad.select.leaves(container_to_process)
+        try:
+            first_leaf = leaf_sequence[0]
+        except IndexError:
+            pass
+        else:
+            _make_small(first_leaf, -6)
+            abjad.attach(abjad.Clef("percussion"), first_leaf)
+            abjad.attach(
+                abjad.LilyPondLiteral(
+                    r"\override Staff.StaffSymbol.line-count = #0 "
+                    # Parts of PrepareForDurationLineBasedNotation which
+                    # are useful here.
+                    r"\override Staff.Dots.dot-count = #0 "
+                    r"\omit Staff.MultiMeasureRest "
+                    r"\override Staff.Dots.dot-count = #0 "
+                    r"\override Staff.NoteHead.duration-log = 2 "
+                    r"\hide Staff.Clef "
+                    r"\hide Staff.BarLine "
+                    "\n"
+                    r"\override NoteHead.stencil = #ly:text-interface::print "
+                    "\n"
+                    r"\override NoteHead.text = \markup { "
+                    "\n"
+                    rf'\typewriter \tiny "{PClockPostProcessClockSequentialEvent.c}" '
+                    "\n"
+                    r"}"
+                    "\n"
+                ),
+                first_leaf,
+            )
+            PClockPostProcessClockSequentialEvent.c += 1
+        for leaf in leaf_sequence:
 
-        def __call__(
-            self,
-            complex_event_to_convert: core_events.abc.ComplexEvent,
-            container_to_process: abjad.Container,
-        ):
-            leaf_sequence = abjad.select.leaves(container_to_process)
-            try:
-                first_leaf = leaf_sequence[0]
-            except IndexError:
-                pass
-            else:
-                _make_small(first_leaf, -6)
-                abjad.attach(abjad.Clef("percussion"), first_leaf)
-                abjad.attach(
-                    abjad.LilyPondLiteral(
-                        r"\override Staff.StaffSymbol.line-count = #0 "
-                        # Parts of PrepareForDurationLineBasedNotation which
-                        # are useful here.
-                        r"\override Staff.Dots.dot-count = #0 "
-                        r"\omit Staff.MultiMeasureRest "
-                        r"\override Staff.Dots.dot-count = #0 "
-                        r"\override Staff.NoteHead.duration-log = 2 "
-                        r"\hide Staff.Clef "
-                        r"\hide Staff.BarLine "
-                        "\n"
-                        r"\override NoteHead.stencil = #ly:text-interface::print "
-                        "\n"
-                        r"\override NoteHead.text = \markup { "
-                        "\n"
-                        rf'\typewriter \tiny "{self.c}" '
-                        "\n"
-                        r"}"
-                        "\n"
-                    ),
-                    first_leaf,
-                )
-                self.c += 1
-            for leaf in leaf_sequence:
+            # This is a fix for a very strange bug: for reasons I don't
+            # understand the code which replaces rests with skips is never
+            # executed for the 'pclock'. So in order to still replace the rests
+            # with the skips we add the next three lines. Of course it would be
+            # much better if we would simply know what's the actual problem.
+            if isinstance(leaf, abjad.Rest):
+                abjad.mutate.replace(leaf, abjad.Skip(leaf.written_duration))
 
-                # This is a fix for a very strange bug: for reasons I don't
-                # understand the code which replaces rests with skips is never
-                # executed for the 'pclock'. So in order to still replace the rests
-                # with the skips we add the next three lines. Of course it would be
-                # much better if we would simply know what's the actual problem.
-                if isinstance(leaf, abjad.Rest):
-                    abjad.mutate.replace(leaf, abjad.Skip(leaf.written_duration))
 
+def pclock_tag_to_converter(small=True):
     complex_event_to_abjad_container = (
         clock_generators.make_complex_event_to_abjad_container(
             sequential_event_to_abjad_staff_kwargs=dict(
                 post_process_abjad_container_routine_sequence=(
-                    PostProcessClockSequentialEvent(),
+                    PClockPostProcessClockSequentialEvent(),
                 ),
                 mutwo_volume_to_abjad_attachment_dynamic=None,
             ),
@@ -175,7 +177,6 @@ def get_converter(tag, small=False):
                         abjad.LilyPondLiteral(r"\omit Staff.Clef", site="before"),
                         first_leaf,
                     )
-
 
             # If we have instable pitches, they can either be a
             # minor or a major interval. We show this to others by
@@ -252,7 +253,6 @@ def notation(clock_tuple, notate_item):
         path_list = []
         if p := _notation(
             "score",
-            score_converter(),
             ("pclock", "tonic", "partner", "written_instable_pitch"),
             clock_tuple,
             executor,
@@ -267,7 +267,6 @@ def notation(clock_tuple, notate_item):
 
 def _notation(
     name,
-    tag_to_abjad_staff_group_converter,
     tag_tuple,
     clock_tuple,
     executor,
@@ -280,15 +279,14 @@ def _notation(
 
     print("\n\nNotate", name)
 
-    clock_to_abjad_score = clock_converters.ClockToAbjadScore(
-        tag_to_abjad_staff_group_converter,
-        clock_event_to_abjad_staff_group=clock_event_to_abjad_staff_group(),
-    )
-
     abjad_score_to_abjad_score_block = clock_converters.AbjadScoreToAbjadScoreBlock()
 
     abjad_score_block_list = []
     for clock in clock_tuple:
+        clock_to_abjad_score = clock_converters.ClockToAbjadScore(
+            score_converter(),
+            clock_event_to_abjad_staff_group=clock_event_to_abjad_staff_group(),
+        )
         abjad_score = clock_to_abjad_score.convert(
             clock, tag_tuple=tag_tuple, ordered_tag_tuple=tag_tuple
         )
