@@ -29,16 +29,23 @@
 
 \setlength\parindent{0pt}
 
+{% set vdistance = 2 %}
 
 \begin{document}
 
 {% for poem in poem_list %}
 
-\hspace{4cm}
+\hspace{1cm}
+\begin{minipage}[t]{0.07\textwidth}
+\vspace*{ {{ vdistance }}cm}
+\normalsize
+{% if poem.translator.name == "BARNARD" %}*{% else %}x{% endif %}
+\end{minipage}
 \begin{minipage}[t]{0.7\textwidth}
-\vspace*{2cm}
+\vspace*{ {{ vdistance }}cm}
 
-{ \Huge {{ poem.name }} }\\
+{ \Huge {{ poem.name }} }
+
 
 \vspace*{2cm}
 
@@ -56,6 +63,7 @@
 {% endif %}
 
 {% endfor %}
+
 
 \end{minipage}
 
