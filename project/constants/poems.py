@@ -66,7 +66,7 @@ tokens of an unlucky life.""",
 POEM_DICT = {p.name: p for p in POEM_TUPLE}
 
 # Order of poems, each day has it's own poem.
-POEM_NAME_TUPLE = ("168B", "91", "56", "154", "26", "61", "168B")
+POEM_NAME_TUPLE = ("168B", "91", "154", "56", "26", "61", "168B")
 
 WEEK_DAY_TO_POEM = {
     week_day: POEM_DICT[poem_name]
