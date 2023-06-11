@@ -35,11 +35,11 @@
 
 {% for poem in poem_list %}
 
-\hspace{1cm}
+\hspace{2cm}
 \begin{minipage}[t]{0.07\textwidth}
 \vspace*{ {{ vdistance }}cm}
 \normalsize
-{% if poem.translator.name == "BARNARD" %}*{% else %}x{% endif %}
+{% if poem.translator.name == "BARNARD" %}*{% else %}'{% endif %}
 \end{minipage}
 \begin{minipage}[t]{0.7\textwidth}
 \vspace*{ {{ vdistance }}cm}
