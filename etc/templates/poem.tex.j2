@@ -32,18 +32,32 @@
 
 \begin{document}
 
-{% for line in poem %}
+{% for poem in poem_list %}
 
-\begin{center}
-\vspace*{8cm}
+\hspace{4cm}
+\begin{minipage}[t]{0.7\textwidth}
+\vspace*{2cm}
+
+{ \Huge {{ poem.name }} }\\
+
+\vspace*{2cm}
+
+{% for line in poem.line_tuple %}
 
 {% if line %}
+
 { \Huge {{ line }} }\\
-{% endif %}
-        
 \vspace{0.2cm}
 
-\end{center}
+{% else %}
+
+\vspace{1cm}
+
+{% endif %}
+
+{% endfor %}
+
+\end{minipage}
 
 \newpage
 

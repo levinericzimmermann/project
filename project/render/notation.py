@@ -356,8 +356,8 @@ def _interleave(path_notation, path_merged):
     subprocess.call(
         [
             "pdftk",
-            f"A={path_notation}",
-            "B=builds/illustrations/poem.pdf",
+            "A=builds/illustrations/poem.pdf",
+            f"B={path_notation}",
             "shuffle",
             "A",
             "B",
