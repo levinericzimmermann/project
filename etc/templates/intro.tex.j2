@@ -19,6 +19,16 @@
     footskip=0.5cm
 ]{geometry}
 
+% https://tex.stackexchange.com/questions/36880/insert-a-blank-page-after-current-page
+\usepackage{afterpage}
+
+\newcommand\blankpage{
+    \null
+    \thispagestyle{empty}%
+    \addtocounter{page}{-1}%
+    \newpage
+}
+
 
 \frenchspacing              % Better looking spacings after periods
 \pagestyle{empty}           % No pagenumbers/headers/footers
@@ -81,6 +91,13 @@ accidentals\\
 * = sappho translations by mary barnard\\
 ' = sappho translations by diane j. rayor \& andré lardinois
 \end{minipage}
+
+\newpage
+
+\afterpage{\blankpage}
+
+% We need an odd number of pages for the intro,
+% because afterways they are always pairs!
 
 \end{document}
 
