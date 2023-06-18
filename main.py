@@ -104,4 +104,4 @@ if __name__ == "__main__":
         project.render.notation(clock_tuple, [])
 
     if args.sound:
-        project.render.midi(clock_tuple)
+        project.render.sound(clock_tuple)
