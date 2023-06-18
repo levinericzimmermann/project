@@ -39,10 +39,10 @@ struct NoteLike currentNote;
 // If our text file uses more notes than noteArray size, the program
 // truncates the original data (and prints a warning).
 
-int maxNoteCount = 100;
-struct NoteLike noteArray[100];
+int maxNoteCount = 20;
+struct NoteLike noteArray[20];
 
-char x[] = "2000,310,100\n4000,290,90\n2000,400,90\n500,0,0\n2000,380,220";
+char x[] = "26428.57,884.0,138\n2142.86,0,0\n83571.43,1473.33,138\n";
 
 int noteCount;
 int noteIndex = 0;
@@ -60,26 +60,24 @@ void setup(){
 
 
 void updateControl(){
-    if(noteDelay.ready()){
-
-        if (noteIndex >= noteCount) {
-            stopMozzi();
-            // Serial.println("stop mozzi");
-            return;
-        }
-
-        currentNote = noteArray[noteIndex];
+    if (noteDelay.ready()) {
+        currentNote = getNextNote();
         printNoteLike(currentNote);
-
-        // Rests are implicitly declared by 
+        // Rests are implicitly declared by 'isTone'
         if (isTone(currentNote)) {
             playTone(currentNote);
         }
-
         noteDelay.start(duration);
-
         noteIndex += 1;
     }
+}
+
+struct NoteLike getNextNote() {
+    if (noteIndex >= noteCount) {
+        // List is empty, so make rest forever
+        return makeRest(10000);
+    }
+    return noteArray[noteIndex];
 }
 
 // play a single tone
