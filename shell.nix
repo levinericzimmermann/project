@@ -43,5 +43,7 @@ in
       buildInputs = with pkgs; [
           mypython
           lilypond-with-fonts
+          # Arduino stuff
+          arduino-cli
       ];
   }

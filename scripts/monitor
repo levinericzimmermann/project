@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+if [ -z "$1" ]
+  then
+      arduinoIndex=0
+  else
+      arduinoIndex=$1
+fi
+
+echo "Monitor arduino $1"
+arduino-cli monitor -c baudrate=115200 --protocol serial --fqbn arduino:avr:uno --port /dev/ttyACM$1 etc/arduino/aeolianHarp/aeolianHarp.ino

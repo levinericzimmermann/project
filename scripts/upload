@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+function upload () {
+    arduinoIndex=$1
+    echo "Upload to arduino $arduinoIndex"
+    arduino-cli upload --fqbn arduino:avr:uno --port /dev/ttyACM$arduinoIndex $ARDUINOFILE
+}
+
+
+echo "Compile script"
+ARDUINOFILE=etc/arduino/f0/f0.ino
+arduino-cli compile --fqbn arduino:avr:uno $ARDUINOFILE
+
+upload 0
