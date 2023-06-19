@@ -1,7 +1,14 @@
 {% set channel_count            = 4 %}
-{% set audio_input_list         = ["cello", "glockenspiel", "percussion", "harp"] %}
 {% set midi_channel             = 0 %}
 {% set midi_control_number_0    = 16 %}
+
+{% set cello                    = "cello" %}
+{% set harp                     = "harp" %}
+{% set glockenspiel             = "glockenspiel" %}
+{% set percussion               = "percussion" %}
+{% set master                   = "master" %}
+{% set audio_input_list         = [cello, glockenspiel, percussion, harp] %}
+{% set midi_control_input_list  = [master, cello, glockenspiel, percussion, harp] %}
 
 [configure]
 name                    = "10.3"
@@ -22,11 +29,17 @@ channel_count           = 4
     input_channel_index = {{ i }}
     decibel             = "midi_control_input.{{ audio_input }}"
 
-    [configure.module.midi_control_input.{{ audio_input }}]
+{% endfor %}
+
+{% for midi_input in midi_control_input_list %}
+
+    {% set i = loop.index - 1 %}
+
+    [configure.module.midi_control_input.{{ midi_input }}]
     midi_control_number = {{ midi_control_number_0 + i }}
     midi_channel        = {{ midi_channel }}
 
-    [configure.module.midi_control_input.{{ audio_input }}.default_dict]
+    [configure.module.midi_control_input.{{ midi_input }}.default_dict]
     minima              = -48
     maxima              = 12
 
@@ -53,6 +66,7 @@ channel_count           = 4
 
 [configure.module.mixer.master]
 send_to_physical_output = true
+decibel                 = "midi_control_input.{{ master }}"
 audio_input_0           = "mixer.pre_master"
 
 [configure.module.mixer.master.channel_mapping]
