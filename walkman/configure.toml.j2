@@ -1,0 +1,61 @@
+{% set channel_count            = 4 %}
+{% set audio_input_list         = ["cello", "glockenspiel", "percussion", "harp"] %}
+{% set midi_channel             = 0 %}
+{% set midi_control_number_0    = 16 %}
+
+[configure]
+name                    = "10.3"
+logging_level           = "info"
+
+[configure.audio]
+audio                   = "jack"
+midi                    = "jack"
+sampling_rate           = 44100
+buffer_size             = 512
+channel_count           = 4
+
+{% for audio_input in audio_input_list %}
+
+    {% set i = loop.index - 1 %}
+
+    [configure.module.audio_input.{{ audio_input }}]
+    input_channel_index = {{ i }}
+    decibel             = "midi_control_input.{{ audio_input }}"
+
+    [configure.module.midi_control_input.{{ audio_input }}]
+    midi_control_number = {{ midi_control_number_0 + i }}
+    midi_channel        = {{ midi_channel }}
+
+    [configure.module.midi_control_input.{{ audio_input }}.default_dict]
+    minima              = -48
+    maxima              = 12
+
+{% endfor %}
+
+[configure.module.mixer.pre_master]
+{% for audio_input in audio_input_list %}
+    {% set i = loop.index - 1 %}
+    audio_input_{{ i }}           = "audio_input.{{ audio_input }}"
+{% endfor %}
+
+[configure.module.mixer.pre_master.channel_mapping]
+{% for audio_input in audio_input_list %}
+    {% set i = loop.index - 1 %}
+    {{ i }} = {{ i }}
+{% endfor %}
+
+{% for audio_input in audio_input_list %}
+    {% set i = loop.index - 1 %}
+    # Map input to channel (without this all goes into the first channel)
+    [configure.module.mixer.pre_master.default_dict.audio_input_{{ i }}_channel_mapping]
+    0 = [{{ i }}]
+{% endfor %}
+
+[configure.module.mixer.master]
+send_to_physical_output = true
+audio_input_0           = "mixer.pre_master"
+
+[configure.module.mixer.master.channel_mapping]
+{% for channel_index in range(audio_input_list | length) %}
+    {{ channel_index }} = {{ channel_index % channel_count }}
+{% endfor %}

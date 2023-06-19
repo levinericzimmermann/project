@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# Explanation of flags
+#
+#   -c                                                      =>      interactive mode
+#   -q                                                      =>      quiet mode (otherwise too much noise)
+#   -f:s16_le,4,48000                                       =>      16bit, 4 channels, 48khz Sampling rate
+#   -i resample,auto,etc/simulation/10.2_simulation.wav     =>      resample our input file automatically, use input file ...
+#   -o jack,system                                          =>      use jack for output (alternatively use alsa)
+#
+# (see also http://nosignal.fi/ecasound/Documentation/ecasound_manpage.html)
+
+echo "Don't forget to run 'setpos 0' before starting! (otherwise it starts wherever it stopped the last time)"
+
+ecasound -c -q -f:s16_le,4,48000 -i resample,auto,etc/simulation/test.wav -o jack,system

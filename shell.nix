@@ -26,6 +26,9 @@ let
     '';
   };
 
+  # walkman = import (sources.mutwo-nix.outPath + "/walkman/default.nix") {};
+  walkman-mix = import ./mix.nix {};
+
   python94 = pkgs.python310.buildEnv.override {
     extraLibs = with pkgs.python310Packages; [
       ipython
@@ -34,6 +37,8 @@ let
       mutwo-diary
       # markov chain
       yamm
+      # live electronics
+      walkman-mix
     ];
   };
 
@@ -43,5 +48,6 @@ in
       buildInputs = with pkgs; [
           python94
           lilypond-with-fonts
+          ecasound # for simulation
       ];
   }
