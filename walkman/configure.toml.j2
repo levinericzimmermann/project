@@ -13,14 +13,18 @@
 {% set glockenspiel                 = "glockenspiel" %}
 {% set percussion                   = "percussion" %}
 {% set master                       = "master" %}
+{% set amplification                = "amplification" %}
 {% set reverb                       = "reverb" %}
+{% set resonator                    = "resonator" %}
 {% set audio_input_list             = [cello, percussion, glockenspiel, harp] %}
 {% set midi_range_instrument        = [-48, 20] %}
 
 {% set midi_range_master            = [-48, 24] %}
+{% set midi_range_amplification     = [-52, 12] %}
 {% set midi_range_reverb            = [-48, 20] %}
-{% set midi_control_input_master    = [master, reverb] %}
-{% set midi_range_master_list       = [midi_range_master, midi_range_reverb] %}
+{% set midi_range_resonator         = [-48, 30] %}
+{% set midi_control_input_master    = [master, amplification, reverb, resonator] %}
+{% set midi_range_master_list       = [midi_range_master, midi_range_amplification, midi_range_reverb, midi_range_resonator] %}
 
 [configure]
 name                    = "10.3"
@@ -78,19 +82,42 @@ base_decibel                        = -12
     audio_input_{{ i }}             = "audio_input.{{ audio_input }}"
 {% endfor %}
 
+
+{% for i in range(real_output_channel_count) %}
+
+    [configure.module.resonator.{{ i }}]
+    audio_input                             = "diffusion.instruments"
+    input_index                             = {{ i }}
+    resonance_configuration_file_path_list  = [[1, "a.txt"]]
+    decibel                                 = "midi_control_input.{{ resonator }}"
+
+{% endfor %}
+
+[configure.module.amplification.{{ amplification }}]
+audio_input                         = "diffusion.instruments"
+decibel                             = "midi_control_input.{{ amplification }}"
+
 [configure.module.mixer.pre_master]
-audio_input_0                       = "diffusion.instruments"
+audio_input_0                       = "amplification.{{ amplification }}"
+{% for i in range(real_output_channel_count) %}
+    audio_input_{{ i + 1 }}         = "resonator.{{ i }}"
+{% endfor %}
 
 [configure.module.mixer.pre_master.channel_mapping]
 {% for audio_input in audio_input_list %}
-    {% set i = loop.index - 1 %}
-    {{ i }} = {{ i }}
+    {% set i                        = loop.index - 1 %}
+    {{ i }}                         = {{ i }}
 {% endfor %}
 
 # Map input to channel (without this all goes into the first channel)
 [configure.module.mixer.pre_master.default_dict.audio_input_0_channel_mapping]
 {% for i in range(real_output_channel_count) %}
-    {{ i }} = [{{ i }}]
+    {{ i }}                         = [{{ i }}]
+{% endfor %}
+
+{% for i in range(real_output_channel_count) %}
+    [configure.module.mixer.pre_master.default_dict.audio_input_{{ i + 1 }}_channel_mapping]
+    0                               = [{{ i }}]
 {% endfor %}
 
 [configure.module.waveguide_reverb.pre_master]
