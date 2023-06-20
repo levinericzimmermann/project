@@ -8,6 +8,7 @@
 {% set midi_control_number_master   = 32 %}
 {% set midi_control_number_instr    = 36 %}
 
+{# Declare keys for our different signals #}
 {% set cello                        = "cello" %}
 {% set harp                         = "harp" %}
 {% set glockenspiel                 = "glockenspiel" %}
@@ -16,6 +17,7 @@
 {% set amplification                = "amplification" %}
 {% set reverb                       = "reverb" %}
 {% set resonator                    = "resonator" %}
+
 {% set audio_input_list             = [cello, percussion, glockenspiel, harp] %}
 {% set midi_range_instrument        = [-48, 20] %}
 
@@ -44,6 +46,12 @@ channel_count           = 4
     [configure.module.audio_input.{{ audio_input }}]
     input_channel_index = {{ i }}
     decibel             = "midi_control_input.{{ audio_input }}"
+
+    [configure.module.butterworth_highpass_filter.{{ audio_input }}]
+    audio_input         = "audio_input.{{ audio_input }}"
+
+    [configure.module.value.butterworth_highpass_filter_{{ audio_input }}_child_frequency]
+    value               = 70
 
     [configure.module.midi_control_input.{{ audio_input }}]
     midi_control_number = {{ midi_control_number_instr + i }}
@@ -79,7 +87,7 @@ pan_decibel                         = 0
 base_decibel                        = -12
 {% for audio_input in audio_input_list %}
     {% set i = loop.index - 1 %}
-    audio_input_{{ i }}             = "audio_input.{{ audio_input }}"
+    audio_input_{{ i }}             = "butterworth_highpass_filter.{{ audio_input }}"
 {% endfor %}
 
 
