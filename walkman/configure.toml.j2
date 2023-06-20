@@ -1,12 +1,11 @@
-{# Channel count should be an even number. This is the inner processing number. #}
-{% set channel_count                = 4 %}
-{# This denotes how many real outputs we actually use. #}
-{# Change this if your real output number changes. #}
-{# If you add more than 4 output, 'channel_count' also needs to be adapted. #}
-{% set real_output_channel_count    = 3 %}
-{% set midi_channel                 = 1 %}
-{% set midi_control_number_master   = 32 %}
-{% set midi_control_number_instr    = 36 %}
+{% from 'walkman/globals.j2' import
+    channel_count,
+    real_output_channel_count,
+    midi_channel,
+    midi_control_number_master,
+    midi_control_number_instr,
+    page_count
+%}
 
 {# Declare keys for our different signals #}
 {% set cello                        = "cello" %}
@@ -24,7 +23,7 @@
 {% set midi_range_master            = [-48, 24] %}
 {% set midi_range_amplification     = [-52, 12] %}
 {% set midi_range_reverb            = [-48, 20] %}
-{% set midi_range_resonator         = [-48, 30] %}
+{% set midi_range_resonator         = [-52, 12] %}
 {% set midi_control_input_master    = [master, amplification, reverb, resonator] %}
 {% set midi_range_master_list       = [midi_range_master, midi_range_amplification, midi_range_reverb, midi_range_resonator] %}
 
@@ -91,14 +90,14 @@ base_decibel                        = -12
 {% endfor %}
 
 
-{% for i in range(real_output_channel_count) %}
-
-    [configure.module.resonator.{{ i }}]
-    audio_input                             = "diffusion.instruments"
-    input_index                             = {{ i }}
-    resonance_configuration_file_path_list  = [[1, "a.txt"]]
-    decibel                                 = "midi_control_input.{{ resonator }}"
-
+{% for page_index in range(page_count) %}
+    {% for output_index in range(real_output_channel_count) %}
+        [configure.module.resonator.{{ page_index }}_{{ output_index }}]
+        audio_input                             = "diffusion.instruments"
+        input_index                             = {{ output_index }}
+        resonance_configuration_file_path_list  = [[1, "etc/resonators/r_{{ page_index }}_{{ output_index }}.txt"]]
+        decibel                                 = "midi_control_input.{{ resonator }}"
+    {% endfor %}
 {% endfor %}
 
 [configure.module.amplification.{{ amplification }}]
@@ -107,8 +106,12 @@ decibel                             = "midi_control_input.{{ amplification }}"
 
 [configure.module.mixer.pre_master]
 audio_input_0                       = "amplification.{{ amplification }}"
-{% for i in range(real_output_channel_count) %}
-    audio_input_{{ i + 1 }}         = "resonator.{{ i }}"
+
+{% for page_index in range(page_count) %}
+    {% for output_index in range(real_output_channel_count) %}
+        {% set i                        = (page_index * real_output_channel_count) + output_index %}
+        audio_input_{{ i + 1 }}         = "resonator.{{ page_index }}_{{ output_index }}"
+    {% endfor %}
 {% endfor %}
 
 [configure.module.mixer.pre_master.channel_mapping]
@@ -123,9 +126,12 @@ audio_input_0                       = "amplification.{{ amplification }}"
     {{ i }}                         = [{{ i }}]
 {% endfor %}
 
-{% for i in range(real_output_channel_count) %}
-    [configure.module.mixer.pre_master.default_dict.audio_input_{{ i + 1 }}_channel_mapping]
-    0                               = [{{ i }}]
+{% for page_index in range(page_count) %}
+    {% for output_index in range(real_output_channel_count) %}
+        {% set i                        = (page_index * real_output_channel_count) + output_index %}
+        [configure.module.mixer.pre_master.default_dict.audio_input_{{ i + 1 }}_channel_mapping]
+        0                               = [{{ output_index }}]
+    {% endfor %}
 {% endfor %}
 
 [configure.module.waveguide_reverb.pre_master]

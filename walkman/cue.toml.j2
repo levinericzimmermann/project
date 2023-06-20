@@ -1,10 +1,30 @@
+{% from 'walkman/globals.j2' import
+    channel_count,
+    real_output_channel_count,
+    midi_channel,
+    midi_control_number_master,
+    midi_control_number_instr,
+    page_count
+%}
+
 # We don't always activate the inputs, because:
 #
 #   - then all resonators would always be on
 #   - but resonators should change depending on the given cue
 #   - we can turn on the amplification of all instruments by
 #     simply activiating 'amplification.amplification'
-[cue.test.amplification.amplification]
-[cue.test.resonator.0]
-[cue.test.resonator.1]
-[cue.test.resonator.2]
+
+{% for page_index in range(page_count) %}
+
+    {% set cue_name = "p_" + ((page_index + 1) | string) %}
+
+    [cue.{{ cue_name }}.amplification.amplification]
+
+    {% for output_index in range(real_output_channel_count) %}
+
+        [cue.{{ cue_name }}.resonator.{{ page_index }}_{{ output_index }}]
+
+    {% endfor %}
+
+{% endfor %}
+

@@ -1,1 +1,14 @@
-{% set channel_count = 4 %}
+{# Channel count should be an even number. This is the inner processing number. #}
+{% set channel_count                = 4 %}
+{# This denotes how many real outputs we actually use. #}
+{# Change this if your real output number changes. #}
+{# If you add more than 4 output, 'channel_count' also needs to be adapted. #}
+{% set real_output_channel_count    = 3 %}
+{% set midi_channel                 = 1 %}
+{% set midi_control_number_master   = 32 %}
+{% set midi_control_number_instr    = 36 %}
+
+{# For each page we have one cue, so that page_count == cue_count. #}
+{% set page_count                   = 16 %}
+
+
