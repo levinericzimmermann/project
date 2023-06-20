@@ -522,6 +522,8 @@ def _notation(
             strict_grace_spanning=False,
             staff_staff_spacing_minimum_distance=7,
             staff_staff_spacing_basic_distance=8,
+            ragged_right=False,
+            ragged_last=False,
         )
         abjad_score_block_list.append(abjad_score_block)
 
