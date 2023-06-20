@@ -45,11 +45,20 @@ channel_count           = 4
 
 {% endfor %}
 
-[configure.module.mixer.pre_master]
+[configure.module.diffusion.instruments]
+input_channel_count                 = {{ audio_input_list | length }}
+output_channel_count                = 3
+# How much of the signal is constantly moving across the different speaker
+pan_decibel                         = 0
+# How much of the signal is always present on all speakers
+base_decibel                        = -12
 {% for audio_input in audio_input_list %}
     {% set i = loop.index - 1 %}
-    audio_input_{{ i }}           = "audio_input.{{ audio_input }}"
+    audio_input_{{ i }}             = "audio_input.{{ audio_input }}"
 {% endfor %}
+
+[configure.module.mixer.pre_master]
+audio_input_0                       = "diffusion.instruments"
 
 [configure.module.mixer.pre_master.channel_mapping]
 {% for audio_input in audio_input_list %}
@@ -57,12 +66,11 @@ channel_count           = 4
     {{ i }} = {{ i }}
 {% endfor %}
 
-{% for audio_input in audio_input_list %}
-    {% set i = loop.index - 1 %}
-    # Map input to channel (without this all goes into the first channel)
-    [configure.module.mixer.pre_master.default_dict.audio_input_{{ i }}_channel_mapping]
-    0 = [{{ i }}]
-{% endfor %}
+# Map input to channel (without this all goes into the first channel)
+[configure.module.mixer.pre_master.default_dict.audio_input_0_channel_mapping]
+0 = [0]
+1 = [1]
+2 = [2]
 
 [configure.module.mixer.master]
 send_to_physical_output = true
