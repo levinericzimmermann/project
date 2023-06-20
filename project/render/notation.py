@@ -528,23 +528,24 @@ def _notation(
         abjad_score_block_list.append(abjad_score_block)
 
     lilypond_file = clock_converters.AbjadScoreBlockTupleToLilyPondFile(
-        system_system_basic_distance=5,
+        system_system_basic_distance=6,
         system_system_padding=1,
         score_system_basic_distance=0,
         score_system_padding=0,
         markup_system_basic_distance=0,
         markup_system_padding=0,
         staff_height=20,
-        top_margin=-1,
+        top_margin=0.5,
         foot_separation=0,
         head_separation=0,
-        bottom_margin=0.2,
-        line_width=29,
-        left_margin=0.5,
+        bottom_margin=1.5,
+        line_width=29.25,
+        left_margin=3.25,
         page_top_space=0,
         between_title_space=0,
         after_title_space=0,
         before_title_space=0,
+        paper_size="b4",
     ).convert(abjad_score_block_list)
 
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ar.ily"')
@@ -599,7 +600,7 @@ def _add_intro(path_notation, path_with_intro):
     )
 
 
-def _make_small(leaf, magnification_size=-3):
+def _make_small(leaf, magnification_size=-2):
     abjad.attach(
         abjad.LilyPondLiteral(rf"\magnifyStaff #(magstep {magnification_size})"), leaf
     )
