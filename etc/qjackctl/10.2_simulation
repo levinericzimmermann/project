@@ -1,0 +1,59 @@
+<!DOCTYPE patchbay>
+<patchbay name="10" version="0.9.7">
+ <output-sockets>
+  <socket name="Built-in Audio Analog Stereo" exclusive="off" client="Built\-in\ Audio\ Analog\ Stereo" type="jack-audio">
+   <plug>capture_FL</plug>
+   <plug>capture_FR</plug>
+   <plug>monitor_FL</plug>
+   <plug>monitor_FR</plug>
+  </socket>
+  <socket name="walkman_4" exclusive="off" client="walkman_4" type="jack-audio">
+   <plug>output_1</plug>
+   <plug>output_2</plug>
+   <plug>output_3</plug>
+   <plug>output_4</plug>
+  </socket>
+  <socket name="ecasound" exclusive="off" client="ecasound" type="jack-audio">
+   <plug>out_1</plug>
+   <plug>out_2</plug>
+   <plug>out_3</plug>
+   <plug>out_4</plug>
+  </socket>
+  <socket name="Midi-Bridge" exclusive="off" client="Midi\-Bridge" type="jack-midi">
+   <plug>Midi\ Through\:\(capture_0\)\ Midi\ Through\ Port\-0</plug>
+  </socket>
+  <socket name="walkman_4" exclusive="off" client="walkman_4" type="jack-midi">
+   <plug>output</plug>
+  </socket>
+  <socket name="Midi Through" exclusive="off" client="Midi\ Through" type="alsa-midi">
+   <plug>Midi\ Through\ Port\-0</plug>
+  </socket>
+ </output-sockets>
+ <input-sockets>
+  <socket name="Built-in Audio Analog Stereo" exclusive="off" client="Built\-in\ Audio\ Analog\ Stereo" type="jack-audio">
+   <plug>playback_FL</plug>
+   <plug>playback_FR</plug>
+  </socket>
+  <socket name="walkman_4" exclusive="off" client="walkman_4" type="jack-audio">
+   <plug>input_1</plug>
+   <plug>input_2</plug>
+   <plug>input_3</plug>
+   <plug>input_4</plug>
+  </socket>
+  <socket name="Midi-Bridge" exclusive="off" client="Midi\-Bridge" type="jack-midi">
+   <plug>Midi\ Through\:\(playback_0\)\ Midi\ Through\ Port\-0</plug>
+  </socket>
+  <socket name="walkman_4" exclusive="off" client="walkman_4" type="jack-midi">
+   <plug>input</plug>
+  </socket>
+  <socket name="Midi Through" exclusive="off" client="Midi\ Through" type="alsa-midi">
+   <plug>Midi\ Through\ Port\-0</plug>
+  </socket>
+ </input-sockets>
+ <slots/>
+ <cables>
+  <cable output="walkman_4" input="Built-in Audio Analog Stereo" type="jack-audio"/>
+  <cable output="ecasound" input="walkman_4" type="jack-audio"/>
+ </cables>
+</patchbay>
+
