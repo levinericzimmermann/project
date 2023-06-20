@@ -1,6 +1,6 @@
 {% set channel_count            = 4 %}
 {% set midi_channel             = 0 %}
-{% set midi_control_number_0    = 16 %}
+{% set midi_control_number_0    = 32 %}
 
 {% set cello                    = "cello" %}
 {% set harp                     = "harp" %}
@@ -9,6 +9,9 @@
 {% set master                   = "master" %}
 {% set audio_input_list         = [cello, glockenspiel, percussion, harp] %}
 {% set midi_control_input_list  = [master, cello, glockenspiel, percussion, harp] %}
+{% set midi_range_instruments   = [-48, 12] %}
+{% set midi_range_master        = [-48, 24] %}
+{% set midi_range_list          = [midi_range_master, midi_range_instruments, midi_range_instruments, midi_range_instruments, midi_range_instruments] %}
 
 [configure]
 name                    = "10.3"
@@ -33,15 +36,16 @@ channel_count           = 4
 
 {% for midi_input in midi_control_input_list %}
 
-    {% set i = loop.index - 1 %}
+    {% set i            = loop.index - 1 %}
+    {% set midi_range   = midi_range_list[i] %}
 
     [configure.module.midi_control_input.{{ midi_input }}]
     midi_control_number = {{ midi_control_number_0 + i }}
     midi_channel        = {{ midi_channel }}
 
     [configure.module.midi_control_input.{{ midi_input }}.default_dict]
-    minima              = -48
-    maxima              = 12
+    minima              = {{ midi_range [0] }}
+    maxima              = {{ midi_range [1] }}
 
 {% endfor %}
 
