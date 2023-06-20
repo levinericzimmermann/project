@@ -5,18 +5,22 @@
 {# If you add more than 4 output, 'channel_count' also needs to be adapted. #}
 {% set real_output_channel_count    = 3 %}
 {% set midi_channel                 = 1 %}
-{% set midi_control_number_0        = 32 %}
+{% set midi_control_number_master   = 32 %}
+{% set midi_control_number_instr    = 36 %}
 
 {% set cello                        = "cello" %}
 {% set harp                         = "harp" %}
 {% set glockenspiel                 = "glockenspiel" %}
 {% set percussion                   = "percussion" %}
 {% set master                       = "master" %}
+{% set reverb                       = "reverb" %}
 {% set audio_input_list             = [cello, percussion, glockenspiel, harp] %}
-{% set midi_control_input_list      = [master, cello, percussion, glockenspiel, harp] %}
-{% set midi_range_instruments       = [-48, 12] %}
+{% set midi_range_instrument        = [-48, 12] %}
+
 {% set midi_range_master            = [-48, 24] %}
-{% set midi_range_list              = [midi_range_master, midi_range_instruments, midi_range_instruments, midi_range_instruments, midi_range_instruments] %}
+{% set midi_range_reverb            = [-48, 24] %}
+{% set midi_control_input_master    = [master, reverb] %}
+{% set midi_range_master_list       = [midi_range_master, midi_range_reverb] %}
 
 [configure]
 name                    = "10.3"
@@ -37,15 +41,23 @@ channel_count           = 4
     input_channel_index = {{ i }}
     decibel             = "midi_control_input.{{ audio_input }}"
 
+    [configure.module.midi_control_input.{{ audio_input }}]
+    midi_control_number = {{ midi_control_number_instr + i }}
+    midi_channel        = {{ midi_channel }}
+
+    [configure.module.midi_control_input.{{ audio_input }}.default_dict]
+    minima              = {{ midi_range_instrument[0] }}
+    maxima              = {{ midi_range_instrument[1] }}
+
 {% endfor %}
 
-{% for midi_input in midi_control_input_list %}
+{% for midi_input in midi_control_input_master  %}
 
     {% set i            = loop.index - 1 %}
-    {% set midi_range   = midi_range_list[i] %}
+    {% set midi_range   = midi_range_master_list[i] %}
 
     [configure.module.midi_control_input.{{ midi_input }}]
-    midi_control_number = {{ midi_control_number_0 + i }}
+    midi_control_number = {{ midi_control_number_master + i }}
     midi_channel        = {{ midi_channel }}
 
     [configure.module.midi_control_input.{{ midi_input }}.default_dict]
@@ -81,10 +93,18 @@ audio_input_0                       = "diffusion.instruments"
     {{ i }} = [{{ i }}]
 {% endfor %}
 
+[configure.module.waveguide_reverb.pre_master]
+audio_input             = "mixer.pre_master"
+decibel                 = "midi_control_input.{{ reverb }}"
+
+[configure.module.value.waveguide_reverb_pre_master_child_feedback]
+value                   = 0.8
+
 [configure.module.mixer.master]
 send_to_physical_output = true
 decibel                 = "midi_control_input.{{ master }}"
 audio_input_0           = "mixer.pre_master"
+audio_input_1           = "waveguide_reverb.pre_master"
 
 [configure.module.mixer.master.channel_mapping]
 {% for channel_index in range(audio_input_list | length) %}
