@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+arduino-cli lib install SD

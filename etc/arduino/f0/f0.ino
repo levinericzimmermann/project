@@ -6,92 +6,99 @@
 
  */
 
+// general arduino
+// #include <SD.h>
+#include <SD.h>
+
+// Mozzi stuff
 #include <MozziGuts.h>
 #include <Oscil.h>
 #include <EventDelay.h>
 #include <ADSR.h>
-#include <tables/sin8192_int8.h>
+#include <tables/sin512_int8.h>
 
+// f0 helper
 #include "notes.h"
 
+// SD card init
+const int chipSelect = 10;
 
-Oscil <8192, AUDIO_RATE> aOscil(SIN8192_DATA);
+
+Oscil <512, AUDIO_RATE> aOscil(SIN512_DATA);
 
 // for triggering the envelope
 EventDelay noteDelay;
 
 ADSR <AUDIO_RATE, AUDIO_RATE> envelope;
 
-boolean note_is_on = true;
-
-
-unsigned int duration, attack_duration, decay_duration, sustain_duration, release_duration;
-byte attack_level, decay_level;
-
-
 // Global variables
-struct NoteLike currentNote;
 
-// This synthesizer plays a list of predefined notes.
-// It does so by iterating over a string where those notes are defined.
-// It puts each note into an array: noteArray.
-// noteArray has a predefined maximum size.
-// If our text file uses more notes than noteArray size, the program
-// truncates the original data (and prints a warning).
-
-int maxNoteCount = 20;
-struct NoteLike noteArray[20];
-
-char x[] = "26428.57,884.0,138\n2142.86,0,0\n83571.43,1473.33,138\n";
-
-int noteCount;
-int noteIndex = 0;
-
+File dataFile;
 
 void setup(){
     Serial.begin(115200);
     noteDelay.set(2000); // 2 second countdown
 
-    // We initialize the noteList in "setup" so
-    noteCount = f0ToNoteLikeArr(x, noteArray);
-
+    if (!SD.begin(chipSelect)) {
+        Serial.println(F("initialization failed. Things to check:"));
+        Serial.println(F("1. is a card inserted?"));
+        Serial.println(F("2. is your wiring correct?"));
+        Serial.println(F("3. did you change the chipSelect pin to match your shield or module?"));
+        Serial.println(F("Note: press reset or reopen this serial monitor after fixing your issue!"));
+        while (1);
+    }
+    dataFile = SD.open(F("s.f0"));
     startMozzi();
 }
 
+struct NoteLike currentNote = makeRest(100);
 
 void updateControl(){
     if (noteDelay.ready()) {
-        currentNote = getNextNote();
-        printNoteLike(currentNote);
+        getNextNote(&currentNote);
+        Serial.print(F("current note: "));
+        printNoteLike(&currentNote);
         // Rests are implicitly declared by 'isTone'
-        if (isTone(currentNote)) {
-            playTone(currentNote);
+        if (isTone(&currentNote)) {
+            playTone(&currentNote);
         }
-        noteDelay.start(duration);
-        noteIndex += 1;
+        noteDelay.start(currentNote.duration);
     }
 }
 
-struct NoteLike getNextNote() {
-    if (noteIndex >= noteCount) {
-        // List is empty, so make rest forever
-        return makeRest(10000);
-    }
-    return noteArray[noteIndex];
+String l_line;
+
+void getNextNote(struct NoteLike *note) {
+  Serial.println(F("getNextNote"));
+    if (dataFile) {
+        if (dataFile.available() != 0) {
+          l_line = dataFile.readStringUntil('\n');
+          f0ToNoteLike(note, l_line.c_str());
+          return;
+        } else {
+          dataFile.close();
+          Serial.println(F("data file no longer available"));
+        }
+    } else {
+      Serial.println(F("error opening s.f0 (couldn't be found)"));
+   }
+   stopMozzi();
 }
+
+
 
 // play a single tone
-void playTone(struct NoteLike currentNote) {
-    attack_level = currentNote.velocity;
-    decay_level = currentNote.velocity;
+void playTone(struct NoteLike *currentNote) {
+    byte attack_level = currentNote->velocity;
+    byte decay_level = currentNote->velocity;
     envelope.setADLevels(attack_level, decay_level);
 
-    attack_duration = currentNote.duration * 0.25;
-    decay_duration = currentNote.duration * 0.25;
-    sustain_duration = currentNote.duration * 0.25;
-    release_duration = currentNote.duration * 0.25;
+    float duration = currentNote->duration;
 
-    duration = currentNote.duration;
+    float attack_duration = duration * 0.25;
+    float decay_duration = duration * 0.25;
+    float sustain_duration = duration * 0.25;
+    float release_duration = duration * 0.25;
 
     envelope.setTimes(
         attack_duration,
@@ -101,16 +108,17 @@ void playTone(struct NoteLike currentNote) {
     );
     envelope.noteOn();
 
-    aOscil.setFreq(currentNote.frequency);  
+    aOscil.setFreq(currentNote->frequency);  
 }
 
 
-AudioOutput_t updateAudio(){
+AudioOutput_t updateAudio() {
     envelope.update();
-    return MonoOutput::from16Bit((int) (envelope.next() * aOscil.next()));
+    // return MonoOutput::from16Bit((int) (envelope.next() * aOscil.next()));
+    return MonoOutput::from16Bit((int) (aOscil.next()));
 }
 
 
-void loop(){
+void loop() {
     audioHook(); // required here
 }
