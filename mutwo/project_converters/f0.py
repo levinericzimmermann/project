@@ -12,7 +12,7 @@ class EventToF0(core_converters.abc.EventConverter):
     def _convert_simple_event(self, event_to_convert, absolute_entry_delay):
         e = event_to_convert
 
-        d = round(float(e.duration) * 1000, 2)
+        d = int(round(float(e.duration) * 1000))
 
         try:
             v = e.volume.midi_velocity
