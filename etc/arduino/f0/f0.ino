@@ -16,6 +16,8 @@
 #include <EventDelay.h>
 #include <ADSR.h>
 #include <tables/sin8192_int8.h>
+#include <Line.h>
+#include <mozzi_rand.h>
 
 #define CONTROL_RATE 64
 
@@ -27,9 +29,15 @@ const int chipSelect = 10;
 
 
 Oscil <8192, AUDIO_RATE> aOscil(SIN8192_DATA);
+Oscil <8192, CONTROL_RATE> LFO(SIN8192_DATA);
+
+Line <unsigned int> aGain;
+
 
 // for triggering the envelope
 EventDelay noteDelay;
+EventDelay LFOFreqDelay;
+
 
 ADSR <CONTROL_RATE, AUDIO_RATE> envelope;
 
@@ -41,7 +49,7 @@ File dataFile;
 
 void setup(){
     Serial.begin(115200);
-    noteDelay.set(2000); // 2 second countdown
+
 
     if (!SD.begin(chipSelect)) {
         Serial.println(F("initialization failed. Things to check:"));
@@ -53,6 +61,12 @@ void setup(){
     }
     dataFile = SD.open(F("s.f0"));
     startMozzi();
+
+    noteDelay.set(2000); // 2 second countdown
+        LFOFreqDelay.set(2000); // 2 second countdown
+
+
+    LFO.setFreq(0.4f); 
 }
 
 struct NoteLike currentNote = makeRest(100);
@@ -69,12 +83,20 @@ void updateControl(){
         noteDelay.start(currentNote.duration);
     }   
     envelope.update();
+    unsigned int gain = (128u+LFO.next())<<8;
+    aGain.set(gain, AUDIO_RATE / CONTROL_RATE);
+
+    // Adjust LFO freq for dynamic sound
+    if (LFOFreqDelay.ready()) {
+      float v = (rand(500) + 50) / 1000.0f;
+      LFO.setFreq(v);
+      LFOFreqDelay.start(1000 + rand(1000));
+    }
 }
 
 String l_line;
 
 void getNextNote(struct NoteLike *note) {
-  Serial.println(F("getNextNote"));
     if (dataFile) {
         if (dataFile.available() != 0) {
           l_line = dataFile.readStringUntil('\n');
@@ -94,16 +116,20 @@ void getNextNote(struct NoteLike *note) {
 
 // play a single tone
 void playTone(struct NoteLike *currentNote) {
-    byte attack_level = currentNote->velocity - 1;
+    byte attack_level = currentNote->velocity * 0.5;
     byte decay_level = currentNote->velocity;
     envelope.setLevels(attack_level, decay_level, decay_level, 1);
 
     unsigned int duration = (currentNote->duration);
 
-    unsigned int attack_duration = duration * 0.4;
-    unsigned int decay_duration = duration * 0.1;
+    unsigned int attack_duration = duration * 0.2;
+    unsigned int decay_duration = duration * 0.3;
     unsigned int sustain_duration = duration * 0.1;
     unsigned int release_duration = duration * 0.4;
+
+    unsigned int summed_duration = attack_duration + decay_duration + sustain_duration + release_duration;
+    unsigned int difference = duration - summed_duration;
+    release_duration += difference;
 
     envelope.setTimes(attack_duration,decay_duration,sustain_duration,release_duration);
     envelope.noteOn();
@@ -113,8 +139,12 @@ void playTone(struct NoteLike *currentNote) {
 
 
 AudioOutput_t updateAudio() {
-    return MonoOutput::from16Bit((int) (envelope.next() * aOscil.next()));
+    //return MonoOutput::from16Bit((int) (envelope.next() * aOscil.next()));
     // return MonoOutput::from16Bit((int) (aOscil.next()));
+    long v = aOscil.next();
+    return MonoOutput::from16Bit((int)(
+      ((long)((long) v * (aGain.next())) >> 16) + (v * 0.5))     
+      * envelope.next()); // shifted back to audio range after multiply
 }
 
 
