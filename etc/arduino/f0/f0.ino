@@ -15,7 +15,9 @@
 #include <Oscil.h>
 #include <EventDelay.h>
 #include <ADSR.h>
-#include <tables/sin512_int8.h>
+#include <tables/sin8192_int8.h>
+
+#define CONTROL_RATE 64
 
 // f0 helper
 #include "notes.h"
@@ -24,12 +26,14 @@
 const int chipSelect = 10;
 
 
-Oscil <512, AUDIO_RATE> aOscil(SIN512_DATA);
+Oscil <8192, AUDIO_RATE> aOscil(SIN8192_DATA);
 
 // for triggering the envelope
 EventDelay noteDelay;
 
-ADSR <AUDIO_RATE, AUDIO_RATE> envelope;
+ADSR <CONTROL_RATE, AUDIO_RATE> envelope;
+
+boolean note_is_on = true;
 
 // Global variables
 
@@ -63,7 +67,8 @@ void updateControl(){
             playTone(&currentNote);
         }
         noteDelay.start(currentNote.duration);
-    }
+    }   
+    envelope.update();
 }
 
 String l_line;
@@ -89,23 +94,18 @@ void getNextNote(struct NoteLike *note) {
 
 // play a single tone
 void playTone(struct NoteLike *currentNote) {
-    byte attack_level = currentNote->velocity;
+    byte attack_level = currentNote->velocity - 1;
     byte decay_level = currentNote->velocity;
-    envelope.setADLevels(attack_level, decay_level);
+    envelope.setLevels(attack_level, decay_level, decay_level, 1);
 
-    float duration = currentNote->duration;
+    unsigned int duration = (currentNote->duration);
 
-    float attack_duration = duration * 0.25;
-    float decay_duration = duration * 0.25;
-    float sustain_duration = duration * 0.25;
-    float release_duration = duration * 0.25;
+    unsigned int attack_duration = duration * 0.4;
+    unsigned int decay_duration = duration * 0.1;
+    unsigned int sustain_duration = duration * 0.1;
+    unsigned int release_duration = duration * 0.4;
 
-    envelope.setTimes(
-        attack_duration,
-        decay_duration,
-        sustain_duration,
-        release_duration
-    );
+    envelope.setTimes(attack_duration,decay_duration,sustain_duration,release_duration);
     envelope.noteOn();
 
     aOscil.setFreq(currentNote->frequency);  
@@ -113,9 +113,8 @@ void playTone(struct NoteLike *currentNote) {
 
 
 AudioOutput_t updateAudio() {
-    envelope.update();
-    // return MonoOutput::from16Bit((int) (envelope.next() * aOscil.next()));
-    return MonoOutput::from16Bit((int) (aOscil.next()));
+    return MonoOutput::from16Bit((int) (envelope.next() * aOscil.next()));
+    // return MonoOutput::from16Bit((int) (aOscil.next()));
 }
 
 

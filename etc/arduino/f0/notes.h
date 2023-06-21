@@ -4,7 +4,7 @@ const char f0DelimiterItem = ',';
 const char f0DelimiterEnd  = '\n';
 
 struct NoteLike { 
-    float duration;
+    unsigned int duration;
     float frequency;
     unsigned int velocity;
 };
@@ -35,7 +35,7 @@ void printNoteLike(struct NoteLike *note) {
 }
 
 // Initializing tones & rests
-struct NoteLike makeNote(float duration, float frequency, unsigned int velocity) {
+struct NoteLike makeNote(unsigned int duration, float frequency, unsigned int velocity) {
     struct NoteLike note;
     note.duration = duration;
     note.frequency = frequency;
@@ -43,7 +43,7 @@ struct NoteLike makeNote(float duration, float frequency, unsigned int velocity)
     return note;
 }
 
-struct NoteLike makeRest(float duration) {
+struct NoteLike makeRest(unsigned int duration) {
     struct NoteLike note;
     note.duration = duration;
     note.frequency = 0;
@@ -56,7 +56,7 @@ struct NoteLike makeRest(float duration) {
 //  (e.g. char need to be split by ",")
 void f0ToNoteLike (struct NoteLike *note, const char f0[]) {
     Serial.println(f0);
-    float duration = 0;
+    unsigned int duration = 0;
     float frequency = 0;
     unsigned int velocity = 0;
 
@@ -66,7 +66,7 @@ void f0ToNoteLike (struct NoteLike *note, const char f0[]) {
     tofree = str = strdup(f0);
     while ((token = strsep(&str, ","))) {
         if (i == 0) {
-            duration = atof(token);
+            duration = atoi(token);
         } else if (i == 1) {
             frequency = atof(token);
         } else if (i == 2) {
