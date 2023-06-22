@@ -307,24 +307,25 @@ def _notation(
         abjad_score_block_list.append(abjad_score_block)
 
     lilypond_file = clock_converters.AbjadScoreBlockTupleToLilyPondFile(
-        system_system_basic_distance=5,
+        system_system_basic_distance=6,
         system_system_padding=1,
         score_system_basic_distance=0,
         score_system_padding=0,
         markup_system_basic_distance=0,
         markup_system_padding=0,
         staff_height=20,
-        top_margin=-1,
+        top_margin=0.25,
         foot_separation=0,
         head_separation=0,
         bottom_margin=1,
-        line_width=29,
-        left_margin=1,
+        line_width=24,
+        left_margin=4,
         page_top_space=0,
         between_title_space=0,
         after_title_space=0,
         before_title_space=0,
         print_page_number=False,
+        paper_size=r"'(cons (* 297 mm) (* 297 mm))",
     ).convert(abjad_score_block_list)
 
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ar.ily"')
