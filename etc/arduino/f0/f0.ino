@@ -4,10 +4,10 @@
     - use digital output pin 9 + ground & connect to amplifier
     - for a different model you can check output pin & support at https://github.com/sensorium/Mozzi#quick-start
 
+    - the tone file on the sd card MUST be named 's.f0'
  */
 
 // general arduino
-// #include <SD.h>
 #include <SD.h>
 
 // Mozzi stuff
@@ -19,31 +19,27 @@
 #include <Line.h>
 #include <mozzi_rand.h>
 
-#define CONTROL_RATE 64
-
 // f0 helper
 #include "notes.h"
 
 // SD card init
 const int chipSelect = 10;
 
+// Mozzi init
+#define CONTROL_RATE 64
+
 
 Oscil <8192, AUDIO_RATE> aOscil(SIN8192_DATA);
 Oscil <8192, CONTROL_RATE> LFO(SIN8192_DATA);
 
+// LFO
 Line <unsigned int> aGain;
-
 
 // for triggering the envelope
 EventDelay noteDelay;
 EventDelay LFOFreqDelay;
 
-
 ADSR <CONTROL_RATE, AUDIO_RATE> envelope;
-
-boolean note_is_on = true;
-
-// Global variables
 
 File dataFile;
 
@@ -59,12 +55,12 @@ void setup(){
         Serial.println(F("Note: press reset or reopen this serial monitor after fixing your issue!"));
         while (1);
     }
+
     dataFile = SD.open(F("s.f0"));
     startMozzi();
 
     noteDelay.set(2000); // 2 second countdown
-        LFOFreqDelay.set(2000); // 2 second countdown
-
+    LFOFreqDelay.set(2000); // 2 second countdown
 
     LFO.setFreq(0.4f); 
 }
@@ -82,15 +78,18 @@ void updateControl(){
         }
         noteDelay.start(currentNote.duration);
     }   
+
+    // update envelope (uses control rate & not audio rate)
     envelope.update();
-    unsigned int gain = (128u+LFO.next())<<8;
+
+    unsigned int gain = (128u + LFO.next()) << 8;
     aGain.set(gain, AUDIO_RATE / CONTROL_RATE);
 
     // Adjust LFO freq for dynamic sound
     if (LFOFreqDelay.ready()) {
-      float v = (rand(500) + 50) / 1000.0f;
-      LFO.setFreq(v);
-      LFOFreqDelay.start(1000 + rand(1000));
+        float v = (rand(500) + 50) / 1000.0f;
+        LFO.setFreq(v);
+        LFOFreqDelay.start(1000 + rand(1000));
     }
 }
 
@@ -99,17 +98,17 @@ String l_line;
 void getNextNote(struct NoteLike *note) {
     if (dataFile) {
         if (dataFile.available() != 0) {
-          l_line = dataFile.readStringUntil('\n');
-          f0ToNoteLike(note, l_line.c_str());
-          return;
+            l_line = dataFile.readStringUntil('\n');
+            f0ToNoteLike(note, l_line.c_str());
+            return;
         } else {
-          dataFile.close();
-          Serial.println(F("data file no longer available"));
+            dataFile.close();
+            Serial.println(F("data file no longer available"));
         }
     } else {
-      Serial.println(F("error opening s.f0 (couldn't be found)"));
-   }
-   stopMozzi();
+        Serial.println(F("error opening s.f0 (couldn't be found)"));
+    }
+    stopMozzi();
 }
 
 
@@ -139,12 +138,9 @@ void playTone(struct NoteLike *currentNote) {
 
 
 AudioOutput_t updateAudio() {
-    //return MonoOutput::from16Bit((int) (envelope.next() * aOscil.next()));
-    // return MonoOutput::from16Bit((int) (aOscil.next()));
     long v = aOscil.next();
-    return MonoOutput::from16Bit((int)(
-      ((long)((long) v * (aGain.next())) >> 16) + (v * 0.5))     
-      * envelope.next()); // shifted back to audio range after multiply
+    int synth = (int)(((long)((long) v * (aGain.next())) >> 16) + (v * 0.5));
+    return MonoOutput::from16Bit(synth * envelope.next());
 }
 
 
