@@ -55,7 +55,6 @@ struct NoteLike makeRest(unsigned int duration) {
 //  duration,frequency,velocity
 //  (e.g. char need to be split by ",")
 void f0ToNoteLike (struct NoteLike *note, const char f0[]) {
-    Serial.println(f0);
     unsigned int duration = 0;
     float frequency = 0;
     unsigned int velocity = 0;
