@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+jack_connect system:capture_1 walkman_4:input_1
+jack_connect system:capture_2 walkman_4:input_2
+jack_connect system:capture_3 walkman_4:input_3
+jack_connect system:capture_4 walkman_4:input_4
+
+jack_connect walkman_4:output_1 system:playback_1
+jack_connect walkman_4:output_2 system:playback_2
+jack_connect walkman_4:output_3 system:playback_3

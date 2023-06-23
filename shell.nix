@@ -49,5 +49,12 @@ in
           python94
           lilypond-with-fonts
           ecasound # for simulation
+          # walkman / live audio
+          jack2
+          qjackctl
       ];
+      shellHook = ''
+        umask 0000
+        export JACK_PROMISCUOUS_SERVER="jackaudio"
+      '';
   }
