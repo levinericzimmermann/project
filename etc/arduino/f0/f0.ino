@@ -106,8 +106,11 @@ void updateControl(){
         Serial.print(F("current percussion: "));
         printNoteLike(&currentPercussion);
         // aSample.setFreq(((rand(100) / 1000.0f) + 0.01f) * aSampleFreq);
-        aSample.setFreq(aSampleFreq);
-        aSample.start();
+        // Respect rest
+        if (currentPercussion.frequency != 0) {
+            aSample.setFreq(aSampleFreq);
+            aSample.start();
+        }
         percussionDelay.start(currentPercussion.duration);
     }
 }
