@@ -11,16 +11,16 @@ def sound(clock_tuple: tuple[clock_interfaces.Clock, ...]):
     ).convert
 
     simultaneous_event = core_events.SimultaneousEvent([])
-    for clock in clock_tuple:
+    for index, clock in enumerate(clock_tuple):
         clock_repetition_count = 1
         clock_simultaneous_event = clock2sim(
             clock, repetition_count=clock_repetition_count
         )
+        project.render.f0(clock_simultaneous_event, index)
         simultaneous_event.concatenate_by_tag(clock_simultaneous_event)
 
     adjust_tempo(simultaneous_event)
 
-    project.render.f0(simultaneous_event)
     project.render.midi(simultaneous_event)
 
 
