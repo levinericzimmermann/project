@@ -34,7 +34,7 @@ def f0(simultaneous_event, index):
         p_path = f"{dir_path}/p.f0"
         for p, e in ((n_path, event), (p_path, dclock[voice_index])):
             with open(p, "w") as f:
-                f.write(e2f0(e.tie_by(lambda e0, e1: is_rest(e1), mutate=False)))
+                f.write(e2f0(e))
 
 
 # The rhythmic orientation ('metronome') is distributed on 3 different arduino.
