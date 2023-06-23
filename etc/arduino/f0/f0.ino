@@ -64,6 +64,8 @@ void setup(){
     noteFile = SD.open(F("n.f0"));
     percussionFile = SD.open(F("p.f0"));
 
+    Serial.println(F("\n\n=================\tSTART 10.3 SYNTHESIS\t=================\n"));
+
     startMozzi();
 
     percussionDelay.set(2000);
@@ -79,7 +81,7 @@ struct NoteLike currentPercussion   = makeRest(100);
 void updateControl(){
     if (noteDelay.ready()) {
         getNextNote(&currentNote, noteFile);
-        Serial.print(F("current note: "));
+        Serial.print(F("note: "));
         printNoteLike(&currentNote);
         // Rests are implicitly declared by 'isTone'
         if (isTone(&currentNote)) {
@@ -103,7 +105,7 @@ void updateControl(){
 
     if (percussionDelay.ready()) {
         getNextNote(&currentPercussion, percussionFile);
-        Serial.print(F("current percussion: "));
+        Serial.print(F("perc:\t\t\t\t\t"));
         printNoteLike(&currentPercussion);
         // aSample.setFreq(((rand(100) / 1000.0f) + 0.01f) * aSampleFreq);
         // Respect rest
