@@ -4,7 +4,8 @@
     - use digital output pin 9 + ground & connect to amplifier
     - for a different model you can check output pin & support at https://github.com/sensorium/Mozzi#quick-start
 
-    - the tone file on the sd card MUST be named 's.f0'
+    - the tone file on the sd card MUST be named        'n.f0'
+    - the percussion file on the sd card MUST be named  'p.f0'
  */
 
 // general arduino
@@ -18,6 +19,8 @@
 #include <tables/sin8192_int8.h>
 #include <Line.h>
 #include <mozzi_rand.h>
+#include <Sample.h>
+#include <samples/bamboo/bamboo_00_2048_int8.h>
 
 // f0 helper
 #include "notes.h"
@@ -30,6 +33,7 @@ const int chipSelect = 10;
 
 
 Oscil <8192, AUDIO_RATE> aOscil(SIN8192_DATA);
+Sample <BAMBOO_00_2048_NUM_CELLS, AUDIO_RATE> aSample(BAMBOO_00_2048_DATA);
 Oscil <8192, CONTROL_RATE> LFO(SIN8192_DATA);
 
 // LFO
@@ -37,15 +41,16 @@ Line <unsigned int> aGain;
 
 // for triggering the envelope
 EventDelay noteDelay;
+EventDelay percussionDelay;
 EventDelay LFOFreqDelay;
 
 ADSR <CONTROL_RATE, AUDIO_RATE> envelope;
 
-File dataFile;
+File noteFile, percussionFile;
+float aSampleFreq = ((float) BAMBOO_00_2048_SAMPLERATE / (float) BAMBOO_00_2048_NUM_CELLS);
 
 void setup(){
     Serial.begin(115200);
-
 
     if (!SD.begin(chipSelect)) {
         Serial.println(F("initialization failed. Things to check:"));
@@ -56,20 +61,24 @@ void setup(){
         while (1);
     }
 
-    dataFile = SD.open(F("s.f0"));
+    noteFile = SD.open(F("n.f0"));
+    percussionFile = SD.open(F("p.f0"));
+
     startMozzi();
 
-    noteDelay.set(2000); // 2 second countdown
-    LFOFreqDelay.set(2000); // 2 second countdown
+    percussionDelay.set(2000);
+    noteDelay.set(2000);
+    LFOFreqDelay.set(2000);
 
     LFO.setFreq(0.4f); 
 }
 
-struct NoteLike currentNote = makeRest(100);
+struct NoteLike currentNote         = makeRest(100);
+struct NoteLike currentPercussion   = makeRest(100);
 
 void updateControl(){
     if (noteDelay.ready()) {
-        getNextNote(&currentNote);
+        getNextNote(&currentNote, noteFile);
         Serial.print(F("current note: "));
         printNoteLike(&currentNote);
         // Rests are implicitly declared by 'isTone'
@@ -91,11 +100,21 @@ void updateControl(){
         LFO.setFreq(v);
         LFOFreqDelay.start(1000 + rand(1000));
     }
+
+    if (percussionDelay.ready()) {
+        getNextNote(&currentPercussion, percussionFile);
+        Serial.print(F("current percussion: "));
+        printNoteLike(&currentPercussion);
+        // aSample.setFreq(((rand(100) / 1000.0f) + 0.01f) * aSampleFreq);
+        aSample.setFreq(aSampleFreq);
+        aSample.start();
+        percussionDelay.start(currentPercussion.duration);
+    }
 }
 
 String l_line;
 
-void getNextNote(struct NoteLike *note) {
+void getNextNote(struct NoteLike *note, File dataFile) {
     if (dataFile) {
         if (dataFile.available() != 0) {
             l_line = dataFile.readStringUntil('\n');
@@ -106,7 +125,7 @@ void getNextNote(struct NoteLike *note) {
             Serial.println(F("data file no longer available"));
         }
     } else {
-        Serial.println(F("error opening s.f0 (couldn't be found)"));
+        Serial.println(F("error opening data file (couldn't be found)"));
     }
     stopMozzi();
 }
@@ -139,8 +158,9 @@ void playTone(struct NoteLike *currentNote) {
 
 AudioOutput_t updateAudio() {
     long v = aOscil.next();
-    int synth = (int)(((long)((long) v * (aGain.next())) >> 16) + (v * 0.5));
-    return MonoOutput::from16Bit(synth * envelope.next());
+    int noteSynth = (int)(((long)((long) v * (aGain.next())) >> 16) + (v * 0.5)) * envelope.next();
+    int percussionSynth = aSample.next() * 1000;
+    return MonoOutput::from16Bit(percussionSynth + noteSynth);
 }
 
 
