@@ -1,6 +1,7 @@
 import os
 
 from mutwo import core_events
+from mutwo import music_parameters
 from mutwo import project_converters
 
 e2f0 = project_converters.EventToF0()
@@ -26,8 +27,16 @@ def f0(simultaneous_event, index):
 
     bpath = f"builds/f0/day_{index + 1}_voice_"
 
-    for voice_index, event in enumerate(f_simultaneous_event):
+    for voice_index, event, metronome in zip(
+        range(VOICE_COUNT), f_simultaneous_event, dclock
+    ):
         dir_path = f"{bpath}{voice_index}"
+
+        # Safety check, is everything correct?
+        assert float(metronome.duration) == float(
+            event.duration
+        ), f"{float(metronome.duration)}, {float(event.duration)}"
+
         print(voice_index, " = ", event.tag, ",", dir_path)
         try:
             os.mkdir(dir_path)
@@ -35,7 +44,7 @@ def f0(simultaneous_event, index):
             pass
         n_path = f"{dir_path}/n.f0"
         p_path = f"{dir_path}/p.f0"
-        for p, e in ((n_path, event), (p_path, dclock[voice_index])):
+        for p, e in ((n_path, event), (p_path, metronome)):
             with open(p, "w") as f:
                 f.write(e2f0(e))
 
@@ -47,15 +56,38 @@ def distribute_clock(simultaneous_event):
     dclock = core_events.SimultaneousEvent(
         [core_events.SequentialEvent([]) for _ in range(VOICE_COUNT)]
     )
-    for i, e in enumerate(
-        simultaneous_event["pclock"][0].tie_by(lambda e0, e1: is_rest(e1))
-    ):
+    pclock = simultaneous_event["pclock"][0].tie_by(
+        lambda e0, e1: is_rest(e1), mutate=False
+    )
+    for i, e in enumerate(pclock):
+
+        if i != 0:
+            assert not is_rest(e)
+
         add_index = i % VOICE_COUNT
         for i2, seq in enumerate(dclock):
-            if i2 == add_index:
-                seq.append(e)
+            if not is_rest(e) and i2 == add_index:
+                seq.append(
+                    e.set_parameter(
+                        "pitch_list", [METRONOME_PITCH_TUPLE[i2]], mutate=False
+                    )
+                )
             else:
                 seq.append(core_events.SimpleEvent(e.duration))
+
+    # Safety checks, is everything correct?
+    tone_count = 0
+    duration = dclock.duration
+
+    for seq in dclock:
+        seq.tie_by(lambda e0, e1: is_rest(e1))
+
+        assert seq.duration == duration
+
+        tone_count += len(list(filter(lambda e: not is_rest(e), seq)))
+
+    assert tone_count == len(list(filter(lambda e: not is_rest(e), pclock)))
+
     return dclock
 
 
@@ -64,4 +96,9 @@ def is_rest(e):
 
 
 TAG_TUPLE = ("tonic", "partner", "written_instable_pitch")
+j = music_parameters.JustIntonationPitch
+METRONOME_PITCH_TUPLE = (j("1/1"), j("5/4"), j("4/5"))
 VOICE_COUNT = 3
+
+assert len(TAG_TUPLE) == VOICE_COUNT
+assert len(METRONOME_PITCH_TUPLE) == VOICE_COUNT
