@@ -9,10 +9,12 @@ e2f0 = project_converters.EventToF0()
 def f0(simultaneous_event, index):
     f_simultaneous_event = core_events.SimultaneousEvent(
         filter(
-            lambda e: e.tag in ("tonic", "partner", "written_instable_pitch"),
+            lambda e: e.tag in TAG_TUPLE,
             simultaneous_event,
         )
     )
+    # Ensure our event is always sorted in the same way!
+    f_simultaneous_event.sort(key=lambda e: TAG_TUPLE.index(e.tag))
 
     if index not in (0, 6):
         assert len(f_simultaneous_event) == VOICE_COUNT
@@ -26,6 +28,7 @@ def f0(simultaneous_event, index):
 
     for voice_index, event in enumerate(f_simultaneous_event):
         dir_path = f"{bpath}{voice_index}"
+        print(voice_index, " = ", event.tag, ",", dir_path)
         try:
             os.mkdir(dir_path)
         except FileExistsError:
@@ -60,4 +63,5 @@ def is_rest(e):
     return not getattr(e, "pitch_list", [])
 
 
+TAG_TUPLE = ("tonic", "partner", "written_instable_pitch")
 VOICE_COUNT = 3
