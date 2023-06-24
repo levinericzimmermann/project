@@ -3,6 +3,7 @@ import quicktions as fractions
 from mutwo import core_events
 from mutwo import diary_interfaces
 from mutwo import music_events
+from mutwo import music_parameters
 from mutwo import project_utilities
 from mutwo import timeline_interfaces
 
@@ -36,12 +37,15 @@ def main(
         case "tonic":
             position = 0.25
             duration_diff = fractions.Fraction(1, 8)
+            volume = music_parameters.DecibelVolume(-37)
         case "partner":
             position = 0.5
             duration_diff = fractions.Fraction(1, 4)
+            volume = music_parameters.DecibelVolume(-37)
         case _:
             position = 0.75
             duration_diff = fractions.Fraction(1, 2)
+            volume = music_parameters.DecibelVolume(-37)
 
     duration = context.end - context.start
 
@@ -52,7 +56,7 @@ def main(
 
     start_range, end_range = project_utilities.get_ranges(real_duration, duration, position)
 
-    n = music_events.NoteLike(context.pitch, 1)
+    n = music_events.NoteLike(context.pitch, 1, volume=volume)
     n.notation_indicator_collection.duration_line.is_active = True
     sequential_event = core_events.SequentialEvent(
         [n]

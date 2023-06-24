@@ -9,7 +9,7 @@ class EventToF0(core_converters.abc.EventConverter):
     PARAMETER_DELIMITER = ","
     EVENT_DELIMITER = "\n"
     MAX_DURATION = 900  # miliseconds
-    MIN_VELOCITY = 5
+    MIN_VELOCITY = 2
 
     STATE_NEW = 0
     STATE_KEEP = 1
