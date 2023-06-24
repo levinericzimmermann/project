@@ -27,7 +27,7 @@ class EventToF0(core_converters.abc.EventConverter):
         e_count = len(d_tuple)
 
         try:
-            f = round(e.pitch_list[0].frequency * 2, 2)
+            f = round(e.pitch_list[0].frequency, 2)
         except (AttributeError, IndexError):
             f = 0
 
