@@ -1,6 +1,7 @@
 import os
 
 from mutwo import core_events
+from mutwo import music_events
 from mutwo import music_parameters
 from mutwo import project_converters
 
@@ -31,6 +32,14 @@ def f0(simultaneous_event, index):
         range(VOICE_COUNT), f_simultaneous_event, dclock
     ):
         dir_path = f"{bpath}{voice_index}"
+
+        for i, e in enumerate(event[0]):
+            if is_rest(e):
+                event[0][i] = music_events.NoteLike(
+                    music_parameters.DirectPitch(-1),
+                    e.duration,
+                    music_parameters.DecibelVolume(-38),
+                )
 
         # Safety check, is everything correct?
         assert float(metronome.duration) == float(
@@ -100,7 +109,7 @@ def is_rest(e):
 
 TAG_TUPLE = ("tonic", "partner", "written_instable_pitch")
 j = music_parameters.JustIntonationPitch
-METRONOME_PITCH_TUPLE = (j("1/1"), j("5/4"), j("4/5"))
+METRONOME_PITCH_TUPLE = (j("1/2"), j("1/1"), j("2/1"))
 VOICE_COUNT = 3
 
 assert len(TAG_TUPLE) == VOICE_COUNT
