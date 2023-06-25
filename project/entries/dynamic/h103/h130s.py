@@ -37,11 +37,11 @@ def main(
         case "tonic":
             position = 0.25
             duration_diff = fractions.Fraction(1, 8)
-            volume = music_parameters.DecibelVolume(-37)
+            volume = music_parameters.DecibelVolume(-35.75)
         case "partner":
             position = 0.5
             duration_diff = fractions.Fraction(1, 4)
-            volume = music_parameters.DecibelVolume(-36)
+            volume = music_parameters.DecibelVolume(-35.5)
         case _:
             position = 0.75
             duration_diff = fractions.Fraction(1, 2)
