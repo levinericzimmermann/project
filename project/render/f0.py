@@ -45,8 +45,19 @@ def f0(simultaneous_event, index):
                 continue
 
             if is_rest(e):
+                # The volume of the noise part highly depends on the context.
+                #
+                #   (1) for the generalpause -36.5 DB is definitely too loud.
+                #       -38 or something else in between was better => during
+                #       the generalpause this noise should connect with the
+                #       given atmospheric noise.
+                #
+                #   (2) but for noise during other pitched sounds, -36.85 wasn't
+                #       that bad, but only for long noise parts.
+                #
+                #   (3) for short noise parts during other events -38 is ok.
                 if e.duration > 10:
-                    volume = music_parameters.DecibelVolume(-36.85)
+                    volume = music_parameters.DecibelVolume(-37.85)
                 else:
                     volume = music_parameters.DecibelVolume(-38)
 
