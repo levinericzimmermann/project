@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+sudo chown levinericzimmermann:audio /dev/ttyACM0
