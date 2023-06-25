@@ -56,6 +56,8 @@ class DataToF0(core_converters.abc.Converter):
 
 
 class DataToContinousF0(DataToF0):
+    r = np.random.default_rng(12)
+
     def convert(
         self,
         event: core_events.SimpleEvent,
@@ -92,7 +94,11 @@ class DataToContinousF0(DataToF0):
             else:
                 state = project_converters.constants.F0.STATE_KEEP
 
-            data = (state, event_duration, frequency, v_tuple[index])
+            v = v_tuple[index]
+            if self.r.uniform() < 0.025:
+                v = 3
+
+            data = (state, event_duration, frequency, v)
             e_list.append(DATA_TO_F0_EVENT(*data))
 
         return F0_EVENT_LIST_TO_F0(e_list)
