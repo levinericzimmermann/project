@@ -10,7 +10,9 @@ e2f0 = project_converters.EventToF0()
 
 def f0(simultaneous_event, index):
     simultaneous_event = simultaneous_event.copy()
-    simultaneous_event.slide_in(0, core_events.SimpleEvent(20).set_parameter('r', False))
+    simultaneous_event.slide_in(
+        0, core_events.SimpleEvent(20).set_parameter("r", False)
+    )
 
     f_simultaneous_event = core_events.SimultaneousEvent(
         filter(
@@ -37,7 +39,7 @@ def f0(simultaneous_event, index):
         dir_path = f"{bpath}{voice_index}"
 
         for i, e in enumerate(event[0]):
-            if is_rest(e) and getattr(e, 'r', True):
+            if is_rest(e) and getattr(e, "r", True):
                 if e.duration > 10:
                     volume = music_parameters.DecibelVolume(-36.85)
                 else:
