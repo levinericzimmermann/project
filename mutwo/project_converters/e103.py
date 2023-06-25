@@ -21,6 +21,7 @@ class TonicMovementTupleToC103SequentialEvent(core_converters.abc.Converter):
         self._activity_level = common_generators.ActivityLevel()
         # self._chord_count_cycle = itertools.cycle((3, 4, 2, 4, 3))
         self._chord_count_cycle = itertools.cycle((3, 4, 5, 6, 5))
+        self._rest_duration_cycle = itertools.cycle((100, 35, 70, 45))
 
     def convert(
         self, tonic_movement_tuple: tuple[music_parameters.JustIntonationPitch, ...]
@@ -114,7 +115,7 @@ class TonicMovementTupleToC103SequentialEvent(core_converters.abc.Converter):
         """Gives True if rest was added and otherwise False"""
         if self._activity_level(3):
             return False
-        rest_duration = fractions.Fraction(100, 16)
+        rest_duration = fractions.Fraction(next(self._rest_duration_cycle), 16)
         seq.append(project_events.C103Event(None, rest_duration))
         return True
 
@@ -174,6 +175,8 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
             sequential_event,
         ):
             if e.chord:
-                context_list.append(diary_interfaces.H103Context(start=start, end=end, attr="pclock"))
+                context_list.append(
+                    diary_interfaces.H103Context(start=start, end=end, attr="pclock")
+                )
 
         return tuple(context_list)
