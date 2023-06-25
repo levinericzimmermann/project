@@ -75,7 +75,7 @@ class DataToContinousF0(DataToF0):
         e_list = []
 
         max_index = len(duration_tuple) - 1
-        for index, ed in enumerate(duration_tuple):
+        for index, event_duration in enumerate(duration_tuple):
             if index == 0:
                 state = project_converters.constants.F0.STATE_NEW
             elif index == max_index:
@@ -83,7 +83,8 @@ class DataToContinousF0(DataToF0):
             else:
                 state = project_converters.constants.F0.STATE_KEEP
 
-            e_list.append(DATA_TO_F0_EVENT(state, ed, frequency, v_tuple[index]))
+            data = (state, event_duration, frequency, v_tuple[index])
+            e_list.append(DATA_TO_F0_EVENT(*data))
 
         return F0_EVENT_LIST_TO_F0(e_list)
 
