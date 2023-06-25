@@ -92,16 +92,20 @@ class DataToPercussiveF0(core_converters.abc.Converter):
     def convert(
         self, duration_tuple: tuple[int, ...], frequency: float, velocity: int
     ) -> str:
-        # We only need one active event & we can set everything else to 'Rest'
-        e_list = [
-            DATA_TO_F0_EVENT(
-                project_converters.constants.F0.STATE_NEW,
-                duration_tuple[0],
-                frequency,
-                velocity,
+        e_list = []
+        if frequency:
+            # If we have a tone (e.g. if frequency != 0):
+            # We only need one active event & we can set everything else to 'Rest'
+            e_list.append(
+                DATA_TO_F0_EVENT(
+                    project_converters.constants.F0.STATE_NEW,
+                    duration_tuple[0],
+                    frequency,
+                    velocity,
+                )
             )
-        ]
-        for d in duration_tuple[1:]:
+            duration_tuple = duration_tuple[1:]
+        for d in duration_tuple:
             e_list.append(
                 DATA_TO_F0_EVENT(project_converters.constants.F0.STATE_STOP, d, 0, 0)
             )
