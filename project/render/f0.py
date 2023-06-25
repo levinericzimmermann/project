@@ -39,9 +39,9 @@ def f0(simultaneous_event, index):
         dir_path = f"{bpath}{voice_index}"
 
         for i, e in enumerate(event[0]):
-            # 'event.r == True' is our initial offset event, don't touch
+            # 'event.r == False' is our initial offset event, don't touch
             # this.
-            if getattr(e, "r", True):
+            if not getattr(e, "r", True):
                 continue
 
             if is_rest(e):
