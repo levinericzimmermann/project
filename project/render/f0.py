@@ -9,6 +9,9 @@ e2f0 = project_converters.EventToF0()
 
 
 def f0(simultaneous_event, index):
+    simultaneous_event = simultaneous_event.copy()
+    simultaneous_event.slide_in(0, core_events.SimpleEvent(20).set_parameter('r', False))
+
     f_simultaneous_event = core_events.SimultaneousEvent(
         filter(
             lambda e: e.tag in TAG_TUPLE,
@@ -34,7 +37,7 @@ def f0(simultaneous_event, index):
         dir_path = f"{bpath}{voice_index}"
 
         for i, e in enumerate(event[0]):
-            if is_rest(e):
+            if is_rest(e) and getattr(e, 'r', True):
                 event[0][i] = music_events.NoteLike(
                     music_parameters.DirectPitch(-1),
                     e.duration,
