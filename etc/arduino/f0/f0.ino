@@ -121,7 +121,10 @@ void updateControl(){
             printNoteLike(&currentPercussion);
             if (isTone(&currentPercussion) && currentPercussion.state != STATE_KEEP) {
                 startPercussion();
-                aSample.setFreq(aSampleFreq);
+                // 'frequency' is actually 'factor' here:
+                // see mutwo/project_converters/f0.py: DataToPercussiveF0
+                //   & project/render/f0.py:           METRONOME_PITCH_TUPLE
+                aSample.setFreq(aSampleFreq * currentPercussion.frequency);
                 aSample.start();
             }
             percussionDelay.start(currentPercussion.duration);

@@ -109,7 +109,16 @@ class DataToPercussiveF0(core_converters.abc.Converter):
         e_list = []
         if frequency:
             # If we have a tone (e.g. if frequency != 0):
-            # We only need one active event & we can set everything else to 'Rest'
+            # We only need one active event & we can set everything else
+            # to 'Rest'
+
+            # We don't use provided frequency, but we want to use factor:
+            # with this factor the frequency of the original sample is
+            # multiplied.
+            #
+            #   JustIntonationPitch.__float__   =>
+            #               assuming pitch is JustIntonationPitch
+            frequency = float(event.pitch_list[0])
             e_list.append(
                 DATA_TO_F0_EVENT(
                     project_converters.constants.F0.STATE_NEW,
