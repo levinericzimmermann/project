@@ -3,18 +3,10 @@ import numpy as np
 from mutwo import common_generators
 from mutwo import core_converters
 from mutwo import core_utilities
+from mutwo import project_converters
 
 
 class EventToF0(core_converters.abc.EventConverter):
-    PARAMETER_DELIMITER = ","
-    EVENT_DELIMITER = "\n"
-    MAX_DURATION = 900  # miliseconds
-    MIN_VELOCITY = 2
-
-    STATE_NEW = 0
-    STATE_KEEP = 1
-    STATE_STOP = 2
-
     def convert(self, event_to_convert):
         return self._convert_event(event_to_convert, 0)[0]
 
@@ -22,7 +14,9 @@ class EventToF0(core_converters.abc.EventConverter):
         e = event_to_convert
 
         d = int(round(float(e.duration) * 1000))
-        d_tuple = common_generators.euclidean(d, max((d // self.MAX_DURATION, 2)))
+        d_tuple = common_generators.euclidean(
+            d, max((d // project_converters.constants.F0.MAX_DURATION, 2))
+        )
 
         e_count = len(d_tuple)
 
@@ -44,7 +38,7 @@ class EventToF0(core_converters.abc.EventConverter):
         # doesn't do this by themselves
         v_tuple = tuple(v for _ in d_tuple)
         if e_count >= 3 and f != 0:
-            min_v = min((self.MIN_VELOCITY, v))
+            min_v = min((project_converters.constants.F0.MIN_VELOCITY, v))
             left, center, right = common_generators.euclidean(e_count, 3)
             v_tuple = (
                 tuple(np.geomspace(min_v, v, left, dtype=int))
@@ -59,24 +53,24 @@ class EventToF0(core_converters.abc.EventConverter):
         max_index = len(d_tuple) - 1
         for index, ed in enumerate(d_tuple):
             if index == 0:
-                state = self.STATE_NEW
+                state = project_converters.constants.F0.STATE_NEW
             elif index == max_index:
-                state = self.STATE_STOP
+                state = project_converters.constants.F0.STATE_STOP
             else:
-                state = self.STATE_KEEP
+                state = project_converters.constants.F0.STATE_KEEP
 
             # state,duration,frequency,velocity
             e_list.append(
-                self.PARAMETER_DELIMITER.join(
+                project_converters.constants.F0.PARAMETER_DELIMITER.join(
                     [str(p) for p in (state, ed, f, v_tuple[index])]
                 )
             )
 
-        return (self.EVENT_DELIMITER.join(e_list),)
+        return (project_converters.constants.F0.EVENT_DELIMITER.join(e_list),)
 
     def _convert_sequential_event(self, *args, **kwargs):
         return (
-            self.EVENT_DELIMITER.join(
+            project_converters.constants.F0.EVENT_DELIMITER.join(
                 super()._convert_sequential_event(*args, **kwargs)
             ),
         )
