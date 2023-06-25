@@ -16,7 +16,8 @@
 #include <Oscil.h>
 #include <EventDelay.h>
 #include <Smooth.h>
-#include <tables/sin8192_int8.h>
+#include <tables/sin2048_int8.h>
+#include <tables/brownnoise8192_int8.h>
 #include <Line.h>
 #include <mozzi_rand.h>
 #include <Sample.h>
@@ -33,9 +34,10 @@ const int chipSelect = 10;
 
 Smooth <long> aSmoothGain(0.9975f);
 
-Oscil <8192, AUDIO_RATE> aOscil(SIN8192_DATA);
+Oscil <SIN2048_NUM_CELLS, AUDIO_RATE> aOscil(SIN2048_DATA);
+Oscil <BROWNNOISE8192_NUM_CELLS, AUDIO_RATE> aNoise(BROWNNOISE8192_DATA);
 Sample <BAMBOO_00_2048_NUM_CELLS, AUDIO_RATE> aSample(BAMBOO_00_2048_DATA);
-Oscil <8192, CONTROL_RATE> LFO(SIN8192_DATA);
+Oscil <SIN2048_NUM_CELLS, CONTROL_RATE> LFO(SIN2048_DATA);
 
 // LFO
 Line <unsigned int> aGain;
@@ -46,8 +48,16 @@ EventDelay percussionDelay;
 EventDelay LFOFreqDelay;
 
 File noteFile, percussionFile;
-float aSampleFreq = ((float) BAMBOO_00_2048_SAMPLERATE / (float) BAMBOO_00_2048_NUM_CELLS);
+float aSampleFreq   = ((float) BAMBOO_00_2048_SAMPLERATE / (float) BAMBOO_00_2048_NUM_CELLS);
 
+// stop individual audio units for some time, if inactive,
+// to save CPU
+bool notePitch      = false;
+bool noteNoise      = false;
+bool percussion     = false;
+
+// global stop variables: if error they are set to false
+// & voice doesn't run anymore.
 bool noteOn         = true;
 bool percussionOn   = true;
 
@@ -75,6 +85,8 @@ void setup(){
     LFOFreqDelay.set(2000);
 
     LFO.setFreq(0.4f); 
+
+    aNoise.setFreq((float)AUDIO_RATE/BROWNNOISE8192_SAMPLERATE);
 }
 
 struct NoteLike currentNote         = makeRest(100);
@@ -91,6 +103,9 @@ void updateControl(){
             // Rests are implicitly declared by 'isTone'
             if (isTone(&currentNote)) {
                 playTone(&currentNote);
+            } else {
+                stopPitch();
+                stopNoise();
             }
             noteDelay.start(currentNote.duration);
         } else {
@@ -105,6 +120,7 @@ void updateControl(){
             Serial.print(F("perc:\t\t\t\t\t"));
             printNoteLike(&currentPercussion);
             if (isTone(&currentPercussion) && currentPercussion.state != STATE_KEEP) {
+                startPercussion();
                 aSample.setFreq(aSampleFreq);
                 aSample.start();
             }
@@ -112,6 +128,7 @@ void updateControl(){
         } else {
             Serial.println(F("Stopped percussion due to error."));
             percussionOn = false;
+            stopPercussion();
         }
     }
 
@@ -126,6 +143,10 @@ void updateControl(){
         LFO.setFreq(v);
         LFOFreqDelay.start(1000 + rand(1000));
     }
+
+    // jump around in audio noise table to disrupt obvious looping
+    aNoise.setPhase(rand((unsigned int)BROWNNOISE8192_NUM_CELLS));
+
 
 }
 
@@ -155,11 +176,21 @@ bool getNextNote(struct NoteLike *note, File dataFile) {
 void playTone(struct NoteLike *currentNote) {
     if (currentNote->state == STATE_NEW) {
         // Serial.println(F("start new note"));  // debug
+        if (currentNote->frequency > 0) {
+            startPitch();
+            stopNoise();
+        } else {
+            stopPitch();
+            startNoise();
+        }
+    }
+
+    if (currentNote->state == STATE_NEW || currentNote->state == STATE_KEEP) {
+        if (currentNote->frequency > 0) {
+            aOscil.setFreq(currentNote->frequency);
+        }
         target_gain = currentNote->velocity;
-        aOscil.setFreq(currentNote->frequency);  
-    } else if (currentNote->state == STATE_KEEP) {
-        // Serial.println(F("set new velocity"));  // debug
-        target_gain = currentNote->velocity;
+
     } else if (currentNote->state == STATE_STOP) {
         // Serial.println(F("stop note"));  // debug
         target_gain = 0;
@@ -170,15 +201,53 @@ void playTone(struct NoteLike *currentNote) {
     }
 }
 
+// start/stop function to avoid unnecessary
+// audio calculations.
+void startPitch() {
+    notePitch = true;
+}
+
+void stopPitch() {
+    notePitch = false;
+}
+
+void startNoise() {
+    noteNoise = true;
+}
+
+void stopNoise() {
+    noteNoise = false;
+}
+
+void startPercussion() {
+    percussion = true;
+}
+
+void stopPercussion() {
+    percussion = false;
+}
 
 AudioOutput_t updateAudio() {
     // note synthesis
-    long sine               = aOscil.next();
-    int modulatedSine       = (int)(((long)((long) sine * (aGain.next())) >> 16) + (sine * 0.5));
-    int noteSynth           = modulatedSine* aSmoothGain.next(target_gain);
+    int noteSynthBase, noteSynth;
+    //      cheap synthesis: only calculate oscillator if active
+    if (noteNoise) {
+        noteSynthBase           = aNoise.next() * 0.7f;
+    } else if (notePitch) {
+        long sine               = aOscil.next();
+        noteSynthBase           = (int)(((long)((long) sine * (aGain.next())) >> 16) + (sine * 0.5f));
+    }
+    if (notePitch || noteNoise) {
+        noteSynth               = noteSynthBase * aSmoothGain.next(target_gain);
+    }
 
     // percussion synthesis
-    int percussionSynth     = aSample.next() * 1000;
+    int percussionSynth;
+    if (percussion) {
+        percussionSynth         = aSample.next() * 1000;
+    } else {
+        percussionSynth         = 0;
+    }
 
     // combined & send to output
     return MonoOutput::from16Bit(percussionSynth + noteSynth);

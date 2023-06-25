@@ -16,7 +16,7 @@ struct NoteLike {
 
 // False if rest, True if Tone
 bool isTone(struct NoteLike *note) {
-    if (note->frequency > 0 && note->velocity > 0) {
+    if (note->frequency != 0 && note->velocity > 0) {
         return true;
     }
     return false;
