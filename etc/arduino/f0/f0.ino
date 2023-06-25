@@ -48,7 +48,8 @@ EventDelay LFOFreqDelay;
 File noteFile, percussionFile;
 float aSampleFreq = ((float) BAMBOO_00_2048_SAMPLERATE / (float) BAMBOO_00_2048_NUM_CELLS);
 
-bool noteOn, percussionOn = true;
+bool noteOn         = true;
+bool percussionOn   = true;
 
 void setup(){
     Serial.begin(115200);
@@ -93,6 +94,7 @@ void updateControl(){
             }
             noteDelay.start(currentNote.duration);
         } else {
+            Serial.println(F("Stopped note due to error."));
             noteOn = false;
         }
     }   
@@ -108,6 +110,7 @@ void updateControl(){
             }
             percussionDelay.start(currentPercussion.duration);
         } else {
+            Serial.println(F("Stopped percussion due to error."));
             percussionOn = false;
         }
     }
@@ -146,7 +149,6 @@ bool getNextNote(struct NoteLike *note, File dataFile) {
     }
     return false;
 }
-
 
 
 // play a single tone
