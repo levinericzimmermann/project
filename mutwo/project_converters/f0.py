@@ -1,4 +1,5 @@
 import abc
+import enum
 
 import numpy as np
 
@@ -107,16 +108,14 @@ class DataToPercussiveF0(core_converters.abc.Converter):
         return F0_EVENT_LIST_TO_F0(e_list)
 
 
-class EventToF0(core_converters.abc.EventConverter):
-    def __init__(
-        self,
-        data_to_continous_f0: DataToContinousF0 = DataToContinousF0(),
-        data_to_percussive_f0: DataToPercussiveF0 = DataToPercussiveF0(),
-    ):
-        self._data_to_continous_f0 = data_to_continous_f0
-        self._data_to_percussive_f0 = data_to_percussive_f0
+class F0Driver(enum.Enum):
+    CONTINOUS = DataToContinousF0()
+    PERCUSSIVE = DataToPercussiveF0()
 
-    def convert(self, event_to_convert):
+
+class EventToF0(core_converters.abc.EventConverter):
+    def convert(self, event_to_convert, driver: F0Driver = F0Driver.CONTINOUS):
+        self._driver = driver.value
         return self._convert_event(event_to_convert, 0)[0]
 
     def _convert_simple_event(self, event_to_convert, absolute_entry_delay):
@@ -141,7 +140,7 @@ class EventToF0(core_converters.abc.EventConverter):
 
         data = (d_tuple, f, v)
 
-        return (self._data_to_continous_f0(*data),)
+        return (self._driver(*data),)
 
     def _convert_sequential_event(self, *args, **kwargs):
         return (
