@@ -154,19 +154,19 @@ bool getNextNote(struct NoteLike *note, File dataFile) {
 // play a single tone
 void playTone(struct NoteLike *currentNote) {
     if (currentNote->state == STATE_NEW) {
-        Serial.println(F("start new note"));
+        // Serial.println(F("start new note"));  // debug
         target_gain = currentNote->velocity;
         aOscil.setFreq(currentNote->frequency);  
     } else if (currentNote->state == STATE_KEEP) {
-        Serial.println(F("set new velocity"));
+        // Serial.println(F("set new velocity"));  // debug
         target_gain = currentNote->velocity;
     } else if (currentNote->state == STATE_STOP) {
-        Serial.println(F("stop note"));
+        // Serial.println(F("stop note"));  // debug
         target_gain = 0;
     } else {
         Serial.print(F("error: got unexpected state = "));
         Serial.print(currentNote->state);
-        Serial.println(F(""));
+        Serial.println(F("; note is ignored"));
     }
 }
 
