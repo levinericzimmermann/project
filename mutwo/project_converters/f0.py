@@ -5,6 +5,7 @@ import numpy as np
 
 from mutwo import common_generators
 from mutwo import core_converters
+from mutwo import core_events
 from mutwo import core_utilities
 from mutwo import project_converters
 
@@ -45,14 +46,22 @@ F0_EVENT_LIST_TO_F0 = F0EventListToF0()
 class DataToF0(core_converters.abc.Converter):
     @abc.abstractmethod
     def convert(
-        self, duration_tuple: tuple[int, ...], frequency: float, velocity: int
+        self,
+        event: core_events.SimpleEvent,
+        duration_tuple: tuple[int, ...],
+        frequency: float,
+        velocity: int,
     ) -> tuple[str]:
         ...
 
 
 class DataToContinousF0(DataToF0):
     def convert(
-        self, duration_tuple: tuple[int, ...], frequency: float, velocity: int
+        self,
+        event: core_events.SimpleEvent,
+        duration_tuple: tuple[int, ...],
+        frequency: float,
+        velocity: int,
     ) -> str:
         event_count = len(duration_tuple)
 
@@ -91,7 +100,11 @@ class DataToContinousF0(DataToF0):
 
 class DataToPercussiveF0(core_converters.abc.Converter):
     def convert(
-        self, duration_tuple: tuple[int, ...], frequency: float, velocity: int
+        self,
+        event: core_events.SimpleEvent,
+        duration_tuple: tuple[int, ...],
+        frequency: float,
+        velocity: int,
     ) -> str:
         e_list = []
         if frequency:
@@ -143,7 +156,7 @@ class EventToF0(core_converters.abc.EventConverter):
         else:
             v = int(core_utilities.scale(v, 0, 127, 0, 255))
 
-        data = (d_tuple, f, v)
+        data = (e, d_tuple, f, v)
 
         return (self._driver(*data),)
 
