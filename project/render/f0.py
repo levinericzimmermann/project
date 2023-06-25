@@ -44,9 +44,12 @@ def f0(simultaneous_event, index):
             pass
         n_path = f"{dir_path}/n.f0"
         p_path = f"{dir_path}/p.f0"
-        for p, e in ((n_path, event), (p_path, metronome)):
+        for p, e, driver in (
+            (n_path, event, project_converters.F0Driver.CONTINOUS),
+            (p_path, metronome, project_converters.F0Driver.PERCUSSIVE),
+        ):
             with open(p, "w") as f:
-                f.write(e2f0(e))
+                f.write(e2f0(e, driver=driver))
 
 
 # The rhythmic orientation ('metronome') is distributed on 3 different arduino.
