@@ -24,7 +24,7 @@ def sound(clock_tuple: tuple[clock_interfaces.Clock, ...]):
 
 
 def adjust_tempo(simultaneous_event):
-    tempo_main = 14 / 4
+    tempo_main = 9.75 / 4
 
     tempo_envelope = core_events.TempoEnvelope(
         [
