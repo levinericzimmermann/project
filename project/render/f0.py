@@ -38,10 +38,15 @@ def f0(simultaneous_event, index):
 
         for i, e in enumerate(event[0]):
             if is_rest(e) and getattr(e, 'r', True):
+                if e.duration > 10:
+                    volume = music_parameters.DecibelVolume(-36.85)
+                else:
+                    volume = music_parameters.DecibelVolume(-38)
+
                 event[0][i] = music_events.NoteLike(
                     music_parameters.DirectPitch(-1),
                     e.duration,
-                    music_parameters.DecibelVolume(-38),
+                    volume,
                 )
 
         # Safety check, is everything correct?
