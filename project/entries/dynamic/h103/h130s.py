@@ -41,11 +41,11 @@ def main(
         case "partner":
             position = 0.5
             duration_diff = fractions.Fraction(1, 4)
-            volume = music_parameters.DecibelVolume(-35.5)
+            volume = music_parameters.DecibelVolume(-36)
         case _:
             position = 0.75
             duration_diff = fractions.Fraction(1, 2)
-            volume = music_parameters.DecibelVolume(-35)
+            volume = music_parameters.DecibelVolume(-35.5)
 
     duration = context.end - context.start
 
