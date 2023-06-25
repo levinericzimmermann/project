@@ -82,6 +82,7 @@ struct NoteLike currentPercussion   = makeRest(100);
 long target_gain = 0;
 
 void updateControl(){
+    // Start note synthesis (continous sine tones)
     if (noteOn && noteDelay.ready()) {
         if (getNextNote(&currentNote, noteFile)) {
             Serial.print(F("note: "));
@@ -96,16 +97,7 @@ void updateControl(){
         }
     }   
 
-    unsigned int gain = (128u + LFO.next()) << 8;
-    aGain.set(gain, AUDIO_RATE / CONTROL_RATE);
-
-    // Adjust LFO freq for dynamic sound
-    if (LFOFreqDelay.ready()) {
-        float v = (rand(500) + 50) / 1000.0f;
-        LFO.setFreq(v);
-        LFOFreqDelay.start(1000 + rand(1000));
-    }
-
+    // Start percussion synthesis (short metronome-like attacks)
     if (percussionOn && percussionDelay.ready()) {
         if (getNextNote(&currentPercussion, percussionFile)) {
             Serial.print(F("perc:\t\t\t\t\t"));
@@ -119,6 +111,19 @@ void updateControl(){
             percussionOn = false;
         }
     }
+
+    // Some processing for sine tone synthesis, but on control
+    // rate instead of audio rate.
+    unsigned int gain = (128u + LFO.next()) << 8;
+    aGain.set(gain, AUDIO_RATE / CONTROL_RATE);
+
+    // Adjust LFO freq for dynamic sound
+    if (LFOFreqDelay.ready()) {
+        float v = (rand(500) + 50) / 1000.0f;
+        LFO.setFreq(v);
+        LFOFreqDelay.start(1000 + rand(1000));
+    }
+
 }
 
 // Return next note from a dataFile.
@@ -165,9 +170,15 @@ void playTone(struct NoteLike *currentNote) {
 
 
 AudioOutput_t updateAudio() {
-    long v = aOscil.next();
-    int noteSynth = (int)(((long)((long) v * (aGain.next())) >> 16) + (v * 0.5)) * aSmoothGain.next(target_gain);
-    int percussionSynth = aSample.next() * 1000;
+    // note synthesis
+    long sine               = aOscil.next();
+    int modulatedSine       = (int)(((long)((long) sine * (aGain.next())) >> 16) + (sine * 0.5));
+    int noteSynth           = modulatedSine* aSmoothGain.next(target_gain);
+
+    // percussion synthesis
+    int percussionSynth     = aSample.next() * 1000;
+
+    // combined & send to output
     return MonoOutput::from16Bit(percussionSynth + noteSynth);
 }
 
