@@ -48,6 +48,8 @@ EventDelay LFOFreqDelay;
 File noteFile, percussionFile;
 float aSampleFreq = ((float) BAMBOO_00_2048_SAMPLERATE / (float) BAMBOO_00_2048_NUM_CELLS);
 
+bool noteOn, percussionOn = true;
+
 void setup(){
     Serial.begin(115200);
 
@@ -80,7 +82,7 @@ struct NoteLike currentPercussion   = makeRest(100);
 long target_gain = 0;
 
 void updateControl(){
-    if (noteDelay.ready()) {
+    if (noteOn && noteDelay.ready()) {
         if (getNextNote(&currentNote, noteFile)) {
             Serial.print(F("note: "));
             printNoteLike(&currentNote);
@@ -89,6 +91,8 @@ void updateControl(){
                 playTone(&currentNote);
             }
             noteDelay.start(currentNote.duration);
+        } else {
+            noteOn = false;
         }
     }   
 
@@ -102,7 +106,7 @@ void updateControl(){
         LFOFreqDelay.start(1000 + rand(1000));
     }
 
-    if (percussionDelay.ready()) {
+    if (percussionOn && percussionDelay.ready()) {
         if (getNextNote(&currentPercussion, percussionFile)) {
             Serial.print(F("perc:\t\t\t\t\t"));
             printNoteLike(&currentPercussion);
@@ -111,6 +115,8 @@ void updateControl(){
                 aSample.start();
             }
             percussionDelay.start(currentPercussion.duration);
+        } else {
+            percussionOn = false;
         }
     }
 }
