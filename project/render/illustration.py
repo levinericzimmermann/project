@@ -79,7 +79,7 @@ def illustrate_v_tuning(orchestration, path):
     illustrate_tuning(path, pitch_tuple, clef_name="bass")
 
 
-def illustrate_tuning(path, pitch_tuple, clef_name=None, resolution=400, title=None):
+def illustrate_tuning(path, pitch_tuple, clef_name=None, **kwargs):
     seq = core_events.SequentialEvent(
         [music_events.NoteLike(p, 1) for p in pitch_tuple]
     )
@@ -93,34 +93,75 @@ def illustrate_tuning(path, pitch_tuple, clef_name=None, resolution=400, title=N
             rf"\markup {{ \typewriter \teeny { c } }}"
         )
         notelike.notation_indicator_collection.markup.direction = abjad.enums.UP
+    return illustrate_snippet(
+        path,
+        seq,
+        post_process_first_abjad_leaf=lambda first_leaf: abjad.attach(
+            abjad.LilyPondLiteral(
+                r"\omit Staff.BarLine "
+                r"\omit Staff.TimeSignature "
+                r'\accidentalStyle "dodecaphonic" '
+            ),
+            first_leaf,
+        ),
+        lilypond_file_preamble_tuple=(
+            r'\include "etc/lilypond/ekme-heji.ily"',
+            r'\include "lilypond-book-preamble.ly"',
+            r"#(ly:set-option 'tall-page-formats 'png)",
+        ),
+        **kwargs,
+    )
 
+
+def illustrate_percussion_instrument(path, pitch, **kwargs):
+    seq = core_events.SequentialEvent([music_events.NoteLike(pitch, 1)])
+    seq[0].notation_indicator_collection.clef.name = "percussion"
+    return illustrate_snippet(
+        path,
+        seq,
+        post_process_first_abjad_leaf=lambda first_leaf: abjad.attach(
+            abjad.LilyPondLiteral(
+                r"\omit Staff.BarLine "
+                r"\omit Staff.TimeSignature "
+                r"\override Staff.StaffSymbol.line-count = #1 "
+                r"\override Staff.Dots.dot-count = #0 "
+                r"\override Staff.NoteHead.duration-log = 2 "
+            ),
+            first_leaf,
+        ),
+        **kwargs,
+    )
+
+
+def illustrate_snippet(
+    path,
+    sequential_event,
+    post_process_first_abjad_leaf=lambda first_leaf: abjad.attach(
+        abjad.LilyPondLiteral(r"\omit Staff.BarLine " r"\omit Staff.TimeSignature "),
+        first_leaf,
+    ),
+    post_process_abjad_staff=lambda _: _,
+    lilypond_file_preamble_tuple=(
+        r'\include "lilypond-book-preamble.ly"',
+        r"#(ly:set-option 'tall-page-formats 'png)",
+    ),
+    clef_name=None,
+    resolution=400,
+    title=None,
+):
     seq2avoice = abjad_converters.SequentialEventToAbjadVoice(
         mutwo_pitch_to_abjad_pitch=abjad_converters.MutwoPitchToHEJIAbjadPitch(),
         mutwo_volume_to_abjad_attachment_dynamic=None,
         tempo_envelope_to_abjad_attachment_tempo=None,
     )
-    abjad_staff = abjad.Staff([seq2avoice.convert(seq)])
+    abjad_staff = abjad.Staff([seq2avoice.convert(sequential_event)])
+    post_process_abjad_staff(abjad_staff)
     leaf_sequence = abjad.select.leaves(abjad_staff)
     first_leaf = leaf_sequence[0]
-    abjad.attach(
-        abjad.LilyPondLiteral(
-            r"\omit Staff.BarLine "
-            r"\omit Staff.TimeSignature "
-            r'\accidentalStyle "dodecaphonic" '
-        ),
-        first_leaf,
-    )
+    post_process_first_abjad_leaf(first_leaf)
     abjad_score = abjad.Score([abjad_staff])
     lilypond_file = abjad.LilyPondFile()
-    lilypond_file.items.append(
-        "\n".join(
-            (
-                r'\include "etc/lilypond/ekme-heji.ily"',
-                r'\include "lilypond-book-preamble.ly"',
-                r"#(ly:set-option 'tall-page-formats 'png)",
-            )
-        )
-    )
+    lilypond_file.items.append("\n".join(lilypond_file_preamble_tuple))
     if title:
         header = abjad.Block("header")
         header.items.append(
@@ -129,42 +170,6 @@ def illustrate_tuning(path, pitch_tuple, clef_name=None, resolution=400, title=N
             r" } }"
         )
         lilypond_file.items.append(header)
-    lilypond_file.items.append(abjad_score)
-    return abjad.persist.as_png(lilypond_file, path, resolution=resolution)
-
-
-def illustrate_percussion_instrument(path, pitch, resolution=400, title=None):
-    seq = core_events.SequentialEvent([music_events.NoteLike(pitch, 1)])
-    seq[0].notation_indicator_collection.clef.name = "percussion"
-
-    seq2avoice = abjad_converters.SequentialEventToAbjadVoice(
-        mutwo_pitch_to_abjad_pitch=abjad_converters.MutwoPitchToHEJIAbjadPitch(),
-        mutwo_volume_to_abjad_attachment_dynamic=None,
-        tempo_envelope_to_abjad_attachment_tempo=None,
-    )
-    abjad_staff = abjad.Staff([seq2avoice.convert(seq)])
-    leaf_sequence = abjad.select.leaves(abjad_staff)
-    first_leaf = leaf_sequence[0]
-    abjad.attach(
-        abjad.LilyPondLiteral(
-            r"\omit Staff.BarLine "
-            r"\omit Staff.TimeSignature "
-            r"\override Staff.StaffSymbol.line-count = #1 "
-            r"\override Staff.Dots.dot-count = #0 "
-            r"\override Staff.NoteHead.duration-log = 2 "
-        ),
-        first_leaf,
-    )
-    abjad_score = abjad.Score([abjad_staff])
-    lilypond_file = abjad.LilyPondFile()
-    lilypond_file.items.append(
-        "\n".join(
-            (
-                r'\include "lilypond-book-preamble.ly"',
-                r"#(ly:set-option 'tall-page-formats 'png)",
-            )
-        )
-    )
     lilypond_file.items.append(abjad_score)
     return abjad.persist.as_png(lilypond_file, path, resolution=resolution)
 
