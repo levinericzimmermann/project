@@ -21,6 +21,8 @@ def illustration():
     perc0_path = f"{base_path}/perc0.png"
     perc1_path = f"{base_path}/perc1.png"
     perc2_path = f"{base_path}/perc2.png"
+    duration_line_path = f"{base_path}/duration_line.png"
+    without_duration_line_path = f"{base_path}/without_duration_line.png"
     intro_tex_path = f"{base_path}/intro.tex"
     poem_path = f"{base_path}/poem.tex"
 
@@ -43,6 +45,8 @@ def illustration():
     illustrate_glockenspiel_tuning(
         project.constants.ORCHESTRATION, glockenspiel_scordatura_path
     )
+    illustrate_duration_line(duration_line_path)
+    illustrate_without_duration_line(without_duration_line_path)
     illustrate_start(
         intro_tex_path,
         harp_scordatura_path,
@@ -51,6 +55,8 @@ def illustration():
         perc0_path,
         perc1_path,
         perc2_path,
+        duration_line_path,
+        without_duration_line_path,
     )
 
 
@@ -133,6 +139,36 @@ def illustrate_percussion_instrument(path, pitch, **kwargs):
     )
 
 
+def illustrate_duration_line(path, **kwargs):
+    seq = core_events.SequentialEvent([music_events.NoteLike("a4", 1)])
+    seq[0].notation_indicator_collection.duration_line.is_active = True
+    return illustrate_snippet(
+        path,
+        seq,
+        sequential_event_to_abjad_voice_kwargs=dict(
+            sequential_event_to_quantized_abjad_container=abjad_converters.LeafMakerSequentialEventToDurationLineBasedQuantizedAbjadContainer()
+        ),
+        **kwargs,
+    )
+
+
+def illustrate_without_duration_line(path, **kwargs):
+    seq = core_events.SequentialEvent([music_events.NoteLike("a4", 1)])
+    return illustrate_snippet(
+        path,
+        seq,
+        post_process_first_abjad_leaf=lambda first_leaf: abjad.attach(
+            abjad.LilyPondLiteral(
+                r"\omit Staff.BarLine "
+                r"\omit Staff.TimeSignature "
+                r"\override Staff.NoteHead.duration-log = 2 "
+            ),
+            first_leaf,
+        ),
+        **kwargs,
+    )
+
+
 def illustrate_snippet(
     path,
     sequential_event,
@@ -148,11 +184,19 @@ def illustrate_snippet(
     clef_name=None,
     resolution=400,
     title=None,
+    sequential_event_to_abjad_voice_kwargs={},
 ):
+    sequential_event_to_abjad_voice_kwargs.setdefault(
+        "mutwo_pitch_to_abjad_pitch", abjad_converters.MutwoPitchToHEJIAbjadPitch()
+    )
+    sequential_event_to_abjad_voice_kwargs.setdefault(
+        "mutwo_volume_to_abjad_attachment_dynamic", None
+    )
+    sequential_event_to_abjad_voice_kwargs.setdefault(
+        "tempo_envelope_to_abjad_attachment_tempo", None
+    )
     seq2avoice = abjad_converters.SequentialEventToAbjadVoice(
-        mutwo_pitch_to_abjad_pitch=abjad_converters.MutwoPitchToHEJIAbjadPitch(),
-        mutwo_volume_to_abjad_attachment_dynamic=None,
-        tempo_envelope_to_abjad_attachment_tempo=None,
+        **sequential_event_to_abjad_voice_kwargs
     )
     abjad_staff = abjad.Staff([seq2avoice.convert(sequential_event)])
     post_process_abjad_staff(abjad_staff)
@@ -182,6 +226,8 @@ def illustrate_start(
     perc0_path,
     perc1_path,
     perc2_path,
+    duration_line_path,
+    without_duration_line_path,
 ):
     template = J2ENVIRONMENT.get_template("intro.tex.j2").render(
         harp_scordatura=harp_scordatura,
@@ -190,6 +236,8 @@ def illustrate_start(
         perc0_path=perc0_path,
         perc1_path=perc1_path,
         perc2_path=perc2_path,
+        duration_line_path=duration_line_path,
+        without_duration_line_path=without_duration_line_path,
     )
     with open(tex_path, "w") as b:
         b.write(template)
