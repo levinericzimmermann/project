@@ -18,6 +18,9 @@ def illustration():
     harp_scordatura_path = f"{base_path}/harp_tuning.png"
     v_scordatura_path = f"{base_path}/v_tuning.png"
     glockenspiel_scordatura_path = f"{base_path}/glockenspiel_tuning.png"
+    perc0_path = f"{base_path}/perc0.png"
+    perc1_path = f"{base_path}/perc1.png"
+    perc2_path = f"{base_path}/perc2.png"
     intro_tex_path = f"{base_path}/intro.tex"
     poem_path = f"{base_path}/poem.tex"
 
@@ -29,6 +32,14 @@ def illustration():
     illustrate_poem(poem_path)
     illustrate_harp_tuning(project.constants.ORCHESTRATION, harp_scordatura_path)
     illustrate_v_tuning(project.constants.ORCHESTRATION, v_scordatura_path)
+
+    for p, perc_path in (
+        (music_parameters.WesternPitch("b", 3), perc0_path),
+        (music_parameters.WesternPitch("c", 4), perc1_path),
+        (music_parameters.WesternPitch("d", 4), perc2_path),
+    ):
+        illustrate_percussion_instrument(perc_path, p)
+
     illustrate_glockenspiel_tuning(
         project.constants.ORCHESTRATION, glockenspiel_scordatura_path
     )
@@ -37,6 +48,9 @@ def illustration():
         harp_scordatura_path,
         glockenspiel_scordatura_path,
         v_scordatura_path,
+        perc0_path,
+        perc1_path,
+        perc2_path,
     )
 
 
@@ -119,13 +133,58 @@ def illustrate_tuning(path, pitch_tuple, clef_name=None, resolution=400, title=N
     return abjad.persist.as_png(lilypond_file, path, resolution=resolution)
 
 
+def illustrate_percussion_instrument(path, pitch, resolution=400, title=None):
+    seq = core_events.SequentialEvent([music_events.NoteLike(pitch, 1)])
+    seq[0].notation_indicator_collection.clef.name = "percussion"
+
+    seq2avoice = abjad_converters.SequentialEventToAbjadVoice(
+        mutwo_pitch_to_abjad_pitch=abjad_converters.MutwoPitchToHEJIAbjadPitch(),
+        mutwo_volume_to_abjad_attachment_dynamic=None,
+        tempo_envelope_to_abjad_attachment_tempo=None,
+    )
+    abjad_staff = abjad.Staff([seq2avoice.convert(seq)])
+    leaf_sequence = abjad.select.leaves(abjad_staff)
+    first_leaf = leaf_sequence[0]
+    abjad.attach(
+        abjad.LilyPondLiteral(
+            r"\omit Staff.BarLine "
+            r"\omit Staff.TimeSignature "
+            r"\override Staff.StaffSymbol.line-count = #1 "
+            r"\override Staff.Dots.dot-count = #0 "
+            r"\override Staff.NoteHead.duration-log = 2 "
+        ),
+        first_leaf,
+    )
+    abjad_score = abjad.Score([abjad_staff])
+    lilypond_file = abjad.LilyPondFile()
+    lilypond_file.items.append(
+        "\n".join(
+            (
+                r'\include "lilypond-book-preamble.ly"',
+                r"#(ly:set-option 'tall-page-formats 'png)",
+            )
+        )
+    )
+    lilypond_file.items.append(abjad_score)
+    return abjad.persist.as_png(lilypond_file, path, resolution=resolution)
+
+
 def illustrate_start(
-    tex_path, harp_scordatura, glockenspiel_scordatura_path, v_scordatura_path
+    tex_path,
+    harp_scordatura,
+    glockenspiel_scordatura_path,
+    v_scordatura_path,
+    perc0_path,
+    perc1_path,
+    perc2_path,
 ):
     template = J2ENVIRONMENT.get_template("intro.tex.j2").render(
         harp_scordatura=harp_scordatura,
         glockenspiel_scordatura=glockenspiel_scordatura_path,
         v_scordatura=v_scordatura_path,
+        perc0_path=perc0_path,
+        perc1_path=perc1_path,
+        perc2_path=perc2_path,
     )
     with open(tex_path, "w") as b:
         b.write(template)
