@@ -32,7 +32,7 @@ class Optional(abjad_parameters.abc.BangEachAttachment):
                 abjad.LilyPondLiteral(
                     r"\once \set fontSize = -2"
                     "\n"
-                    r"\once \override NoteHead.Parentheses.font-size = 3"
+                    r"\once \override Parentheses.font-size = 4"
                     "\n"
                     r"\parenthesize NoteHead",
                     site="absolute_before",
