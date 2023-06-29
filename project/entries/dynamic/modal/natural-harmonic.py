@@ -11,6 +11,7 @@ from mutwo import project_events
 from mutwo import project_utilities
 from mutwo import timeline_interfaces
 
+BORDER = music_parameters.JustIntonationPitch('1/2')
 
 def is_supported(context, pitch=None, **kwargs):
     try:
@@ -21,7 +22,7 @@ def is_supported(context, pitch=None, **kwargs):
         instrument = orchestration[0]
         assert isinstance(instrument, music_parameters.StringInstrumentMixin)
         pitch = pitch or get_pitch(context)
-        assert instrument.get_harmonic_pitch_variant_tuple(pitch, tolerance=TOLERANCE)
+        assert tuple(p for p in instrument.get_harmonic_pitch_variant_tuple(pitch, tolerance=TOLERANCE) if p > BORDER)
         assert context.energy > 50
     except AssertionError:
         return False
@@ -69,6 +70,14 @@ def main(
         instrument,
         scale,
     )
+
+    # ####
+    # Prohibit low harmonics
+    #
+    # This is mostly because lower harmonics are much louder than higher
+    # harmonics and this doesn't fit to the structure of the music 10.2
+    pitch_tuple = tuple(p for p in pitch_tuple if p > BORDER)
+    second_pitch_candidate_tuple = tuple(p for p in pitch_tuple if p > BORDER)
 
     if real_duration > fractions.Fraction(25, 16):
         event_count_range = ranges.Range(2, 3)
