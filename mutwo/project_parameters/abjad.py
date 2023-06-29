@@ -315,7 +315,7 @@ class ExplicitFermata(abjad_parameters.abc.BangFirstAttachment):
                 "\n\t"
                 r"\scale #'(2.4 . 2.4)"
                 "\n\t"
-                r'\musicglyph "scripts.ufermata"'
+                rf'\musicglyph "scripts.u{self.indicator.type}"'
                 "\n}",
                 site="after",
             ),
