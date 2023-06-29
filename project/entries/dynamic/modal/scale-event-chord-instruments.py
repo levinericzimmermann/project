@@ -75,7 +75,7 @@ def main(context, alternating_scale_chords, random, activity_level, **kwargs):
         [
             tagged_simultaneous_event
             for tagged_simultaneous_event in simultaneous_event
-            if any(
+            if tagged_simultaneous_event and any(
                 [
                     any([is_not_rest(n) for n in seq])
                     for seq in tagged_simultaneous_event
@@ -83,6 +83,9 @@ def main(context, alternating_scale_chords, random, activity_level, **kwargs):
             )
         ]
     )
+
+    if not simultaneous_event:
+        return None
 
     valid_synchronization_point_index_list = []
     seq = simultaneous_event[0][0]
