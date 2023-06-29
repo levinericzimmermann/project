@@ -539,13 +539,13 @@ def _notation(
         foot_separation=0,
         head_separation=0,
         bottom_margin=1.5,
-        line_width=29.25,
-        left_margin=3.25,
+        line_width=29.5,
+        left_margin=3,
         page_top_space=0,
         between_title_space=0,
         after_title_space=0,
         before_title_space=0,
-        paper_size="b4",
+        paper_size='"b4"',
     ).convert(abjad_score_block_list)
 
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ar.ily"')
