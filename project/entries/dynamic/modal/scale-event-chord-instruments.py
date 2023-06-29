@@ -52,19 +52,23 @@ def main(context, alternating_scale_chords, random, activity_level, **kwargs):
 
     max_chord_index = len(chord_tuple) - 1
 
+    previous_distribution = []
     for chord_index, chord in enumerate(chord_tuple):
         duration = 1
         if chord_index == max_chord_index:
             duration = 1.5
-        distribute_chord(
-            duration,
-            chord,
-            simultaneous_event,
-            context.orchestration,
-            random,
-            chord_index,
-            max_chord_index,
-            activity_level,
+        previous_distribution.extend(
+            distribute_chord(
+                duration,
+                chord,
+                simultaneous_event,
+                context.orchestration,
+                random,
+                chord_index,
+                max_chord_index,
+                activity_level,
+                previous_distribution,
+            )
         )
 
     simultaneous_event = core_events.SimultaneousEvent(
@@ -141,6 +145,7 @@ def distribute_chord(
     chord_index,
     max_chord_index,
     activity_level,
+    previous_distribution,
 ):
     if chord_index % 2 == 0:
         play_likelihood = 3
@@ -178,8 +183,11 @@ def distribute_chord(
             max_chord_index,
             activity_level,
             selected_pitch_list,
+            previous_distribution,
         ):
             selected_pitch_list.append(p)
+
+    return selected_pitch_list
 
 
 def pop_cello(
@@ -193,6 +201,7 @@ def pop_cello(
     max_chord_index,
     activity_level,
     selected_pitch_list,
+    previous_distribution,
 ):
     if not simultaneous_event:
         simultaneous_event.append(core_events.SequentialEvent())
@@ -221,6 +230,11 @@ def pop_cello(
         if sum(pitch.exponent_tuple[2:]) == 0:
             for v in instrument.get_pitch_variant_tuple(pitch):
                 possible_pitch_list.append((v, PYTHAGOREAN))
+
+    possible_pitch_list = [
+        (p, ptype) for p, ptype in possible_pitch_list if p not in previous_distribution
+    ]
+
 
     if not possible_pitch_list:
         add_rest(simultaneous_event, duration)
@@ -332,12 +346,18 @@ def pop_harp(
     max_chord_index,
     activity_level,
     selected_pitch_list,
+    previous_distribution,
 ):
     while len(simultaneous_event) < 2:
         simultaneous_event.append(core_events.SequentialEvent())
 
     pitch = generic_pitch_popper(
-        pitch_set, pitch_count_dict, instrument, random, selected_pitch_list
+        pitch_set,
+        pitch_count_dict,
+        instrument,
+        random,
+        selected_pitch_list,
+        previous_distribution,
     )
     if pitch is None:
         return add_rest(simultaneous_event, duration)
@@ -406,12 +426,18 @@ def pop_generic(
     max_chord_index,
     activity_level,
     selected_pitch_list,
+    previous_distribution,
 ):
     if not simultaneous_event:
         simultaneous_event.append(core_events.SequentialEvent())
 
     pitch = generic_pitch_popper(
-        pitch_set, pitch_count_dict, instrument, random, selected_pitch_list
+        pitch_set,
+        pitch_count_dict,
+        instrument,
+        random,
+        selected_pitch_list,
+        previous_distribution,
     )
     if pitch is None:
         return add_rest(simultaneous_event, duration)
@@ -424,7 +450,12 @@ def pop_generic(
 
 
 def generic_pitch_popper(
-    pitch_set, pitch_count_dict, instrument, random, selected_pitch_list
+    pitch_set,
+    pitch_count_dict,
+    instrument,
+    random,
+    selected_pitch_list,
+    previous_distribution,
 ):
     if not pitch_count_dict:
         return
@@ -443,7 +474,10 @@ def generic_pitch_popper(
         return
 
     filtered_pitch_list = list(
-        filter(lambda p: p not in selected_pitch_list, pitch_list)
+        filter(
+            lambda p: p not in selected_pitch_list and p not in previous_distribution,
+            pitch_list,
+        )
     )
     if filtered_pitch_list:
         pitch_list = filtered_pitch_list
