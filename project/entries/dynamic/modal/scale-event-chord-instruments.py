@@ -53,7 +53,9 @@ def main(context, alternating_scale_chords, random, activity_level, **kwargs):
     max_chord_index = len(chord_tuple) - 1
 
     for chord_index, chord in enumerate(chord_tuple):
-        duration = random.choice([1, 1.5, 0.75])
+        duration = 1
+        if chord_index == max_chord_index:
+            duration = 1.5
         distribute_chord(
             duration,
             chord,
@@ -65,24 +67,69 @@ def main(context, alternating_scale_chords, random, activity_level, **kwargs):
             activity_level,
         )
 
-    for tagged_simultaneous_event in simultaneous_event[:-1]:
-        sequential_event = tagged_simultaneous_event[0]
-        i = 0
-        n = sequential_event[i]
-        while not hasattr(n, "pitch_list") or not n.pitch_list:
-            i += 1
-            try:
-                n = sequential_event[i]
-            except IndexError:
-                n = None
-                break
-        if n:
-            n.notation_indicator_collection.synchronization_point.length = 5
-            n.notation_indicator_collection.synchronization_point.direction = False
+    simultaneous_event = core_events.SimultaneousEvent(
+        [
+            tagged_simultaneous_event
+            for tagged_simultaneous_event in simultaneous_event
+            if any(
+                [
+                    any([is_not_rest(n) for n in seq])
+                    for seq in tagged_simultaneous_event
+                ]
+            )
+        ]
+    )
+
+    valid_synchronization_point_index_list = []
+    seq = simultaneous_event[0][0]
+    for i, tone in enumerate(seq):
+        if all(
+            [
+                is_any_not_rest(tagged_simultaneous_event, i)
+                for tagged_simultaneous_event in simultaneous_event
+            ]
+        ):
+            valid_synchronization_point_index_list.append(i)
+
+    synchronization_point_index_list = [0]
+    if len(valid_synchronization_point_index_list) > 1:
+        if (r := random.random()) > 0.98:
+            synchronization_point_index_list = [-1]
+        elif r > 0.89:
+            synchronization_point_index_list = [1]
+        elif r > 0.67:
+            synchronization_point_index_list = [0, 1]
+
+    if valid_synchronization_point_index_list:
+        synchronization_point_index_list = [
+            valid_synchronization_point_index_list[synchronization_point_index]
+            for synchronization_point_index in synchronization_point_index_list
+        ]
+
+        for sim in simultaneous_event[:-1]:
+            seq = sim[0]
+            for synchronization_point_index in synchronization_point_index_list:
+                n = seq[synchronization_point_index]
+                n.notation_indicator_collection.synchronization_point.length = 5
+                n.notation_indicator_collection.synchronization_point.direction = False
 
     return timeline_interfaces.EventPlacement(
         simultaneous_event, start_range, end_range
     ).move_by(context.start)
+
+
+def is_not_rest(n):
+    return hasattr(n, "pitch_list") and n.pitch_list
+
+
+def is_any_not_rest(tagged_simultaneous_event, index):
+    for seq in tagged_simultaneous_event:
+        try:
+            if is_not_rest(seq[index]):
+                return True
+        except IndexError:
+            pass
+    return False
 
 
 def distribute_chord(
