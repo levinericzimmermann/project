@@ -10,6 +10,7 @@ from mutwo import core_parameters
 from mutwo import midi_converters
 from mutwo import music_converters
 from mutwo import music_events
+from mutwo import music_parameters
 from mutwo import project_converters
 
 import project
@@ -128,6 +129,10 @@ def post_process_instruments(simultaneous_event):
                     for n in seq:
                         if not isinstance(n, music_events.NoteLike):
                             continue
+                        if n.notation_indicator_collection.hide.is_active:
+                            n.pitch_list = []
+                        if n.playing_indicator_collection.harp_superball.is_active:
+                            n.pitch_list = music_parameters.WesternPitch("c", 0)
                         n.playing_indicator_collection.string_contact_point.contact_point = (
                             "arco"
                             if n.notation_indicator_collection.duration_line.is_active

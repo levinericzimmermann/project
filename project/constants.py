@@ -105,6 +105,8 @@ abjad_converters.configurations.DEFAULT_ABJAD_ATTACHMENT_CLASS_TUPLE = tuple(
     project_parameters.MovingOverpressure,
     project_parameters.BowedBox,
     project_parameters.ExplicitFermata,
+    project_parameters.HarpSuperball,
+    project_parameters.Hide,
 )
 
 GENERATOR_INTERVAL_TUPLE = tuple(

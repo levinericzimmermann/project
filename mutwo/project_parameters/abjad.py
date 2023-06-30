@@ -22,6 +22,8 @@ __all__ = (
     "MovingOverpressure",
     "BowedBox",
     "ExplicitFermata",
+    "HarpSuperball",
+    "Hide",
 )
 
 
@@ -318,6 +320,62 @@ class ExplicitFermata(abjad_parameters.abc.BangFirstAttachment):
                 rf'\musicglyph "scripts.u{self.indicator.type}"'
                 "\n}",
                 site="after",
+            ),
+            leaf,
+        )
+        return leaf
+
+
+class HarpSuperball(abjad_parameters.abc.BangEachAttachment):
+    def process_leaf(self, leaf: abjad.Leaf) -> LeafOrLeafSequence:
+        abjad.attach(
+            abjad.LilyPondLiteral(
+                "\n".join(
+                    [
+                        r"\override Staff.StaffSymbol.line-count = #1",
+                        r'\clef "percussion"',
+                    ]
+                )
+            ),
+            leaf,
+        )
+        abjad.attach(abjad.LilyPondLiteral(r"\-", site="after"), leaf)
+        abjad.attach(
+            abjad.LilyPondLiteral(
+                r"\once \override DurationLine.style = #'zigzag"
+                "\n"
+                r"\once \hide NoteHead"
+                "\n"
+                r"\once \override DurationLine.thickness = 11"
+            ),
+            leaf,
+        )
+        abjad.attach(
+            abjad.LilyPondLiteral(
+                r'^ \markup { \typewriter { \tiny "superball, noisy" }}',
+                site="after",
+            ),
+            leaf,
+        )
+        return leaf
+
+
+# If we have two staves and we want to hide one
+#
+#   This matters for 'HarpSuperball': Here we want to drop
+#   the second staff / make it invisible.
+class Hide(abjad_parameters.abc.BangEachAttachment):
+    def process_leaf(self, leaf: abjad.Leaf) -> LeafOrLeafSequence:
+        abjad.attach(
+            abjad.LilyPondLiteral(
+                "\n".join(
+                    [
+                        r"\override Staff.StaffSymbol.line-count = #0",
+                        r"\once \hide Staff.Clef",
+                        r"\once \hide Score.BarLine",
+                        r"\once \hide NoteHead",
+                    ]
+                )
             ),
             leaf,
         )

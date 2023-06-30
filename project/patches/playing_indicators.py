@@ -61,6 +61,9 @@ class PlayingIndicatorCollection(music_parameters_PlayingIndicatorCollection):
     flageolet: music_parameters.abc.PlayingIndicator = dataclasses.field(
         default_factory=music_parameters.abc.ExplicitPlayingIndicator
     )
+    harp_superball: music_parameters.abc.PlayingIndicator = dataclasses.field(
+        default_factory=music_parameters.abc.ExplicitPlayingIndicator
+    )
     moving_overpressure: music_parameters.abc.PlayingIndicator = dataclasses.field(
         default_factory=music_parameters.abc.ExplicitPlayingIndicator
     )

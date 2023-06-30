@@ -35,6 +35,9 @@ class NotationIndicatorCollection(music_parameters_NotationIndicatorCollection):
     duration_line: music_parameters.abc.ExplicitPlayingIndicator = dataclasses.field(
         default_factory=music_parameters.abc.ExplicitPlayingIndicator
     )
+    hide: music_parameters.abc.ExplicitPlayingIndicator = dataclasses.field(
+        default_factory=music_parameters.abc.ExplicitPlayingIndicator
+    )
     note_head: NoteHead = dataclasses.field(default_factory=NoteHead)
     flag_stroke_style: FlagStrokeStyle = dataclasses.field(
         default_factory=FlagStrokeStyle
