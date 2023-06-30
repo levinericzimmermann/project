@@ -43,7 +43,11 @@ def main(context, tremolo_middle, tremolo_long, grace, hit, random, **kwargs):
                 position = 0.1
                 real_duration = fractions.Fraction(24, 16)
         case 1:
-            clock_event = tremolo_middle(instrument_index_tuple=[3], **kwargs)
+            if random.random() > 0.4:
+                i = 2
+            else:
+                i = 3
+            clock_event = tremolo_middle(instrument_index_tuple=[i], **kwargs)
             position = 0.2
             real_duration = fractions.Fraction(27, 16)
         case 2:
@@ -52,8 +56,12 @@ def main(context, tremolo_middle, tremolo_long, grace, hit, random, **kwargs):
             real_duration = fractions.Fraction(12, 16)
         case 3:
             if context.index % 8 == 7:
+                if random.random() > 0.3:
+                    i = 2
+                else:
+                    i = 4
                 clock_event = tremolo_long(
-                    instrument_index_tuple=[2], **kwargs
+                    instrument_index_tuple=[i], **kwargs
                 ).concatenate_by_index(
                     hit(instrument_index_tuple=[random.choice((2, 3))], **kwargs)
                 )
