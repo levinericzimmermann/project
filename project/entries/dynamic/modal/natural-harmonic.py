@@ -124,6 +124,8 @@ def main(
         )
         sequential_event.append(note)
 
+    sequential_event.append(music_events.NoteLike([], fractions.Fraction(1, 16)))
+
     simultaneous_event = project_events.SimultaneousEventWithRepetition(
         [
             project_events.TaggedSimultaneousEventWithRepetition(
