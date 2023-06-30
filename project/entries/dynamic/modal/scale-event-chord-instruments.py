@@ -71,6 +71,8 @@ def main(context, alternating_scale_chords, random, activity_level, **kwargs):
             )
         )
 
+    # Filter rest events, this is important to make the
+    # 'add_synchronization_points' function working.
     simultaneous_event = core_events.SimultaneousEvent(
         [
             tagged_simultaneous_event
@@ -88,38 +90,7 @@ def main(context, alternating_scale_chords, random, activity_level, **kwargs):
     if not simultaneous_event:
         return None
 
-    valid_synchronization_point_index_list = []
-    seq = simultaneous_event[0][0]
-    for i, tone in enumerate(seq):
-        if all(
-            [
-                is_any_not_rest(tagged_simultaneous_event, i)
-                for tagged_simultaneous_event in simultaneous_event
-            ]
-        ):
-            valid_synchronization_point_index_list.append(i)
-
-    synchronization_point_index_list = [0]
-    if len(valid_synchronization_point_index_list) > 1:
-        if (r := random.random()) > 0.98:
-            synchronization_point_index_list = [-1]
-        elif r > 0.89:
-            synchronization_point_index_list = [1]
-        elif r > 0.67:
-            synchronization_point_index_list = [0, 1]
-
-    if valid_synchronization_point_index_list:
-        synchronization_point_index_list = [
-            valid_synchronization_point_index_list[synchronization_point_index]
-            for synchronization_point_index in synchronization_point_index_list
-        ]
-
-        for sim in simultaneous_event[:-1]:
-            seq = sim[0]
-            for synchronization_point_index in synchronization_point_index_list:
-                n = seq[synchronization_point_index]
-                n.notation_indicator_collection.synchronization_point.length = 5
-                n.notation_indicator_collection.synchronization_point.direction = False
+    add_synchronization_points(simultaneous_event, random)
 
     return timeline_interfaces.EventPlacement(
         simultaneous_event, start_range, end_range
@@ -435,7 +406,7 @@ def pop_generic(
     activity_level,
     selected_pitch_list,
     previous_distribution,
-    play
+    play,
 ):
     if not simultaneous_event:
         simultaneous_event.append(core_events.SequentialEvent())
@@ -504,3 +475,38 @@ def add_rest(simultaneous_event, duration):
 
 
 TOLERANCE = music_parameters.DirectPitchInterval(5)
+
+
+def add_synchronization_points(simultaneous_event, random):
+    valid_synchronization_point_index_list = []
+    seq = simultaneous_event[0][0]
+    for i, tone in enumerate(seq):
+        if all(
+            [
+                is_any_not_rest(tagged_simultaneous_event, i)
+                for tagged_simultaneous_event in simultaneous_event
+            ]
+        ):
+            valid_synchronization_point_index_list.append(i)
+
+    synchronization_point_index_list = [0]
+    if len(valid_synchronization_point_index_list) > 1:
+        if (r := random.random()) > 0.98:
+            synchronization_point_index_list = [-1]
+        elif r > 0.89:
+            synchronization_point_index_list = [1]
+        elif r > 0.67:
+            synchronization_point_index_list = [0, 1]
+
+    if valid_synchronization_point_index_list:
+        synchronization_point_index_list = [
+            valid_synchronization_point_index_list[synchronization_point_index]
+            for synchronization_point_index in synchronization_point_index_list
+        ]
+
+        for sim in simultaneous_event[:-1]:
+            seq = sim[0]
+            for synchronization_point_index in synchronization_point_index_list:
+                n = seq[synchronization_point_index]
+                n.notation_indicator_collection.synchronization_point.length = 5
+                n.notation_indicator_collection.synchronization_point.direction = False
