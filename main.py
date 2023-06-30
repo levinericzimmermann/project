@@ -61,20 +61,24 @@ def make_clock(poem_index, poem_line, before_rest_duration=0) -> clock_interface
 
     project.clocks.apply_clock_events(modal_sequential_event)
 
-    if part_count >= 2:
+    if part_count >= 3:
         insert_modal_event(
             modal_sequential_event,
             scale,
-            energy=-2,
+            energy=-4,
             index=7,
             duration=f(8, 16),
         )
 
     if part_count >= 2:
+        if part_count >= 3:
+            energy = -3
+        else:
+            energy = -4
         insert_modal_event(
             modal_sequential_event,
             scale,
-            energy=-2,
+            energy=energy,
             index=3,
             duration=f(8, 16),
         )
