@@ -75,7 +75,8 @@ def main(context, alternating_scale_chords, random, activity_level, **kwargs):
         [
             tagged_simultaneous_event
             for tagged_simultaneous_event in simultaneous_event
-            if tagged_simultaneous_event and any(
+            if tagged_simultaneous_event
+            and any(
                 [
                     any([is_not_rest(n) for n in seq])
                     for seq in tagged_simultaneous_event
@@ -234,19 +235,15 @@ def pop_cello(
             for v in instrument.get_pitch_variant_tuple(pitch):
                 possible_pitch_list.append((v, PYTHAGOREAN))
 
-    possible_pitch_list = [
-        (p, ptype) for p, ptype in possible_pitch_list if p not in previous_distribution
-    ]
-
-
     if not possible_pitch_list:
         add_rest(simultaneous_event, duration)
         return
 
     # Try to avoid already used pitches (absolute, two
     # octave separated pitches are considered unequal).
+    prohibited_pitch_list = selected_pitch_list + previous_distribution
     filtered_possible_pitch_list = list(
-        filter(lambda d: d[0] not in selected_pitch_list, possible_pitch_list)
+        filter(lambda d: d[0] not in prohibited_pitch_list, possible_pitch_list)
     )
     if filtered_possible_pitch_list:
         possible_pitch_list = filtered_possible_pitch_list
@@ -273,7 +270,9 @@ def pop_cello(
         }
 
     def sortkey(data):
-        _, pitchtype = data
+        pitch, pitchtype = data
+        if pitch in previous_distribution:
+            return float("inf")
         return mapping[pitchtype]
 
     minfitness = sortkey(min(possible_pitch_list, key=sortkey))
@@ -476,11 +475,9 @@ def generic_pitch_popper(
     if not pitch_list:
         return
 
+    prohibited_pitch_list = selected_pitch_list + previous_distribution
     filtered_pitch_list = list(
-        filter(
-            lambda p: p not in selected_pitch_list and p not in previous_distribution,
-            pitch_list,
-        )
+        filter(lambda p: p not in prohibited_pitch_list, pitch_list)
     )
     if filtered_pitch_list:
         pitch_list = filtered_pitch_list
