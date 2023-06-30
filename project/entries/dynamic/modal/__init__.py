@@ -245,3 +245,23 @@ diary_interfaces.DynamicEntry.from_file(
     file_path=f"{path}/g_noise.py",
     relevance=50,
 )
+
+
+diary_interfaces.DynamicEntry.from_file(
+    "harp_noise_0",
+    diary_interfaces.ModalContext0.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/harp_noise.py",
+    relevance=5,
+)
+
+
+diary_interfaces.DynamicEntry.from_file(
+    "harp_noise_1",
+    diary_interfaces.ModalContext1.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/harp_noise.py",
+    relevance=207,
+)
