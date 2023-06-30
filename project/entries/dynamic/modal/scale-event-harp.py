@@ -125,6 +125,8 @@ def add_cluster(melody, scale, activity_level, random, has_inversion, instrument
         index = -1
 
     if activity_level(3):
+        if random.random() > 0.75:
+            return
         pitch_list = [scale.scale_position_to_pitch((i, 0)) for i in range(5)]
         pitch_list = [p for p in pitch_list if p in instrument]
         start_pitch = random.choice(pitch_list)
