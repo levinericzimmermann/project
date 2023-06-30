@@ -523,7 +523,7 @@ def _notation(
             staff_staff_spacing_minimum_distance=7,
             staff_staff_spacing_basic_distance=8,
             ragged_right=False,
-            ragged_last=False,
+            ragged_last=True,
         )
         abjad_score_block_list.append(abjad_score_block)
 
@@ -535,7 +535,7 @@ def _notation(
         markup_system_basic_distance=0,
         markup_system_padding=0,
         staff_height=20,
-        top_margin=0.5,
+        top_margin=1.5,
         foot_separation=0,
         head_separation=0,
         bottom_margin=1.5,
@@ -600,7 +600,7 @@ def _add_intro(path_notation, path_with_intro):
     )
 
 
-def _make_small(leaf, magnification_size=-2):
+def _make_small(leaf, magnification_size=-1.95):
     abjad.attach(
         abjad.LilyPondLiteral(rf"\magnifyStaff #(magstep {magnification_size})"), leaf
     )
