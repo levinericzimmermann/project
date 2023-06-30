@@ -165,10 +165,6 @@ def distribute_chord(
     for instrument in orchestration:
         tagged_simultaneous_event = simultaneous_event[instrument.name]
 
-        if not play:
-            add_rest(tagged_simultaneous_event, duration)
-            continue
-
         match instrument.name:
             case "v":
                 pop = pop_cello
@@ -188,6 +184,7 @@ def distribute_chord(
             activity_level,
             selected_pitch_list,
             previous_distribution,
+            play,
         ):
             selected_pitch_list.append(p)
 
@@ -206,9 +203,14 @@ def pop_cello(
     activity_level,
     selected_pitch_list,
     previous_distribution,
+    play,
 ):
     if not simultaneous_event:
         simultaneous_event.append(core_events.SequentialEvent())
+
+    if not play:
+        add_rest(simultaneous_event, duration)
+        return
 
     OPEN, FLAGEOLET, PYTHAGOREAN = 0, 1, 2
 
@@ -349,9 +351,13 @@ def pop_harp(
     activity_level,
     selected_pitch_list,
     previous_distribution,
+    play,
 ):
     while len(simultaneous_event) < 2:
         simultaneous_event.append(core_events.SequentialEvent())
+
+    if not play:
+        return add_rest(simultaneous_event, duration)
 
     pitch = generic_pitch_popper(
         pitch_set,
@@ -429,9 +435,13 @@ def pop_generic(
     activity_level,
     selected_pitch_list,
     previous_distribution,
+    play
 ):
     if not simultaneous_event:
         simultaneous_event.append(core_events.SequentialEvent())
+
+    if not play:
+        return add_rest(simultaneous_event, duration)
 
     pitch = generic_pitch_popper(
         pitch_set,
