@@ -312,6 +312,16 @@ class TuningForkHitStrategy(timeline_interfaces.ConflictResolutionStrategy):
     def resolve_conflict(self, timeline, conflict) -> bool:
         event_placement_0, event_placement_1 = conflict.left, conflict.right
         if may_be_bowed_tuning_fork_conflict(event_placement_0, event_placement_1):
+            # Special treatment if the tuning fork belongs to an event placement
+            # with more than one instruments:
+            # In this case, to keep the larger event placement consistent, we
+            # always drop the percussion one.
+            _, epg = get_glockenspiel_event(event_placement_0, event_placement_1)
+            if len(epg.event) > 1:
+                _, epc = get_pclock_event(event_placement_0, event_placement_1)
+                timeline.unregister(epc)
+                return True
+
             # Don't fix always, because this would be a bit boring :)
             if self.activity_level(self.fix_level):
                 self._solve(event_placement_0, event_placement_1)
