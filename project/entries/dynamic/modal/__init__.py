@@ -64,6 +64,16 @@ still = diary_interfaces.DynamicEntry.from_file(
 # Events
 # ###############################################
 
+
+diary_interfaces.DynamicEntry.from_file(
+    "scale-event-one-chord",
+    diary_interfaces.ModalContext0.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/scale-event-one-chord.py",
+    relevance=150,
+)
+
 diary_interfaces.DynamicEntry.from_file(
     "scale-event-harp",
     diary_interfaces.ModalContext0.identifier,
