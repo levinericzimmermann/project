@@ -307,6 +307,7 @@ class TuningForkHitStrategy(timeline_interfaces.ConflictResolutionStrategy):
         # fix_level = 0     => never fix
         self.fix_level = fix_level
         self.activity_level = common_generators.ActivityLevel()
+        self.split_activity_level = common_generators.ActivityLevel(1)
 
     def resolve_conflict(self, timeline, conflict) -> bool:
         event_placement_0, event_placement_1 = conflict.left, conflict.right
@@ -325,6 +326,28 @@ class TuningForkHitStrategy(timeline_interfaces.ConflictResolutionStrategy):
                 n.notation_indicator_collection.duration_line.is_active = False
             except AttributeError:
                 pass
+
+        # Sometimes split some of the glockenspiel notes, which needed to
+        # be separated.
+        glockenspiel_event, _ = get_glockenspiel_event(
+            event_placement_0, event_placement_1
+        )
+        glockenspiel_event = glockenspiel_event[0]  # seq event
+        for absolute_time, n in zip(
+            glockenspiel_event.absolute_time_tuple, glockenspiel_event
+        ):
+            split = False
+            try:
+                split = (
+                    n.notation_indicator_collection.duration_line.is_active == False
+                    and n.pitch_list
+                )
+            except AttributeError:
+                pass
+            if split and self.split_activity_level(5):
+                glockenspiel_event.split_child_at(
+                    absolute_time + (n.duration.duration * f(1, 2))
+                )
 
 
 class TagCountStrategy(timeline_interfaces.TagCountStrategy):
