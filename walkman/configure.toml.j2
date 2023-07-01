@@ -4,6 +4,7 @@
     midi_channel,
     midi_control_number_master,
     midi_control_number_instr,
+    midi_control_number_sample,
     page_count
 %}
 
@@ -16,9 +17,28 @@
 {% set amplification                = "amplification" %}
 {% set reverb                       = "reverb" %}
 {% set resonator                    = "resonator" %}
+{% set sample0                      = "sample0" %}
+{% set sample1                      = "sample1" %}
 
 {% set audio_input_list             = [cello, percussion, glockenspiel, harp] %}
 {% set midi_range_instrument        = [-48, 20] %}
+
+{% set sample_input_list            = [sample0, sample1] %}
+{% set midi_range_sample            = [-80, 0] %}
+{% set sample_transport_control     = [[8, 10], [11, 13]] %}
+{% set sample_input_to_path_list    = {
+    sample0: [
+        "etc/samples/walkman/0rusydha.wav",
+        "etc/samples/walkman/0levin.wav",
+        "etc/samples/walkman/0danang.wav"
+    ],
+    sample1: [
+        "etc/samples/walkman/1hoi_an_peanut_seller.wav",
+        "etc/samples/walkman/1saigon_city_noise.wav",
+        "etc/samples/walkman/1loudspeaker_clicks.wav",
+        "etc/samples/walkman/1hoi_an_noises.wav"
+    ],
+} %}
 
 {% set midi_range_master            = [-48, 24] %}
 {% set midi_range_amplification     = [-52, 12] %}
@@ -62,7 +82,39 @@ channel_count           = 4
 
 {% endfor %}
 
-{% for midi_input in midi_control_input_master  %}
+
+{% for sample_input in sample_input_list  %}
+
+    {% set i            = loop.index - 1 %}
+    {% set midi_range   = midi_range_sample %}
+    {% set transport    = sample_transport_control[i] %}
+
+    [configure.module.midi_control_input.{{ sample_input }}]
+    midi_control_number = {{ midi_control_number_sample + i }}
+    midi_channel        = {{ midi_channel }}
+
+    [configure.module.midi_control_input.{{ sample_input }}.default_dict]
+    minima              = {{ midi_range [0] }}
+    maxima              = {{ midi_range [1] }}
+
+    [configure.module.midi_control_input.{{ sample_input }}_next]
+    midi_control_number = {{ transport[0] }}
+    midi_channel        = 4
+
+    [configure.module.midi_control_input.{{ sample_input }}_previous]
+    midi_control_number = {{ transport[1] }}
+    midi_channel        = 4
+
+    [configure.module.sound_file_player.{{ sample_input }}]
+    path_list           = {{ sample_input_to_path_list[sample_input] }}
+    decibel             = "midi_control_input.{{ sample_input }}"
+    next_path           = "midi_control_input.{{ sample_input }}_next"
+    previous_path       = "midi_control_input.{{ sample_input }}_previous"
+
+{% endfor %}
+
+
+{% for midi_input in midi_control_input_master %}
 
     {% set i            = loop.index - 1 %}
     {% set midi_range   = midi_range_master_list[i] %}
@@ -77,6 +129,8 @@ channel_count           = 4
 
 {% endfor %}
 
+
+
 [configure.module.diffusion.instruments]
 input_channel_count                 = {{ audio_input_list | length }}
 output_channel_count                = {{ real_output_channel_count }}
@@ -89,11 +143,44 @@ base_decibel                        = -12
     audio_input_{{ i }}             = "butterworth_highpass_filter.{{ audio_input }}"
 {% endfor %}
 
+[configure.module.diffusion.sampler]
+input_channel_count                 = {{ (sample_input_list | length) }}
+output_channel_count                = {{ real_output_channel_count }}
+# How much of the signal is constantly moving across the different speaker
+pan_decibel                         = 0
+# How much of the signal is always present on all speakers
+base_decibel                        = -12
+{% for sample_input in sample_input_list %}
+    {% set i = loop.index - 1 %}
+    audio_input_{{ i }}             = "sound_file_player.{{ sample_input }}"
+{% endfor %}
+
+[configure.module.mixer.diffusion]
+audio_input_0                       = "diffusion.instruments"
+audio_input_1                       = "diffusion.sampler"
+
+[configure.module.mixer.diffusion.channel_mapping]
+0 = 0
+1 = 1
+2 = 2
+
+# Map input to channel (without this all goes into the first channel)
+[configure.module.mixer.diffusion.default_dict.audio_input_0_channel_mapping]
+0 = 0
+1 = 1
+2 = 2
+
+[configure.module.mixer.diffusion.default_dict.audio_input_1_channel_mapping]
+0 = 0
+1 = 1
+2 = 2
+
+
 
 {% for page_index in range(page_count) %}
     {% for output_index in range(real_output_channel_count) %}
         [configure.module.resonator.{{ page_index }}_{{ output_index }}]
-        audio_input                             = "diffusion.instruments"
+        audio_input                             = "mixer.diffusion"
         input_index                             = {{ output_index }}
         resonance_configuration_file_path_list  = [[1, "etc/resonators/r_{{ page_index }}_{{ output_index }}.txt"]]
         decibel                                 = "midi_control_input.{{ resonator }}"
@@ -101,7 +188,7 @@ base_decibel                        = -12
 {% endfor %}
 
 [configure.module.amplification.{{ amplification }}]
-audio_input                         = "diffusion.instruments"
+audio_input                         = "mixer.diffusion"
 decibel                             = "midi_control_input.{{ amplification }}"
 
 [configure.module.mixer.pre_master]

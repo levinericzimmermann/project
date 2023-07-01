@@ -16,7 +16,8 @@ class Diffusion(
         f"audio_input_{index}": walkman.Catch(
             # set implicit=True so that it's sufficient to activate 'Diffusion' in order
             # to run all inputs.
-            walkman.constants.EMPTY_MODULE_INSTANCE_NAME, implicit=True
+            walkman.constants.EMPTY_MODULE_INSTANCE_NAME,
+            implicit=True,
         )
         for index in range(MAX_INPUT_CHANNEL_COUNT)
     },
@@ -215,9 +216,9 @@ class Resonator(
         super()._setup_pyo_object()
         # XXX: It's better to apply amplitude on input instead
         # on resonators, for less sudden fade in.
-        self.audio_input_with_applied_decibel = (
-            self.audio_input.pyo_object[self.input_index]
-        )
+        self.audio_input_with_applied_decibel = self.audio_input.pyo_object[
+            self.input_index
+        ]
         self.resonator_list = []
         for (
             amplitude,
@@ -252,3 +253,65 @@ class Resonator(
     @property
     def _pyo_object(self) -> pyo.PyoObject:
         return self.summed_resonator
+
+
+class SoundFilePlayer(
+    walkman.ModuleWithDecibel,
+    previous_path=walkman.Catch(walkman.constants.EMPTY_MODULE_INSTANCE_NAME),
+    next_path=walkman.Catch(walkman.constants.EMPTY_MODULE_INSTANCE_NAME),
+):
+    def __init__(
+        self,
+        path_list: list[str],
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        assert path_list
+        self._path_list = path_list
+        self._max_path_index = len(self._path_list)
+        self._path_index = 0
+        self._path = self._path_list[self._path_index]
+
+    def _next(self):
+        self._path_index = (self._path_index + 1) % self._max_path_index
+        self._set_sound_file()
+
+    def _previous(self):
+        self._path_index = (self._path_index - 1) % self._max_path_index
+        self._set_sound_file()
+
+    def _set_sound_file(self):
+        self._path = self._path_list[self._path_index]
+        if does_play := self._sound_file_player.isPlaying():
+            self._sound_file_player.stop()
+        walkman.constants.LOGGER.info(
+            f"set sound file of '{self.replication_key}' to '{self._path}'"
+        )
+        self._sound_file_player.setPath(self._path)
+        if does_play:
+            self._sound_file_player.play()
+
+    def _setup_pyo_object(self):
+        super()._setup_pyo_object()
+        self._sound_file_player = pyo.SfPlayer(
+            self._path, mul=self.amplitude_signal_to, interp=1, loop=True
+        )
+        self._change_previous = pyo.Change(self.previous_path.pyo_object).play()
+        self._trigger_previous = pyo.TrigFunc(self._change_previous, self._previous).play()
+        self._change_next = pyo.Change(self.next_path.pyo_object).play()
+        self._trigger_next = pyo.TrigFunc(self._change_next, self._next).play()
+        self.internal_pyo_object_list.extend(
+            [
+                # CONTROL TRIGGER SHOULD ALWAYS RUN, AND DON'T
+                # CARE ABOUT WHETHER CUE IS RUNNING OR NOT.
+                #     self._trigger_next,
+                #     self._trigger_previous,
+                #     self._change_next,
+                #     self._change_previous,
+                self._sound_file_player,
+            ]
+        )
+
+    @property
+    def _pyo_object(self) -> pyo.PyoObject:
+        return self._sound_file_player
