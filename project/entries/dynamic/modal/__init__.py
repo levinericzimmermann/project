@@ -81,7 +81,7 @@ diary_interfaces.DynamicEntry.from_file(
     timeline_interfaces.EventPlacement,
     skip_check=project.constants.SKIP_CHECK,
     file_path=f"{path}/scale-event-v.py",
-    relevance=50,
+    relevance=150,
 )
 
 
