@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+echo "set sampling rate to 44100"
+pw-metadata -n settings 0 clock.force-rate 44100
+echo "start performance mode"
+performance-on
+echo "start qjackctl"
+qjackctl -s -a ./etc/qjackctl/102-production.xml &
+./scripts/walkman
+performance-off
