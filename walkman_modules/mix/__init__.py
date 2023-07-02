@@ -297,7 +297,9 @@ class SoundFilePlayer(
             self._path, mul=self.amplitude_signal_to, interp=1, loop=True
         )
         self._change_previous = pyo.Change(self.previous_path.pyo_object).play()
-        self._trigger_previous = pyo.TrigFunc(self._change_previous, self._previous).play()
+        self._trigger_previous = pyo.TrigFunc(
+            self._change_previous, self._previous
+        ).play()
         self._change_next = pyo.Change(self.next_path.pyo_object).play()
         self._trigger_next = pyo.TrigFunc(self._change_next, self._next).play()
         self.internal_pyo_object_list.extend(
@@ -315,3 +317,31 @@ class SoundFilePlayer(
     @property
     def _pyo_object(self) -> pyo.PyoObject:
         return self._sound_file_player
+
+
+class Gate(
+    walkman.ModuleWithDecibel,
+    audio_input=walkman.Catch(walkman.constants.EMPTY_MODULE_INSTANCE_NAME),
+    thresh=walkman.AutoSetup(walkman.Value, module_kwargs={"value": -50}),
+    risetime=walkman.AutoSetup(walkman.Value, module_kwargs={"value": 3}),
+    falltime=walkman.AutoSetup(walkman.Value, module_kwargs={"value": 1}),
+):
+    def __init__(self, *args, lookahead: float = 20, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._lookahead = lookahead
+
+    def _setup_pyo_object(self):
+        super()._setup_pyo_object()
+        self.gate = pyo.Gate(
+            self.audio_input.pyo_object,
+            mul=self.amplitude_signal_to,
+            thresh=self.thresh.pyo_object_or_float,
+            risetime=self.risetime.pyo_object_or_float,
+            falltime=self.falltime.pyo_object_or_float,
+            lookahead=self._lookahead,
+        ).stop()
+        self.internal_pyo_object_list.append(self.gate)
+
+    @functools.cached_property
+    def _pyo_object(self) -> pyo.PyoObject:
+        return self.gate
