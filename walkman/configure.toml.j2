@@ -9,24 +9,25 @@
 %}
 
 {# Declare keys for our different signals #}
-{% set cello                        = "cello" %}
-{% set harp                         = "harp" %}
-{% set glockenspiel                 = "glockenspiel" %}
-{% set percussion                   = "percussion" %}
-{% set master                       = "master" %}
-{% set amplification                = "amplification" %}
-{% set reverb                       = "reverb" %}
-{% set resonator                    = "resonator" %}
-{% set sample0                      = "sample0" %}
-{% set sample1                      = "sample1" %}
+{% set cello                            = "cello" %}
+{% set harp                             = "harp" %}
+{% set glockenspiel                     = "glockenspiel" %}
+{% set percussion                       = "percussion" %}
+{% set master                           = "master" %}
+{% set amplification                    = "amplification" %}
+{% set reverb                           = "reverb" %}
+{% set resonator                        = "resonator" %}
+{% set sample0                          = "sample0" %}
+{% set sample1                          = "sample1" %}
 
-{% set audio_input_list             = [cello, percussion, glockenspiel, harp] %}
-{% set midi_range_instrument        = [-48, 20] %}
+{% set audio_input_list                 = [cello, percussion, glockenspiel, harp] %}
+{% set highpass_filter_frequency_list   = [70, 140, 210, 70] %}
+{% set midi_range_instrument            = [-48, 20] %}
 
-{% set sample_input_list            = [sample0, sample1] %}
-{% set midi_range_sample            = [-80, 0] %}
-{% set sample_transport_control     = [[8, 10], [11, 13]] %}
-{% set sample_input_to_path_list    = {
+{% set sample_input_list                = [sample0, sample1] %}
+{% set midi_range_sample                = [-80, 0] %}
+{% set sample_transport_control         = [[8, 10], [11, 13]] %}
+{% set sample_input_to_path_list        = {
     sample0: [
         "etc/samples/walkman/0rusydha.wav",
         "etc/samples/walkman/0levin.wav",
@@ -40,12 +41,12 @@
     ],
 } %}
 
-{% set midi_range_master            = [-48, 24] %}
-{% set midi_range_amplification     = [-52, 12] %}
-{% set midi_range_reverb            = [-48, 20] %}
-{% set midi_range_resonator         = [-52, 12] %}
-{% set midi_control_input_master    = [master, amplification, reverb, resonator] %}
-{% set midi_range_master_list       = [midi_range_master, midi_range_amplification, midi_range_reverb, midi_range_resonator] %}
+{% set midi_range_master                = [-48, 24] %}
+{% set midi_range_amplification         = [-52, 12] %}
+{% set midi_range_reverb                = [-48, 20] %}
+{% set midi_range_resonator             = [-52, 12] %}
+{% set midi_control_input_master        = [master, amplification, reverb, resonator] %}
+{% set midi_range_master_list           = [midi_range_master, midi_range_amplification, midi_range_reverb, midi_range_resonator] %}
 
 [configure]
 name                    = "10.3"
@@ -70,7 +71,7 @@ channel_count           = 4
     audio_input         = "audio_input.{{ audio_input }}"
 
     [configure.module.value.butterworth_highpass_filter_{{ audio_input }}_child_frequency]
-    value               = 70
+    value               = {{ highpass_filter_frequency_list[i] }}
 
     [configure.module.midi_control_input.{{ audio_input }}]
     midi_control_number = {{ midi_control_number_instr + i }}
