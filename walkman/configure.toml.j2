@@ -90,6 +90,8 @@ channel_count           = 4
     [configure.module.midi_control_input.{{ audio_input }}]
     midi_control_number = {{ midi_control_number_instr + i }}
     midi_channel        = {{ midi_channel }}
+    # set to minima initially
+    initial_value       = {{ midi_range_instrument[0] }}
 
     [configure.module.midi_control_input.{{ audio_input }}.default_dict]
     minima              = {{ midi_range_instrument[0] }}
