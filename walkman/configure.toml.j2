@@ -109,6 +109,8 @@ channel_count           = 4
     [configure.module.midi_control_input.{{ sample_input }}]
     midi_control_number = {{ midi_control_number_sample + i }}
     midi_channel        = {{ midi_channel }}
+    # set to minima initially
+    initial_value       = {{ midi_range[0] }}
 
     [configure.module.midi_control_input.{{ sample_input }}.default_dict]
     minima              = {{ midi_range [0] }}
@@ -139,6 +141,8 @@ channel_count           = 4
     [configure.module.midi_control_input.{{ midi_input }}]
     midi_control_number = {{ midi_control_number_master + i }}
     midi_channel        = {{ midi_channel }}
+    # set to minima initially
+    initial_value       = {{ midi_range[0] }}
 
     [configure.module.midi_control_input.{{ midi_input }}.default_dict]
     minima              = {{ midi_range [0] }}
