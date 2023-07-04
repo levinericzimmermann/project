@@ -32,7 +32,7 @@ music_parameters.configurations.EQUAL_DIVIDED_OCTAVE_PITCH_ROUND_FREQUENCY_DIGIT
 #
 # We can also do a heptagram with pitches.
 #
-# We assume a 3-cycle (pythagorean tuning) as:
+# We assume a 3-cycle (Pythagorean tuning) as:
 #
 #
 #                    a
@@ -55,7 +55,7 @@ music_parameters.configurations.EQUAL_DIVIDED_OCTAVE_PITCH_ROUND_FREQUENCY_DIGIT
 # So instead of moving 3/2, we now move a minor third
 # down or a major sixth up.
 #
-# But when moving thirds, pythagorean thirds are strange.
+# But when moving thirds, Pythagorean thirds are strange.
 # It's much easier to move Just thirds/sixth (e.g. 5/3)
 #
 # So we actually have something like
@@ -64,7 +64,7 @@ music_parameters.configurations.EQUAL_DIVIDED_OCTAVE_PITCH_ROUND_FREQUENCY_DIGIT
 #   c       a       fs          ...
 #
 # & some more iterations & we have something very complex
-# & we are very off from our pythagorean reference system.
+# & we are very off from our Pythagorean reference system.
 #
 # So we need to better find a cycle which doesn't move some
 # many commas all the time. What's for instance about this:
@@ -74,7 +74,7 @@ music_parameters.configurations.EQUAL_DIVIDED_OCTAVE_PITCH_ROUND_FREQUENCY_DIGIT
 #
 # Okay, we don't have a 'fs' and our 'b' becomes a 'bf' and
 # our 'e' is an 'ef'. But I think those alterations are
-# acceptable.
+# acceptable..
 #
 # We need to set 'a' to 1/1, then we get:
 #
@@ -88,12 +88,18 @@ music_parameters.configurations.EQUAL_DIVIDED_OCTAVE_PITCH_ROUND_FREQUENCY_DIGIT
 # => Yes, but the complicated intervals in the end & at the
 # start don't matter, because for MONDAY & SUNDAY we only
 # plan silence anyway.
+#
+# => So in the end, we can actually go for a == 1/1 :)
 
 j = music_parameters.JustIntonationPitch
 
 
 def _():
+    # This is our 'c': we start with the 'c' & move then to
+    # 'a' by adding 8/5 to our 'c'.
     last_pitch = j("6/5")
+    # We only move by a Pythagorean comma each second step,
+    # because the 5ths are removing each other again :)
     interval_cycle = itertools.cycle((j("5/3"), j("8/5")))
     week_day_to_tonic = {}
     for day in week.WeekDay:
@@ -109,6 +115,7 @@ WEEK_DAY_TO_TONIC = _()
 # pitches. The idea is to show the 'natural' neighbours of the
 # current planet, which are not the real 'day' / 'week-based'
 # neighbours.
+#
 # So we move to the Pythagorean neighbours 3/2 & 4/3.
 # In order to improve the movement in the other pitch dimension -
 # interval distance in cents - we add some interpolation pitches,
