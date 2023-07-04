@@ -154,13 +154,17 @@ COMMA5SIZE_TO_TONIC_MOVEMENT_TUPLE = {
 
 
 def _():
+    direction_cycle = itertools.cycle((0, 1, 1, 0))
     week_day_to_tonic_movement_tuple = {}
     for week_day, pitch in WEEK_DAY_TO_TONIC.items():
         try:
             comma5size = pitch.exponent_tuple[2]
         except IndexError:
             comma5size = 0
+        direction = next(direction_cycle)
         tonic_movement_tuple = COMMA5SIZE_TO_TONIC_MOVEMENT_TUPLE[comma5size]
+        if not direction:
+            tonic_movement_tuple = tuple(reversed(tonic_movement_tuple))
         week_day_to_tonic_movement_tuple.update(
             {week_day: tuple(pitch + i for i in tonic_movement_tuple)}
         )
