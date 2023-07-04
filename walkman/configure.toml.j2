@@ -158,7 +158,7 @@ output_channel_count                = {{ real_output_channel_count }}
 # How much of the signal is constantly moving across the different speaker
 pan_decibel                         = 0
 # How much of the signal is always present on all speakers
-base_decibel                        = -12
+base_decibel                        = -10
 {% for audio_input in audio_input_list %}
     {% set i = loop.index - 1 %}
     audio_input_{{ i }}             = "butterworth_highpass_filter.{{ audio_input }}"
@@ -170,7 +170,7 @@ output_channel_count                = {{ real_output_channel_count }}
 # How much of the signal is constantly moving across the different speaker
 pan_decibel                         = 0
 # How much of the signal is always present on all speakers
-base_decibel                        = -12
+base_decibel                        = -9
 {% for sample_input in sample_input_list %}
     {% set i = loop.index - 1 %}
     audio_input_{{ i }}             = "sound_file_player.{{ sample_input }}"
