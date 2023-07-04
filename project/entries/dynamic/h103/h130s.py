@@ -75,7 +75,9 @@ def main(
         real_duration, duration, position
     )
 
-    n = music_events.NoteLike(context.pitch, 1, volume=volume)
+    n = music_events.NoteLike(
+        AMBITUS.get_pitch_variant_tuple(context.pitch)[0], 1, volume=volume
+    )
     n.notation_indicator_collection.duration_line.is_active = True
     sequential_event = core_events.SequentialEvent([n])
 
@@ -102,3 +104,13 @@ def main(
     return timeline_interfaces.EventPlacement(
         core_events.SimultaneousEvent([simultaneous_event]), start_range, end_range
     ).move_by(context.start)
+
+
+AMBITUS = music_parameters.OctaveAmbitus(
+    # e' to e''
+    #
+    # In this way we don't need to print any lines out of the system :)
+    # So it's easier to read for everyone & we can avoid some signs.
+    music_parameters.JustIntonationPitch("3/4"),
+    music_parameters.JustIntonationPitch("3/2"),
+)
