@@ -6,6 +6,7 @@ import quicktions as fractions
 from mutwo import common_generators
 from mutwo import core_converters
 from mutwo import core_events
+from mutwo import core_utilities
 from mutwo import diary_interfaces
 from mutwo import music_parameters
 from mutwo import project_events
@@ -135,7 +136,7 @@ _tonic_to_130_chord_tuple = {}
 
 class C103SequentialEventToContextTuple(core_converters.abc.Converter):
     def convert(self, sequential_event: C103SequentialEvent) -> tuple:
-        def append(start, end, previous, repetition_count):
+        def append(start, end, previous, repetition_count, other_pitch_list):
             if previous is not None:
                 context = diary_interfaces.H103Context(
                     start=start,
@@ -143,31 +144,51 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
                     attr=attr,
                     pitch=previous,
                     energy=repetition_count,
+                    other_pitch_tuple=core_utilities.uniqify_sequence(
+                        tuple(other_pitch_list)
+                    ),
                 )
                 context_list.append(context)
 
         context_list = []
         absolute_time_tuple = sequential_event.absolute_time_tuple
 
-        for attr in ("tonic", "partner", "written_instable_pitch"):
+        attr_tuple = ("tonic", "partner", "written_instable_pitch")
+        for attr in attr_tuple:
+            other_attr_tuple = tuple(a for a in attr_tuple if a != attr)
             previous = None
             previous_start = None
+            previous_other_pitch_list = []
             repetition_count = 0
             for start, e in zip(absolute_time_tuple, sequential_event):
                 if e.chord is not None:
                     item = getattr(e.chord, attr)
+                    other_pitch_list = [getattr(e.chord, a) for a in other_attr_tuple]
                 else:
                     item = None
 
                 if item != previous:
-                    append(previous_start, start, previous, repetition_count)
+                    append(
+                        previous_start,
+                        start,
+                        previous,
+                        repetition_count,
+                        previous_other_pitch_list,
+                    )
                     repetition_count = 0
                     previous = item
                     previous_start = start
+                    previous_other_pitch_list = other_pitch_list
 
                 repetition_count += 1
 
-            append(previous_start, start + e.duration, previous, repetition_count)
+            append(
+                previous_start,
+                start + e.duration,
+                previous,
+                repetition_count,
+                other_pitch_list,
+            )
 
         for start, end, e in zip(
             absolute_time_tuple,

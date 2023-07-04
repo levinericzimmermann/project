@@ -21,14 +21,31 @@ def main(
     context, random, activity_level, **kwargs
 ) -> timeline_interfaces.EventPlacement:
 
-    # The energy parameter is mapped to how often a pitch can be repeated
-    # over different chords. (It's ok to remove the more frequent notes
-    # which are only valid for 1 chord, but it would be rather unfortunate
-    # to remove notes which span over multiple chords).
-    energy = context.energy
-    # Sometimes drop tones if they aren't the tonic & don't span over
-    # multiple chords.
-    if energy < 2 and context.attr != "tonic" and activity_level(4):
+    # Sometimes drop tones (variety), but there are some conditions:
+    #
+    #  1  Tonics can't be dropped.
+    dropable = [context.attr != "tonic"]
+    #
+    #  2  It's ok to remove the more frequent notes which are only valid for
+    #     1 chord, but it would be rather unfortunate to remove notes which
+    #     span over multiple chords
+    #
+    #     (The energy parameter is mapped to how often a pitch can be repeated
+    #     over different chords.)
+    dropable.append(context.energy < 2)
+    #  3  It is not ok to drop a not-tonic pitch, in case this is the only
+    #     pitch in our chord which doesn't have a comma (this can happen
+    #     if the tonic has a comma). It's not ok, because then we don't
+    #     have any non-comma reference anymore.
+    dropable.append(
+        any(
+            [
+                (p.exponent_tuple[2] if len(p.exponent_tuple) > 2 else 0) == 0
+                for p in context.other_pitch_tuple
+            ]
+        )
+    )
+    if all(dropable) and activity_level(4):
         return
 
     # First the reference tones which are easier to intonate, and then
