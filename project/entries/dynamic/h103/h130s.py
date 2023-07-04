@@ -62,6 +62,18 @@ def main(
         [n]
     )
 
+    match context.attr:
+        case "tonic":
+            pass
+        case "partner":
+            pass
+        case _:
+            # If we have instable pitches, they can either be a
+            # minor or a major interval. We show this to others by
+            # adding parenthesis to the accidental (= can be added, but
+            # doesn't need to).
+            n.playing_indicator_collection.optional_accidental.is_active = True
+
     simultaneous_event = core_events.TaggedSimultaneousEvent(
         [sequential_event], tag=context.attr
     )

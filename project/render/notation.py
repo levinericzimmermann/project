@@ -178,17 +178,6 @@ def get_converter(tag, small=False):
                         first_leaf,
                     )
 
-            # If we have instable pitches, they can either be a
-            # minor or a major interval. We show this to others by
-            # adding parenthesis to the accidental (= can be added, but
-            # doesn't need to).
-            if tag in ("written_instable_pitch",):
-                for leaf in leaf_sequence:
-                    try:
-                        leaf.note_head.is_cautionary = True
-                    except AttributeError:
-                        pass
-
             for leaf in leaf_sequence:
                 abjad.attach(
                     # abjad.LilyPondLiteral(r"-\tweak X-offset #1", site="absolute_after"), leaf

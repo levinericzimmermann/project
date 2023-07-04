@@ -22,6 +22,7 @@ __all__ = (
     "MovingOverpressure",
     "BowedBox",
     "ExplicitFermata",
+    "OptionalAccidental",
 )
 
 
@@ -321,4 +322,14 @@ class ExplicitFermata(abjad_parameters.abc.BangFirstAttachment):
             ),
             leaf,
         )
+        return leaf
+
+
+class OptionalAccidental(abjad_parameters.abc.BangEachAttachment):
+    def process_leaf(self, leaf: abjad.Leaf):
+        if isinstance(leaf, abjad.Note):
+            leaf.note_head.is_cautionary = True
+        elif isinstance(leaf, abjad.Chord):
+            for nh in leaf.note_heads:
+                nh.is_cautionary = True
         return leaf
