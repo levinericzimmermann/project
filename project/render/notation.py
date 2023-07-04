@@ -318,14 +318,14 @@ def _notation(
         foot_separation=0,
         head_separation=0,
         bottom_margin=1,
-        line_width=35,
+        line_width=24,
         left_margin=4,
         page_top_space=0,
         between_title_space=0,
         after_title_space=0,
         before_title_space=0,
         print_page_number=False,
-        paper_size=r"'(cons (* 371 mm) (* 297 mm))",
+        paper_size=r"'(cons (* 297 mm) (* 297 mm))",
     ).convert(abjad_score_block_list)
 
     lilypond_file.items.insert(0, r'\include "etc/lilypond/ar.ily"')
