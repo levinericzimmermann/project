@@ -54,13 +54,13 @@ def main(
 
     real_duration = duration - duration_diff
 
-    start_range, end_range = project_utilities.get_ranges(real_duration, duration, position)
+    start_range, end_range = project_utilities.get_ranges(
+        real_duration, duration, position
+    )
 
     n = music_events.NoteLike(context.pitch, 1, volume=volume)
     n.notation_indicator_collection.duration_line.is_active = True
-    sequential_event = core_events.SequentialEvent(
-        [n]
-    )
+    sequential_event = core_events.SequentialEvent([n])
 
     match context.attr:
         case "tonic":
@@ -72,7 +72,11 @@ def main(
             # minor or a major interval. We show this to others by
             # adding parenthesis to the accidental (= can be added, but
             # doesn't need to).
-            n.playing_indicator_collection.optional_accidental.is_active = True
+            # But we only do so in case we have a flat/sharp accidental,
+            # otherwise it's not clear what the pitch should sound like
+            # without the accidental.
+            if len(n.pitch_list[0].get_closest_pythagorean_pitch_name()) != 1:
+                n.playing_indicator_collection.optional_accidental.is_active = True
 
     simultaneous_event = core_events.TaggedSimultaneousEvent(
         [sequential_event], tag=context.attr
