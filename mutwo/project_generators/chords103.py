@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import functools
+import typing
 
 from mutwo import music_parameters
 
@@ -17,19 +18,43 @@ from mutwo import music_parameters
 def get_103_chord_tuple(tonic):
     tonic = tonic.normalize(mutate=False)
     j = music_parameters.JustIntonationPitch
-    return (
-        _103chord(tonic, j("3/2"), j("5/4"), (j("6/5"),), 0),
-        _103chord(tonic, j("4/3"), j("8/5"), (j("5/3"),), 0),
-        _103chord(tonic, j("3/2"), j("9/8"), (j("16/15"),), 1),
-        _103chord(tonic, j("4/3"), j("16/9"), (j("15/8"),), 1),
-    )
+    try:
+        tonic5comma = tonic.exponent_tuple[2]
+    except IndexError:
+        tonic5comma = 0
+    if tonic5comma == -1:
+        ct = (
+            _103chord(tonic, j("5/4"), j("3/2"), [], 0),
+            _103chord(tonic, j("5/3"), j("4/3"), [], 0),
+            _103chord(tonic, j("5/4"), j("16/9"), [], 1),
+            _103chord(tonic, j("5/3"), j("9/8"), [], 1),
+        )
+    elif tonic5comma == 1:
+        ct = (
+            _103chord(tonic, j("6/5"), j("3/2"), [], 0),
+            _103chord(tonic, j("8/5"), j("4/3"), [], 0),
+            _103chord(tonic, j("6/5"), j("16/9"), [], 1),
+            _103chord(tonic, j("8/5"), j("9/8"), [], 1),
+        )
+    elif tonic5comma == 0:
+        ct = (
+            _103chord(tonic, j("3/2"), j("5/4"), (j("6/5"),), 0),
+            _103chord(tonic, j("4/3"), j("8/5"), (j("5/3"),), 0),
+            _103chord(tonic, j("3/2"), j("9/8"), (j("16/15"),), 1),
+            _103chord(tonic, j("4/3"), j("16/9"), (j("15/8"),), 1),
+        )
+    else:
+        raise NotImplementedError(tonic5comma)
+    return tuple(p for p in ct if p is not None)
 
 
 def _103chord(
     tonic, partner_interval, main_instable_interval, instable_interval_tuple, type
-):
+) -> typing.Optional[Chord103]:
     partner = (tonic + partner_interval).normalize()
     instable_list = [(tonic + main_instable_interval).normalize()]
+
+    ok = None
     pn0 = instable_list[0].get_closest_pythagorean_pitch_name()
     for instable_interval in instable_interval_tuple:
         p = (instable_interval + tonic).normalize()
@@ -42,12 +67,18 @@ def _103chord(
             break
 
     # info log
-    if not ok:
+    #
+    # if 'ok' is 'None' (so also boolean 'False') it's expected
+    # that no second instable pitch could be found (because the
+    # chord already doesn't define any alternative), so we don't
+    # need to log anything. Only log if iterated and 'False'
+    # is the result.
+    if ok is False:
         print(
             "no second instable pitch could be found for tonic",
-            tonic,
+            tonic.ratio,
             "and instable interval",
-            main_instable_interval,
+            main_instable_interval.ratio,
         )
 
     # The pitch with more accidentals is our written pitch (we explicitly
