@@ -120,25 +120,49 @@ WEEK_DAY_TO_TONIC = _()
 # In order to improve the movement in the other pitch dimension -
 # interval distance in cents - we add some interpolation pitches,
 # so that we always move thirds up & down.
+#
+# But since we always have either a negative 5 comma or no
+# 5 comma at all & we want to avoid two 5 commas (after all this
+# piece is supposed to be rather easily tunable), we need to
+# adjust our interpolation intervals according to the given
+# 5 comma size. This is why we use a mapping of comma->tonic-movements.
 
-TONIC_MOVEMENT_TUPLE = (
-    j("2/1"),
-    j("5/3"),
-    j("4/3"),
-    j("5/4"),
-    j("1/1"),
-    j("6/5"),
-    j("3/2"),
-    j("8/5"),
-    j("2/1"),
-)
+COMMA5SIZE_TO_TONIC_MOVEMENT_TUPLE = {
+    -1: (
+        j("2/1"),
+        j("5/3"),
+        j("4/3"),
+        j("10/9"),
+        j("1/1"),
+        j("5/4"),
+        j("3/2"),
+        j("15/8"),
+        j("2/1"),
+    ),
+    0: (
+        j("2/1"),
+        j("5/3"),
+        j("4/3"),
+        j("5/4"),
+        j("1/1"),
+        j("6/5"),
+        j("3/2"),
+        j("8/5"),
+        j("2/1"),
+    ),
+}
 
 
 def _():
     week_day_to_tonic_movement_tuple = {}
     for week_day, pitch in WEEK_DAY_TO_TONIC.items():
+        try:
+            comma5size = pitch.exponent_tuple[2]
+        except IndexError:
+            comma5size = 0
+        tonic_movement_tuple = COMMA5SIZE_TO_TONIC_MOVEMENT_TUPLE[comma5size]
         week_day_to_tonic_movement_tuple.update(
-            {week_day: tuple(pitch + i for i in TONIC_MOVEMENT_TUPLE)}
+            {week_day: tuple(pitch + i for i in tonic_movement_tuple)}
         )
     return week_day_to_tonic_movement_tuple
 
