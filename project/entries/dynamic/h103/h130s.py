@@ -26,14 +26,7 @@ def main(
     #  1  Tonics can't be dropped.
     dropable = [context.attr != "tonic"]
     #
-    #  2  It's ok to remove the more frequent notes which are only valid for
-    #     1 chord, but it would be rather unfortunate to remove notes which
-    #     span over multiple chords
-    #
-    #     (The energy parameter is mapped to how often a pitch can be repeated
-    #     over different chords.)
-    dropable.append(context.energy < 2)
-    #  3  It is not ok to drop a not-tonic pitch, in case this is the only
+    #  2  It is not ok to drop a not-tonic pitch, in case this is the only
     #     pitch in our chord which doesn't have a comma (this can happen
     #     if the tonic has a comma). It's not ok, because then we don't
     #     have any non-comma reference anymore.
@@ -45,7 +38,21 @@ def main(
             ]
         )
     )
-    if all(dropable) and activity_level(4):
+    # We prefer to remove the more frequent notes which are only valid for
+    # 1 chord, but it would be rather unfortunate to remove notes which
+    # span over multiple chords, therefore we don't drop them that often.
+    #
+    # (The energy parameter is mapped to how often a pitch can be repeated
+    # over different chords.)
+    if context.energy < 2:
+        lv, rev = 4, lambda _: _
+    else:
+        # We prefer to take activity level 9 and reverse this instead of
+        # taking activity level 1, because with activity level 1 the first
+        # event is removed while with 9 the first event isn't removed:
+        # we don't want to drop our first partner tone :)
+        lv, rev = 9, lambda active: not active
+    if all(dropable) and rev(activity_level(lv)):
         return
 
     # First the reference tones which are easier to intonate, and then
