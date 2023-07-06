@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+cp builds/notations/10.3_score.pdf_with_intro.pdf builds/103.pdf
+# 0cm x-axis offset, because a3 is 297 and our sides are 297.
+#
+# 6.5cm y-axis offest because a3 is 297mm x 420mm, and we use 297mm x 297mm, so it's
+# (420-297)/2=65 -> 6.5cm
+pdfjam --outfile builds/103_a3.pdf --offset '0cm 6.5cm'  --paper a3paper builds/103.pdf
