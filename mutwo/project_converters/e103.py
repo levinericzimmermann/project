@@ -21,8 +21,8 @@ class TonicMovementTupleToC103SequentialEvent(core_converters.abc.Converter):
     def __init__(self):
         self._activity_level = common_generators.ActivityLevel()
         # self._chord_count_cycle = itertools.cycle((3, 4, 2, 4, 3))
-        self._chord_count_cycle = itertools.cycle((3, 4, 5, 6, 5))
-        self._rest_duration_cycle = itertools.cycle((100, 35, 70, 45))
+        self._chord_count_cycle = itertools.cycle((3, 4, 3, 2, 4, 2))
+        self._rest_duration_cycle = itertools.cycle((100, 35, 170, 65, 130))
 
     def convert(
         self, tonic_movement_tuple: tuple[music_parameters.JustIntonationPitch, ...]
