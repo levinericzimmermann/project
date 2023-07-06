@@ -19,16 +19,16 @@ context_tuple_to_event_placement_tuple = (
     diary_converters.ContextTupleToEventPlacementTuple()
 )
 
+tonic_movement_tuple_to_c103_sequential_event = (
+    project_converters.TonicMovementTupleToC103SequentialEvent()
+)
+
 
 def make_clock(week_day, before_rest_duration=0) -> clock_interfaces.Clock:
     if week_day in (project.constants.WeekDay.MONDAY, project.constants.WeekDay.SUNDAY):
         return clock_interfaces.Clock(_clock_rest(1))
 
     tonic_movement_tuple = project.constants.WEEK_DAY_TO_TONIC_MOVEMENT_TUPLE[week_day]
-
-    tonic_movement_tuple_to_c103_sequential_event = (
-        project_converters.TonicMovementTupleToC103SequentialEvent()
-    )
 
     c103_sequential_event = tonic_movement_tuple_to_c103_sequential_event(
         tonic_movement_tuple
