@@ -136,7 +136,14 @@ _tonic_to_130_chord_tuple = {}
 
 class C103SequentialEventToContextTuple(core_converters.abc.Converter):
     def convert(self, sequential_event: C103SequentialEvent) -> tuple:
-        def append(start, end, previous, repetition_count, other_pitch_list):
+        def append(
+            start,
+            end,
+            previous,
+            repetition_count,
+            other_pitch_list,
+            alternative_pitch_tuple,
+        ):
             if previous is not None:
                 context = diary_interfaces.H103Context(
                     start=start,
@@ -147,6 +154,9 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
                     other_pitch_tuple=core_utilities.uniqify_sequence(
                         tuple(other_pitch_list)
                     ),
+                    alternative_pitch_tuple=tuple(
+                        p for p in alternative_pitch_tuple if p != previous
+                    ),
                 )
                 context_list.append(context)
 
@@ -154,8 +164,12 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
         absolute_time_tuple = sequential_event.absolute_time_tuple
 
         attr_tuple = ("tonic", "partner", "written_instable_pitch")
-        for attr in attr_tuple:
+        alternative_intonation_tuple = (0, 0, "instable_tuple")
+        for attr, alternative_intonation in zip(
+            attr_tuple, alternative_intonation_tuple
+        ):
             other_attr_tuple = tuple(a for a in attr_tuple if a != attr)
+            alternative_pitch_tuple = tuple([])
             previous = None
             previous_start = None
             previous_other_pitch_list = []
@@ -174,11 +188,17 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
                         previous,
                         repetition_count,
                         previous_other_pitch_list,
+                        alternative_pitch_tuple,
                     )
                     repetition_count = 0
                     previous = item
                     previous_start = start
                     previous_other_pitch_list = other_pitch_list
+                    alternative_pitch_tuple = tuple([])
+                    if alternative_intonation and e.chord:
+                        alternative_pitch_tuple = getattr(
+                            e.chord, alternative_intonation
+                        )
 
                 repetition_count += 1
 
@@ -188,6 +208,7 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
                 previous,
                 repetition_count,
                 other_pitch_list,
+                alternative_pitch_tuple,
             )
 
         for start, end, e in zip(

@@ -84,6 +84,10 @@ def main(
 
     n = music_events.NoteLike(context.pitch, 1, volume=volume)
     n.notation_indicator_collection.duration_line.is_active = True
+
+    if a := context.alternative_pitch_tuple:
+        n.alternative_intonation = a[0]
+
     sequential_event = core_events.SequentialEvent([n])
 
     match context.attr:

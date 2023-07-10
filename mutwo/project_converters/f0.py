@@ -147,6 +147,9 @@ class F0Driver(enum.Enum):
 
 
 class EventToF0(core_converters.abc.EventConverter):
+    def __init__(self):
+        self.activity_level = common_generators.ActivityLevel()
+
     def convert(self, event_to_convert, driver: F0Driver = F0Driver.CONTINOUS):
         self._driver = driver.value
         return self._convert_event(event_to_convert, 0)[0]
@@ -159,10 +162,15 @@ class EventToF0(core_converters.abc.EventConverter):
             d, max((d // project_converters.constants.F0.MAX_DURATION, 2))
         )
 
-        try:
-            f = round(e.pitch_list[0].frequency, 2)
-        except (AttributeError, IndexError):
-            f = 0
+        pitch = None
+        if pitch_list := e.get_parameter("pitch_list"):
+            pitch = pitch_list[0]
+
+        if a := e.get_parameter("alternative_intonation"):
+            if self.activity_level(5):
+                pitch = a
+
+        f = round(pitch.frequency, 2) if pitch else 0
 
         try:
             v = e.volume.midi_velocity
