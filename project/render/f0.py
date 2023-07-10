@@ -55,7 +55,14 @@ def f0(simultaneous_event, index):
                 if is_generalpause:
                     play_noise = e.is_noise
                 else:
-                    play_noise = activity_level(8)
+                    # Make it very unlikely to play extremely short noises:
+                    # they moustly sound like mistakes, particularly if they
+                    # appear so often. So let's better fix this / prevent this
+                    # from happening.
+                    if e.duration > 7.5:
+                        play_noise = activity_level(8)
+                    else:
+                        play_noise = activity_level(1)
                 if not play_noise:
                     continue
 
