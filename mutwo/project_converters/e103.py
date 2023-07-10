@@ -143,8 +143,9 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
             repetition_count,
             other_pitch_list,
             alternative_pitch_tuple,
+            is_generalpause,
         ):
-            if previous is not None:
+            if start and end > start:
                 context = diary_interfaces.H103Context(
                     start=start,
                     end=end,
@@ -157,6 +158,7 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
                     alternative_pitch_tuple=tuple(
                         p for p in alternative_pitch_tuple if p != previous
                     ),
+                    is_generalpause=is_generalpause,
                 )
                 context_list.append(context)
 
@@ -172,6 +174,7 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
             alternative_pitch_tuple = tuple([])
             previous = None
             previous_start = None
+            previous_generalpause = True
             previous_other_pitch_list = []
             repetition_count = 0
             for start, e in zip(absolute_time_tuple, sequential_event):
@@ -189,6 +192,7 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
                         repetition_count,
                         previous_other_pitch_list,
                         alternative_pitch_tuple,
+                        previous_generalpause,
                     )
                     repetition_count = 0
                     previous = item
@@ -199,6 +203,7 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
                         alternative_pitch_tuple = getattr(
                             e.chord, alternative_intonation
                         )
+                    previous_generalpause = e.chord is None
 
                 repetition_count += 1
 
@@ -209,6 +214,7 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
                 repetition_count,
                 other_pitch_list,
                 alternative_pitch_tuple,
+                previous_generalpause,
             )
 
         for start, end, e in zip(
