@@ -33,8 +33,8 @@ def f0(simultaneous_event, index):
 
     bpath = f"builds/f0/day_{index + 1}_voice_"
 
-    for voice_index, ambitus, event, metronome in zip(
-        range(VOICE_COUNT), AMBITUS_TUPLE, f_simultaneous_event, dclock
+    for voice_index, event, metronome in zip(
+        range(VOICE_COUNT), f_simultaneous_event, dclock
     ):
         dir_path = f"{bpath}{voice_index}"
 
@@ -66,9 +66,6 @@ def f0(simultaneous_event, index):
                     e.duration,
                     volume,
                 )
-
-            else:
-                e.pitch_list[0] = ambitus.get_pitch_variant_tuple(e.pitch_list[0])[0]
 
         # Safety check, is everything correct?
         assert float(metronome.duration) == float(
@@ -139,11 +136,6 @@ def is_rest(e):
 TAG_TUPLE = ("tonic", "partner", "written_instable_pitch")
 j = music_parameters.JustIntonationPitch
 METRONOME_PITCH_TUPLE = (j("1/2"), j("1/1"), j("2/1"))
-AMBITUS_TUPLE = (
-    music_parameters.OctaveAmbitus(j("3/4"), j("3/2")),
-    music_parameters.OctaveAmbitus(j("15/16"), j("15/8")),
-    music_parameters.OctaveAmbitus(j("16/15"), j("32/15")),
-)
 VOICE_COUNT = 3
 
 assert len(TAG_TUPLE) == VOICE_COUNT
