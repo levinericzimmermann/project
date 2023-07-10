@@ -1,11 +1,13 @@
 import os
 
 from mutwo import core_events
+from mutwo import common_generators
 from mutwo import music_events
 from mutwo import music_parameters
 from mutwo import project_converters
 
 e2f0 = project_converters.EventToF0()
+activity_level = common_generators.ActivityLevel()
 
 
 def f0(simultaneous_event, index):
@@ -44,7 +46,19 @@ def f0(simultaneous_event, index):
             if not getattr(e, "r", True):
                 continue
 
+            # Convert rest to noise event
             if is_rest(e):
+                play_noise = True
+                is_generalpause = getattr(e, "is_generalpause", False)
+                # We don't always convert rests to noise events, but only
+                # sometimes.
+                if is_generalpause:
+                    play_noise = e.is_noise
+                else:
+                    play_noise = activity_level(8)
+                if not play_noise:
+                    continue
+
                 # The volume of the noise part highly depends on the context.
                 #
                 #   (1) for the generalpause -36.5 DB is definitely too loud.
@@ -56,7 +70,7 @@ def f0(simultaneous_event, index):
                 #       that bad, but only for long noise parts.
                 #
                 #   (3) for short noise parts during other events -38 is ok.
-                if e.duration > 10:
+                if is_generalpause:
                     volume = music_parameters.DecibelVolume(-37.85)
                 else:
                     volume = music_parameters.DecibelVolume(-38)

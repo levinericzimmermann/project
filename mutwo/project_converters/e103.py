@@ -2,6 +2,7 @@ import itertools
 import typing
 
 import quicktions as fractions
+import numpy as np
 
 from mutwo import common_generators
 from mutwo import core_converters
@@ -23,6 +24,9 @@ class TonicMovementTupleToC103SequentialEvent(core_converters.abc.Converter):
         # self._chord_count_cycle = itertools.cycle((3, 4, 2, 4, 3))
         self._chord_count_cycle = itertools.cycle((3, 4, 3, 2, 4, 2))
         self._rest_duration_cycle = itertools.cycle((100, 35, 170, 65, 130))
+        self._noise_cycle = itertools.cycle(
+            _generate_rest_noise_matrix() + _generate_rest_noise_matrix(20)
+        )
 
     def convert(
         self, tonic_movement_tuple: tuple[music_parameters.JustIntonationPitch, ...]
@@ -116,8 +120,11 @@ class TonicMovementTupleToC103SequentialEvent(core_converters.abc.Converter):
         """Gives True if rest was added and otherwise False"""
         if self._activity_level(3):
             return False
+        noise_tuple = next(self._noise_cycle)
         rest_duration = fractions.Fraction(next(self._rest_duration_cycle), 16)
-        seq.append(project_events.C103Event(None, rest_duration))
+        seq.append(
+            project_events.C103Event(None, rest_duration, noise_tuple=noise_tuple)
+        )
         return True
 
     def _tonic_to_chord_tuple(self, tonic):
@@ -129,6 +136,37 @@ class TonicMovementTupleToC103SequentialEvent(core_converters.abc.Converter):
                 key
             ] = project_generators.get_103_chord_tuple(tonic)
         return chord_tuple
+
+
+def _generate_rest_noise_matrix(seed=121234):
+    random = np.random.default_rng(seed=seed)
+
+    option_list = [
+        (0, 0, 1),
+        (0, 1, 0),
+        (1, 0, 0),
+        (1, 1, 0),
+        (1, 0, 1),
+        (0, 1, 1),
+        (1, 1, 1),
+        (1, 1, 1),
+        (1, 1, 1),
+    ]
+
+    random.shuffle(option_list)
+
+    silence = (0, 0, 0)
+    active_tuple = common_generators.euclidean(6, len(option_list) + 6)
+
+    option_iter = iter(option_list)
+
+    noise_matrix = [silence if active else next(option_iter) for active in active_tuple]
+    # Random swaps to make euclidean order a bit more organic
+    for i0, i1 in zip(range(len(noise_matrix)), range(1, len(noise_matrix))):
+        if random.random() > 0.7:
+            noise_matrix[i0], noise_matrix[i1] = noise_matrix[i1], noise_matrix[i0]
+
+    return tuple(noise_matrix)
 
 
 _tonic_to_130_chord_tuple = {}
@@ -144,6 +182,7 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
             other_pitch_list,
             alternative_pitch_tuple,
             is_generalpause,
+            is_noise,
         ):
             if start and end > start:
                 context = diary_interfaces.H103Context(
@@ -159,6 +198,7 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
                         p for p in alternative_pitch_tuple if p != previous
                     ),
                     is_generalpause=is_generalpause,
+                    is_noise=is_noise,
                 )
                 context_list.append(context)
 
@@ -175,6 +215,7 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
             previous = None
             previous_start = None
             previous_generalpause = True
+            previous_noise = False
             previous_other_pitch_list = []
             repetition_count = 0
             for start, e in zip(absolute_time_tuple, sequential_event):
@@ -193,6 +234,7 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
                         previous_other_pitch_list,
                         alternative_pitch_tuple,
                         previous_generalpause,
+                        previous_noise,
                     )
                     repetition_count = 0
                     previous = item
@@ -204,6 +246,7 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
                             e.chord, alternative_intonation
                         )
                     previous_generalpause = e.chord is None
+                    previous_noise = e.attr2noise(attr)
 
                 repetition_count += 1
 
@@ -215,6 +258,7 @@ class C103SequentialEventToContextTuple(core_converters.abc.Converter):
                 other_pitch_list,
                 alternative_pitch_tuple,
                 previous_generalpause,
+                previous_noise,
             )
 
         for start, end, e in zip(

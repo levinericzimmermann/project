@@ -18,6 +18,16 @@ diary_interfaces.DynamicEntry.from_file(
 
 
 diary_interfaces.DynamicEntry.from_file(
+    "h103_rest",
+    diary_interfaces.H103Context.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/rest.py",
+    relevance=50,
+)
+
+
+diary_interfaces.DynamicEntry.from_file(
     "h103-pclock",
     diary_interfaces.H103Context.identifier,
     timeline_interfaces.EventPlacement,
