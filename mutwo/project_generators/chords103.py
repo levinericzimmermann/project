@@ -121,6 +121,8 @@ class Chord103(object):
         This method moves the pitches to a tunable set.
         """
 
+        written_instable_pitch_index, *_ = tuple(i for i, p in enumerate(instable_tuple) if p == written_instable_pitch)
+
         tonic_tuple = AMBITUS_DICT["tonic"].get_pitch_variant_tuple(tonic)
         partner_tuple = AMBITUS_DICT["partner"].get_pitch_variant_tuple(partner)
         instable_tuple2 = tuple(
@@ -210,7 +212,7 @@ class Chord103(object):
             common_solution_list, key=lambda s: s[-1]
         )
 
-        return cls(tonic, partner, instable_tuple, written_instable_pitch, type)
+        return cls(tonic, partner, instable_tuple, instable_tuple[written_instable_pitch_index], type)
 
     @functools.cached_property
     def pitch_tuple(self) -> tuple[music_parameters.JustIntonationPitch, ...]:
