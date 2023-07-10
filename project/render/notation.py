@@ -7,6 +7,7 @@ from mutwo import abjad_converters
 from mutwo import clock_converters
 from mutwo import clock_generators
 from mutwo import core_events
+from mutwo import music_parameters
 
 import project
 
@@ -143,6 +144,17 @@ def pclock_tag_to_converter(small=True):
 
 
 def get_converter(tag, small=False):
+    class PreProcessSequentialEvent(abjad_converters.ProcessAbjadContainerRoutine):
+        def __call__(
+            self,
+            complex_event_to_convert: core_events.abc.ComplexEvent,
+            container_to_process: abjad.Container,
+        ):
+            complex_event_to_convert.set_parameter(
+                "pitch_list",
+                lambda pl: [AMBITUS.get_pitch_variant_tuple(p)[0] for p in pl],
+            )
+
     class PostProcessSequentialEvent(abjad_converters.ProcessAbjadContainerRoutine):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
@@ -207,6 +219,7 @@ def get_converter(tag, small=False):
         sequential_event_to_abjad_staff_kwargs=dict(
             mutwo_pitch_to_abjad_pitch=abjad_converters.MutwoPitchToHEJIAbjadPitch(),
             mutwo_volume_to_abjad_attachment_dynamic=None,
+            pre_process_abjad_container_routine_sequence=(PreProcessSequentialEvent(),),
             post_process_abjad_container_routine_sequence=(
                 PostProcessSequentialEvent(),
             ),
@@ -221,6 +234,16 @@ def get_converter(tag, small=False):
         ),
     }
     return converter
+
+
+AMBITUS = music_parameters.OctaveAmbitus(
+    # e' to e''
+    #
+    # In this way we don't need to print any lines out of the system :)
+    # So it's easier to read for everyone & we can avoid some signs.
+    music_parameters.JustIntonationPitch("3/4"),
+    music_parameters.JustIntonationPitch("3/2"),
+)
 
 
 def score_converter():
