@@ -95,7 +95,7 @@ class DataToContinousF0(DataToF0):
                 state = project_converters.constants.F0.STATE_KEEP
 
             v = v_tuple[index]
-            if self.r.uniform() < 0.025:
+            if self.r.uniform() < 0.02:
                 v = 3
 
             data = (state, event_duration, frequency, v)
