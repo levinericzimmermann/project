@@ -23,7 +23,7 @@ class TonicMovementTupleToC103SequentialEvent(core_converters.abc.Converter):
         self._activity_level = common_generators.ActivityLevel()
         # self._chord_count_cycle = itertools.cycle((3, 4, 2, 4, 3))
         self._chord_count_cycle = itertools.cycle((3, 4, 3, 2, 4, 2))
-        self._rest_duration_cycle = itertools.cycle((100, 35, 170, 65, 130))
+        self._rest_duration_cycle = itertools.cycle((75, 27, 107, 45, 90))
         self._noise_cycle = itertools.cycle(
             _generate_rest_noise_matrix() + _generate_rest_noise_matrix(20)
         )
