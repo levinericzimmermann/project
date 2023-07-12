@@ -72,6 +72,10 @@ def main(
             duration_diff = fractions.Fraction(1, 2)
             volume = music_parameters.DecibelVolume(-35.5)
 
+    # XXX: decibel isn't settable, so let's build a new object
+    volume_added = 2.75
+    volume = music_parameters.DecibelVolume(volume.decibel + volume_added)
+
     duration = context.end - context.start
 
     while duration_diff > duration:
