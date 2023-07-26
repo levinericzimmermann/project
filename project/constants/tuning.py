@@ -1,8 +1,4 @@
-import itertools
-
 from mutwo import music_parameters
-
-from . import week
 
 # a' frequency
 A_FREQUENCY = 442
