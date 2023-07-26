@@ -2,38 +2,16 @@
 
 let
 
-  mutwo-midi = import (sources.mutwo-nix.outPath + "/mutwo.midi/default.nix") {};
-  mutwo-diary = import (sources.mutwo-nix.outPath + "/mutwo.diary/default.nix") {};
-
-  yamm = pkgs.python310Packages.buildPythonPackage rec {
-    pname = "yamm";
-    version = "0.1";
-  
-    src = pkgs.python310Packages.fetchPypi {
-      inherit pname version;
-      sha256 = "sha256-bbEUoj27A2PrPRAOYuNbFsdrvisy3Y0DdJCOnhUntQk=";
-    };
-  
-    propagatedBuildInputs = with pkgs.python310Packages; [
-    ];
-  
-    checkInputs = with pkgs.python310Packages; [
-      pytest-runner
-      pytest
-    ];
-  
-    checkPhase = ''
-    '';
-  };
+  mutwo-common  = import (sources.mutwo-nix.outPath + "/mutwo.common/default.nix") {};
+  mutwo-midi    = import (sources.mutwo-nix.outPath + "/mutwo.midi/default.nix") {};
+  mutwo-diary   = import (sources.mutwo-nix.outPath + "/mutwo.diary/default.nix") {};
 
   mypython = pkgs.python310.buildEnv.override {
     extraLibs = with pkgs.python310Packages; [
       ipython
-      ortools
       mutwo-midi
+      mutwo-common
       mutwo-diary
-      # markov chain
-      yamm
     ];
   };
 
