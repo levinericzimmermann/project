@@ -1,43 +1,12 @@
-from quicktions import Fraction as f
-
-import numpy as np
-import ranges
-
-from mutwo import core_converters
-from mutwo import clock_converters
-from mutwo import clock_interfaces
-from mutwo import core_events
-from mutwo import timeline_interfaces
+from mutwo import music_parameters
 
 import project
 
+j = music_parameters.JustIntonationPitch
 
-def make_clock(before_rest_duration=0) -> clock_interfaces.Clock:
-    modal_sequential_event = core_events.SequentialEvent([])
-
-    project.clocks.apply_clock_events(modal_sequential_event)
-
-    for modal_event in modal_sequential_event:
-        modal_event.control_event = core_events.SimultaneousEvent(
-            [core_events.SequentialEvent([core_events.SimpleEvent(1)])]
-        )
-
-    main_clock_line = clock_converters.Modal0SequentialEventToClockLine(()).convert(
-        modal_sequential_event
-    )
-
-    # Fix overlaps
-    main_clock_line.resolve_conflicts(
-        [
-            timeline_interfaces.AlternatingStrategy(),
-        ],
-    )
-
-    start_clock_line = None
-    end_clock_line = None
-    clock = clock_interfaces.Clock(main_clock_line, start_clock_line, end_clock_line)
-
-    return clock
+part_tuple = tuple(
+    ((j("1/1"), j("3/4"), j("7/6")), (j("1/1"), j("2/3"), j("9/8"))) for _ in range(7)
+)
 
 
 if __name__ == "__main__":
@@ -53,23 +22,7 @@ if __name__ == "__main__":
     max_index = int(args.max_index)
 
     if args.illustration:
-        project.render.illustration()
-
-    # import logging
-    # from mutwo import diary_converters
-    # diary_converters.configurations.LOGGING_LEVEL = logging.DEBUG
-
-    from mutwo import diary_interfaces
-
-    with diary_interfaces.open():
-        clock_list = []
-        for _ in range(1):
-            clock_list.append(make_clock())
-
-    clock_tuple = tuple(clock_list)
-
-    if args.notation:
-        project.render.notation(clock_tuple, args.notation)
+        project.render.illustration(part_tuple)
 
     if args.sound:
-        project.render.midi(clock_tuple)
+        project.render.sound(part_tuple)

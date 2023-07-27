@@ -4,6 +4,7 @@ let
 
   mutwo-midi = import (sources.mutwo-nix.outPath + "/mutwo.midi/default.nix") {};
   mutwo-diary = import (sources.mutwo-nix.outPath + "/mutwo.diary/default.nix") {};
+  mutwo-csound = import (sources.mutwo-nix.outPath + "/mutwo.csound/default.nix") {};
 
   yamm = pkgs.python310Packages.buildPythonPackage rec {
     pname = "yamm";
@@ -30,6 +31,7 @@ let
     extraLibs = with pkgs.python310Packages; [
       ipython
       ortools
+      mutwo-csound
       mutwo-midi
       mutwo-diary
       # markov chain
