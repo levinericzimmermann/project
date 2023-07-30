@@ -21,4 +21,5 @@ if __name__ == "__main__":
             project.constants.DURATION_TUPLE,
             project.constants.PATH_TUPLE,
             project.constants.PEOPLE_TUPLE,
+            project.constants.MISSING_PEOPLE_TUPLE,
         )
