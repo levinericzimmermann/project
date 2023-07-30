@@ -19,6 +19,7 @@ class PitchTupleToSoundFile(csound_converters.EventToSoundFile):
         music_parameters.JustIntonationPitch("4/5"),
         music_parameters.JustIntonationPitch("2/1"),
     )
+    AFTER_SUSTAIN = 2 * 60
 
     def __init__(self):
         def getpitch(note):
@@ -46,6 +47,14 @@ class PitchTupleToSoundFile(csound_converters.EventToSoundFile):
         return self._render_mp3(path)
 
     def _get_sequential_event(self, pitch_tuple, duration, duration_per_harmony):
+        # Extra-long duration, when we already reached the
+        # final harmony of this transition: so when we reach it
+        # later, we have same extra buffer, and we can be sure no
+        # problem is left.
+        duration_per_harmony = list(duration_per_harmony)
+        duration_per_harmony[-1] += self.AFTER_SUSTAIN
+        duration = float(duration) + self.AFTER_SUSTAIN
+
         if not pitch_tuple:
             return core_events.SequentialEvent(
                 [
@@ -106,16 +115,17 @@ class PitchTupleToSoundFile(csound_converters.EventToSoundFile):
 
     def _get_note(self, pitch):
         drange = (30, 100)
-        if not self._activity_level(3):
+        if self._activity_level(6):
             pitch = None
             drange = (15, 50)
         note_duration = self._random.uniform(*drange)
-        if self._activity_level(5):
-            decibel = -12
+        if pitch is None:
+            decibel = -119
         else:
-            decibel = -36
-        if not pitch:
-            decibel = -100
+            if self._activity_level(4):
+                decibel = -3
+            else:
+                decibel = -9
         return music_events.NoteLike(
             pitch,
             duration=note_duration,
