@@ -46,6 +46,15 @@ class PitchTupleToSoundFile(csound_converters.EventToSoundFile):
         return self._render_mp3(path)
 
     def _get_sequential_event(self, pitch_tuple, duration, duration_per_harmony):
+        if not pitch_tuple:
+            return core_events.SequentialEvent(
+                [
+                    core_events.SimpleEvent(duration - 1),
+                    music_events.NoteLike(
+                        "c", volume=music_parameters.DecibelVolume(-119), duration=1
+                    ),
+                ]
+            )
         interpolation_list = self._get_interpolation_list(pitch_tuple)
         harmony_tick_event = core_events.SequentialEvent(
             [core_events.SimpleEvent(d) for d in duration_per_harmony]
@@ -69,6 +78,7 @@ class PitchTupleToSoundFile(csound_converters.EventToSoundFile):
 
         if not (pl := sequential_event[-1].pitch_list):
             pl.append(pitch_tuple[-1])
+            sequential_event[-1].volume = music_parameters.DecibelVolume(-119)
 
         return sequential_event
 
@@ -153,7 +163,9 @@ class HarmonyTupleToSoundFileTuple(core_converters.abc.Converter):
     def __init__(self):
         self._pitch_tuple_to_sound_file = PitchTupleToSoundFile()
 
-    def convert(self, part, index, duration, people_tuple) -> dict:
+    def convert(
+        self, part, index, duration, people_tuple, missing_people_tuple
+    ) -> dict:
         harmony_tuple, duration_per_harmony = part
         assert (
             sum(duration_per_harmony) == duration
@@ -168,7 +180,10 @@ class HarmonyTupleToSoundFileTuple(core_converters.abc.Converter):
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
             person_to_future = {}
             for person in people_tuple:
-                pitch_tuple = next(pitch_tuple_combination_cycle)
+                if person in missing_people_tuple:
+                    pitch_tuple = []
+                else:
+                    pitch_tuple = next(pitch_tuple_combination_cycle)
                 path = f"builds/sound/{index}_{person}.wav"
                 future = pool.submit(
                     self._pitch_tuple_to_sound_file,

@@ -15,6 +15,17 @@ PEOPLE_TUPLE = (
     "jieun",
 )
 
+
+MISSING_PEOPLE_TUPLE = (
+    ["juro", "maxime"],
+    [],
+    ["alyssa", "manuel", "brendan"],
+    ["alyssa", "manuel"],
+    ["juro"],
+    ["roman"],
+    [],
+)
+
 PATH_TUPLE = (
     "kug-to-crossing",
     "crossing-to-park",
