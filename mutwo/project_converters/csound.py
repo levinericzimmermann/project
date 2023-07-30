@@ -1,4 +1,5 @@
 import concurrent.futures
+import os
 import itertools
 import subprocess
 
@@ -83,6 +84,10 @@ class PitchTupleToSoundFile(csound_converters.EventToSoundFile):
 
         super().convert(sequential_event, path)
         mp3path = ".".join(path.split(".")[:-1]) + ".mp3"
+        try:
+            os.remove(mp3path)
+        except FileNotFoundError:
+            pass
         subprocess.call(
             [
                 "ffmpeg",
