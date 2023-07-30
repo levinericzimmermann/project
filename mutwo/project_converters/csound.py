@@ -1,3 +1,4 @@
+import concurrent.futures
 import itertools
 import subprocess
 
@@ -10,9 +11,6 @@ from mutwo import core_events
 from mutwo import csound_converters
 from mutwo import music_events
 from mutwo import music_parameters
-
-
-duration = 60 * 5  # 5 minutes
 
 
 class PitchTupleToSoundFile(csound_converters.EventToSoundFile):
@@ -38,7 +36,7 @@ class PitchTupleToSoundFile(csound_converters.EventToSoundFile):
         self._random = np.random.default_rng(20)
         self._activity_level = common_generators.ActivityLevel()
 
-    def convert(self, pitch_tuple, path):
+    def convert(self, pitch_tuple, path, duration):
         dynamic_choice = core_generators.DynamicChoice(
             pitch_tuple,
             (
@@ -83,7 +81,7 @@ class PitchTupleToSoundFile(csound_converters.EventToSoundFile):
         if not (pl := sequential_event[-1].pitch_list):
             pl.append(pitch_tuple[-1])
 
-        v = super().convert(sequential_event, path)
+        super().convert(sequential_event, path)
         mp3path = ".".join(path.split(".")[:-1]) + ".mp3"
         subprocess.call(
             [
@@ -100,14 +98,27 @@ class PitchTupleToSoundFile(csound_converters.EventToSoundFile):
                 mp3path,
             ]
         )
-        return v
+        return mp3path
 
 
 class HarmonyTupleToSoundFileTuple(core_converters.abc.Converter):
     def __init__(self):
         self._pitch_tuple_to_sound_file = PitchTupleToSoundFile()
 
-    def convert(self, harmony_tuple, index):
-        for i, pitch_tuple in enumerate(itertools.product(*harmony_tuple)):
-            path = f"builds/sound/s{index}_{i}.wav"
-            self._pitch_tuple_to_sound_file(pitch_tuple, path)
+    def convert(self, harmony_tuple, index, duration, people_tuple) -> dict:
+        pitch_tuple_combination_tuple = tuple(itertools.product(*harmony_tuple))
+        pitch_tuple_combination_cycle = itertools.cycle(pitch_tuple_combination_tuple)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+            person_to_future = {}
+            for person in people_tuple:
+                pitch_tuple = next(pitch_tuple_combination_cycle)
+                path = f"builds/sound/{index}_{person}.wav"
+                future = pool.submit(
+                    self._pitch_tuple_to_sound_file, pitch_tuple, path, duration
+                )
+                person_to_future[person] = future
+            person_to_path = {}
+            for person, future in person_to_future.items():
+                mp3path = future.result()
+                person_to_path[person] = mp3path
+        return person_to_path

@@ -1,13 +1,4 @@
-from mutwo import music_parameters
-
 import project
-
-j = music_parameters.JustIntonationPitch
-
-part_tuple = tuple(
-    ((j("1/1"), j("3/4"), j("7/6")), (j("1/1"), j("2/3"), j("9/8"))) for _ in range(7)
-)
-
 
 if __name__ == "__main__":
     import argparse
@@ -22,7 +13,12 @@ if __name__ == "__main__":
     max_index = int(args.max_index)
 
     if args.illustration:
-        project.render.illustration(part_tuple)
+        project.render.illustration(project.constants.PART_TUPLE)
 
     if args.sound:
-        project.render.sound(part_tuple)
+        project.render.sound(
+            project.constants.PART_TUPLE,
+            project.constants.DURATION_TUPLE,
+            project.constants.PATH_TUPLE,
+            project.constants.PEOPLE_TUPLE,
+        )
