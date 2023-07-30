@@ -38,6 +38,12 @@ class PitchTupleToSoundFile(csound_converters.EventToSoundFile):
         self._activity_level = common_generators.ActivityLevel()
 
     def convert(self, pitch_tuple, path, duration):
+        sequential_event = self._get_sequential_event(pitch_tuple, duration)
+
+        super().convert(sequential_event, path)
+        return self._render_mp3(path)
+
+    def _get_sequential_event(self, pitch_tuple, duration):
         pitch_count = len(pitch_tuple)
         if pitch_count == 2:
             dynamic_choice = core_generators.DynamicChoice(
@@ -95,7 +101,9 @@ class PitchTupleToSoundFile(csound_converters.EventToSoundFile):
         if not (pl := sequential_event[-1].pitch_list):
             pl.append(pitch_tuple[-1])
 
-        super().convert(sequential_event, path)
+        return sequential_event
+
+    def _render_mp3(self, path):
         mp3path = ".".join(path.split(".")[:-1]) + ".mp3"
         try:
             os.remove(mp3path)

@@ -21,8 +21,10 @@ def sound(part_tuple, duration_tuple, path_tuple, people_tuple):
         except FileExistsError:
             pass
         for sf in sound_file_list:
+            # copy
             f = sf.split("/")[-1]
             shutil.copyfile(sf, f"{person_path}/{f}")
+            # zip everything
             zip_path = f"builds/sound/{person}.zip"
             try:
                 os.remove(zip_path)
