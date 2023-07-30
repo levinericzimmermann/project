@@ -12,7 +12,7 @@ def sound(part_tuple, duration_tuple, path_tuple, people_tuple, missing_people_t
         zip(part_tuple, duration_tuple, path_tuple, missing_people_tuple)
     ):
         part, duration, path, missing = d
-        person_to_path = c.convert(part, f"{i}_{path}", duration, people_tuple, missing)
+        person_to_path = c.convert(part, f"{i + 1}_{path}", duration, people_tuple, missing)
         for person in people_tuple:
             person_to_path_list[person].append(person_to_path[person])
 
