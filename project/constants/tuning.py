@@ -1,7 +1,7 @@
 from mutwo import music_parameters
 
 # a' frequency
-A_FREQUENCY = 442
+A_FREQUENCY = 441
 
 # we tune to 'a'
 music_parameters.configurations.DEFAULT_CONCERT_PITCH = A_FREQUENCY
