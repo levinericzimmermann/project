@@ -37,49 +37,46 @@ class PitchTupleToSoundFile(csound_converters.EventToSoundFile):
         self._random = np.random.default_rng(20)
         self._activity_level = common_generators.ActivityLevel()
 
-    def convert(self, pitch_tuple, path, duration):
-        sequential_event = self._get_sequential_event(pitch_tuple, duration)
+    def convert(self, pitch_tuple, path, duration, duration_per_harmony):
+        sequential_event = self._get_sequential_event(
+            pitch_tuple, duration, duration_per_harmony
+        )
 
         super().convert(sequential_event, path)
         return self._render_mp3(path)
 
-    def _get_sequential_event(self, pitch_tuple, duration):
-        pitch_count = len(pitch_tuple)
-        if pitch_count == 2:
+    def _get_sequential_event(self, pitch_tuple, duration, duration_per_harmony):
+        interpolation_list = []
+        for p0, p1 in zip(pitch_tuple, pitch_tuple[1:]):
             dynamic_choice = core_generators.DynamicChoice(
-                pitch_tuple,
+                (p0, p1),
                 (
                     core_events.Envelope([[0, 1], [1, 0]]),
                     core_events.Envelope([[0, 0], [1, 1]]),
                 ),
             )
-        elif pitch_count == 3:
-            dynamic_choice = core_generators.DynamicChoice(
-                pitch_tuple,
-                (
-                    core_events.Envelope([[0, 1], [0.5, 0], [1, 0]]),
-                    core_events.Envelope([[0, 0], [0.5, 1], [1, 0]]),
-                    core_events.Envelope([[0, 0], [0.5, 0], [1, 1]]),
-                ),
-            )
-        else:
-            raise NotImplementedError(f"can't render {pitch_count} pitches")
+            interpolation_list.append(dynamic_choice)
+
+        harmony_tick_event = core_events.SequentialEvent(
+            [core_events.SimpleEvent(d) for d in duration_per_harmony]
+        )
+        abs_tt = harmony_tick_event.absolute_time_tuple
 
         sequential_event = core_events.SequentialEvent([])
         while sequential_event.duration < duration:
-            # +20 because the position shouldn't be only about the
-            # start point, but also about the end point, otherwise
-            # the first harmony is always longer than the second
-            # harmony.
-            position = (sequential_event.duration + 20) / duration
-            if self._activity_level(3):
-                pitch = self._random.choice(
-                    self.AMBITUS.get_pitch_variant_tuple(
-                        dynamic_choice.gamble_at(position)
-                    )
-                )
-                drange = (30, 100)
+            d = sequential_event.duration
+            harmony_tick_index = harmony_tick_event.get_event_index_at(d)
+            c = harmony_tick_index // 2
+            if harmony_tick_index % 2 == 0:
+                pitch = pitch_tuple[c]
             else:
+                interpolation_dur = duration_per_harmony[harmony_tick_index]
+                position = (d - abs_tt[harmony_tick_index]) / interpolation_dur
+                pitch = dynamic_choice.gamble_at(position)
+
+            pitch = self._random.choice(self.AMBITUS.get_pitch_variant_tuple(pitch))
+            drange = (30, 100)
+            if not self._activity_level(3):
                 pitch = None
                 drange = (15, 50)
             note_duration = self._random.uniform(*drange)
@@ -131,16 +128,29 @@ class HarmonyTupleToSoundFileTuple(core_converters.abc.Converter):
     def __init__(self):
         self._pitch_tuple_to_sound_file = PitchTupleToSoundFile()
 
-    def convert(self, harmony_tuple, index, duration, people_tuple) -> dict:
-        pitch_tuple_combination_tuple = tuple(itertools.product(*harmony_tuple))
-        pitch_tuple_combination_cycle = itertools.cycle(pitch_tuple_combination_tuple)
+    def convert(self, part, index, duration, people_tuple) -> dict:
+        harmony_tuple, duration_per_harmony = part
+        assert (
+            sum(duration_per_harmony) == duration
+        ), f"inconsistent duration: {duration_per_harmony} != {duration}"
+        harmony_list = [list(h) for h in harmony_tuple]
+        max_pitch_count = max(len(h) for h in harmony_tuple)
+        for h in harmony_list:
+            p_cycle = itertools.cycle(h)
+            while len(h) < max_pitch_count:
+                h.append(next(p_cycle))
+        pitch_tuple_combination_cycle = itertools.cycle(tuple(zip(*harmony_list)))
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
             person_to_future = {}
             for person in people_tuple:
                 pitch_tuple = next(pitch_tuple_combination_cycle)
                 path = f"builds/sound/{index}_{person}.wav"
                 future = pool.submit(
-                    self._pitch_tuple_to_sound_file, pitch_tuple, path, duration
+                    self._pitch_tuple_to_sound_file,
+                    pitch_tuple,
+                    path,
+                    duration,
+                    duration_per_harmony,
                 )
                 person_to_future[person] = future
             person_to_path = {}
