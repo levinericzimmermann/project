@@ -16,7 +16,7 @@ PEOPLE_TUPLE = (
 )
 
 PATH_TUPLE = (
-    "kup-to-crossing",
+    "kug-to-crossing",
     "crossing-to-park",
     "park-to-cathetral-to-organ-institute",
     "organ-institute-to-schlossberg",
@@ -27,8 +27,8 @@ PATH_TUPLE = (
 
 j = music_parameters.JustIntonationPitch
 PART_TUPLE = (
-    # kup -> crossing
-    #   kup leaving:                ?
+    # kug -> crossing
+    #   kug leaving:                ?
     #   crossing:                   ?
     ((j("1/1"), j("3/4"), j("7/6")), (j("1/1"), j("2/3"), j("9/8"))),
     # crossing -> park
@@ -59,13 +59,20 @@ PART_TUPLE = (
 )
 
 DURATION_TUPLE = (
+    # kug -> crossing
+    3 * 60,
+    # crossing -> park
+    3 * 60,
+    # park -> cathetral -> organ institute
+    10 * 60,
+    # organ insitute -> schlossberg
+    15 * 60,
+    # schlossberg -> mur
+    10 * 60,
+    # mur -> tunnel
     5 * 60,
-    5 * 60,
-    5 * 60,
-    5 * 60,
-    5 * 60,
-    5 * 60,
-    5 * 60,
+    # tunnel -> light
+    3 * 60,
 )
 
 
