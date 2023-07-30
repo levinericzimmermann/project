@@ -38,13 +38,26 @@ class PitchTupleToSoundFile(csound_converters.EventToSoundFile):
         self._activity_level = common_generators.ActivityLevel()
 
     def convert(self, pitch_tuple, path, duration):
-        dynamic_choice = core_generators.DynamicChoice(
-            pitch_tuple,
-            (
-                core_events.Envelope([[0, 1], [1, 0]]),
-                core_events.Envelope([[0, 0], [1, 1]]),
-            ),
-        )
+        pitch_count = len(pitch_tuple)
+        if pitch_count == 2:
+            dynamic_choice = core_generators.DynamicChoice(
+                pitch_tuple,
+                (
+                    core_events.Envelope([[0, 1], [1, 0]]),
+                    core_events.Envelope([[0, 0], [1, 1]]),
+                ),
+            )
+        elif pitch_count == 3:
+            dynamic_choice = core_generators.DynamicChoice(
+                pitch_tuple,
+                (
+                    core_events.Envelope([[0, 1], [0.5, 0], [1, 0]]),
+                    core_events.Envelope([[0, 0], [0.5, 1], [1, 0]]),
+                    core_events.Envelope([[0, 0], [0.5, 0], [1, 1]]),
+                ),
+            )
+        else:
+            raise NotImplementedError(f"can't render {pitch_count} pitches")
 
         sequential_event = core_events.SequentialEvent([])
         while sequential_event.duration < duration:
