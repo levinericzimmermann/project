@@ -23,4 +23,9 @@ def sound(part_tuple, duration_tuple, path_tuple, people_tuple):
         for sf in sound_file_list:
             f = sf.split("/")[-1]
             shutil.copyfile(sf, f"{person_path}/{f}")
-            subprocess.call(["zip", "-r", "builds/sound/{person}.zip", person_path])
+            zip_path = f"builds/sound/{person}.zip"
+            try:
+                os.remove(zip_path)
+            except FileNotFoundError:
+                pass
+            subprocess.call(["zip", "-r", zip_path, person_path])
