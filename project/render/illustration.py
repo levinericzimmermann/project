@@ -22,8 +22,9 @@ def illustration(part_tuple):
 
     part_notation_list = []
     for i, part in enumerate(part_tuple):
+        harmony_tuple, _ = part
         p = f"{base_path}/harmony_{i}.png"
-        illustrate_harmony_tuple(p, part)
+        illustrate_harmony_tuple(p, harmony_tuple)
         part_notation_list.append(p)
 
     illustrate_start(intro_tex_path, tuple(part_notation_list))
