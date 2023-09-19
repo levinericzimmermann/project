@@ -96,7 +96,7 @@ class DataToContinousF0(DataToF0):
 
             v = v_tuple[index]
             if self.r.uniform() < 0.02:
-                v = 5
+                v = 2
 
             data = (state, event_duration, frequency, v)
             e_list.append(DATA_TO_F0_EVENT(*data))
