@@ -4,7 +4,7 @@ from mutwo import timeline_interfaces
 
 def is_supported(context, **kwargs):
     try:
-        assert int(context.moon_phase_index) == 9
+        assert int(context.moon_phase_index) == 100
         assert hasattr(context.orchestration, "AEOLIAN_HARP")
     except AssertionError:
         return False

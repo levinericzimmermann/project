@@ -7,6 +7,96 @@ import project
 
 path = "/".join(os.path.abspath(__file__).split("/")[:-1])
 
+diary_interfaces.DynamicEntry.from_file(
+    "mpi6",
+    diary_interfaces.MoonContext.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/mpi6.py",
+    relevance=100,
+)
+
+diary_interfaces.DynamicEntry.from_file(
+    "mpi4",
+    diary_interfaces.MoonContext.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/mpi4.py",
+    relevance=100,
+)
+
+diary_interfaces.DynamicEntry.from_file(
+    "mpi3",
+    diary_interfaces.MoonContext.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/mpi3.py",
+    relevance=100,
+)
+
+diary_interfaces.DynamicEntry.from_file(
+    "mpi2",
+    diary_interfaces.MoonContext.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/mpi2.py",
+    relevance=100,
+)
+
+diary_interfaces.DynamicEntry.from_file(
+    "mpi1",
+    diary_interfaces.MoonContext.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/mpi0.py",
+    relevance=100,
+)
+
+
+diary_interfaces.DynamicEntry.from_file(
+    "mpi24",
+    diary_interfaces.MoonContext.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/mpi24.py",
+    relevance=100,
+)
+
+
+diary_interfaces.DynamicEntry.from_file(
+    "mpi23",
+    diary_interfaces.MoonContext.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/mpi23.py",
+)
+
+diary_interfaces.DynamicEntry.from_file(
+    "mpi22",
+    diary_interfaces.MoonContext.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/mpi22.py",
+    relevance=100,
+)
+
+diary_interfaces.DynamicEntry.from_file(
+    "mpi21",
+    diary_interfaces.MoonContext.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/mpi21.py",
+    relevance=100,
+)
+
+diary_interfaces.DynamicEntry.from_file(
+    "mpi20",
+    diary_interfaces.MoonContext.identifier,
+    timeline_interfaces.EventPlacement,
+    skip_check=project.constants.SKIP_CHECK,
+    file_path=f"{path}/mpi20.py",
+    relevance=100,
+)
 
 diary_interfaces.DynamicEntry.from_file(
     "mpi29",
@@ -26,23 +116,6 @@ diary_interfaces.DynamicEntry.from_file(
     relevance=100,
 )
 
-diary_interfaces.DynamicEntry.from_file(
-    "mpi24",
-    diary_interfaces.MoonContext.identifier,
-    timeline_interfaces.EventPlacement,
-    skip_check=project.constants.SKIP_CHECK,
-    file_path=f"{path}/mpi24.py",
-    relevance=100,
-)
-
-diary_interfaces.DynamicEntry.from_file(
-    "mpi23",
-    diary_interfaces.MoonContext.identifier,
-    timeline_interfaces.EventPlacement,
-    skip_check=project.constants.SKIP_CHECK,
-    file_path=f"{path}/mpi23.py",
-    relevance=100,
-)
 
 diary_interfaces.DynamicEntry.from_file(
     "mpi14",

@@ -9,7 +9,7 @@ from mutwo import timeline_interfaces
 
 def is_supported(context, **kwargs):
     try:
-        assert int(context.moon_phase_index) in (10, 11, 12)
+        assert int(context.moon_phase_index) in (9, 10, 11, 12, 13)
         assert hasattr(context.orchestration, "AEOLIAN_HARP")
     except AssertionError:
         return False
@@ -43,15 +43,15 @@ def main(context, random, **kwargs) -> timeline_interfaces.EventPlacement:
 
     # True for tone
     # False for rest
-    tone_rest_activity_level = 6
+    tone_rest_activity_level = 8
 
     absolute_time = 0
 
     duration_range_tuple = (
         # rest
-        ranges.Range(65, 200),
+        ranges.Range(45, 120),
         # tone
-        ranges.Range(11, 17),
+        ranges.Range(11, 19),
     )
 
     while absolute_time < duration:
