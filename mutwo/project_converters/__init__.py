@@ -7,20 +7,32 @@ from mutwo import kepathian_events
 import project
 
 
-class PageIndexToKTableTuple(core_converters.abc.Converter):
-    def __init__(
-        self, breath_sequence_to_ktable=breath_converters.BreathSequenceToKTable()
-    ):
+class PageIndexToBreathSequenceTuple(core_converters.abc.Converter):
+    def __init__(self):
         self._logger = core_utilities.get_cls_logger(type(self))
-        self.breath_sequence_to_ktable = breath_sequence_to_ktable
 
     def convert(self, page_index: int) -> tuple[kepathian_events.KTable, ...]:
         path = f"project/mmml/{page_index}.mmml"
         try:
-            breath_sequence_tuple = project.mmml.parse(path)
+            return project.mmml.parse(path)
         except FileNotFoundError:
             self._logger.warn(f"no music for page {page_index + 1}")
             return self.convert(0)
+
+
+class PageIndexToKTableTuple(core_converters.abc.Converter):
+    def __init__(
+        self,
+        breath_sequence_to_ktable=breath_converters.BreathSequenceToKTable(),
+        page_index_to_breath_sequence_tuple=PageIndexToBreathSequenceTuple(),
+    ):
+        self.breath_sequence_to_ktable = breath_sequence_to_ktable
+        self.page_index_to_breath_sequence_tuple = page_index_to_breath_sequence_tuple
+
+    def convert(self, page_index: int) -> tuple[kepathian_events.KTable, ...]:
+        breath_sequence_tuple = self.page_index_to_breath_sequence_tuple.convert(
+            page_index
+        )
         ktable_list = []
         for breath_sequence in breath_sequence_tuple:
             ktable = self.breath_sequence_to_ktable.convert(breath_sequence)

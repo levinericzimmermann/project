@@ -1,25 +1,15 @@
-from mutwo import kepathian_converters
-from mutwo import project_converters
+import argparse
 
 import project
 
-# for i, s in enumerate(project.constants.SENTENCE_TUPLE):
-#     print(i, s)
-#     print('')
-# 1/0
+parser = argparse.ArgumentParser(prog="project")
+parser.add_argument("-n", "--notation", action="store_true")
+parser.add_argument("-s", "--sound", action="store_true")
 
-# seq = project.mmml.parse('project/mmml/0.mmml')
+args = parser.parse_args()
 
+if args.notation:
+    project.render.notation()
 
-content_to_document = kepathian_converters.ContentToDocument()
-page_index_to_spread = project_converters.PageIndexToSpread()
-content_list = []
-
-with open('etc/templates/cover.sil') as f:
-    content_list.append(f.read())
-
-for page_index in range(project.constants.PAGE_COUNT):
-    content_list.append(page_index_to_spread.convert(page_index))
-
-content = "\n\n\\pagebreak\n\n".join(content_list)
-content_to_document.convert(content, r"builds/11.1.pdf", cleanup=False)
+if args.sound:
+    project.render.midi()
