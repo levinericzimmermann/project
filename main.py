@@ -13,13 +13,11 @@ import project
 
 content_to_document = kepathian_converters.ContentToDocument()
 page_index_to_spread = project_converters.PageIndexToSpread()
-content_list = [
-    r"""\nofolios
-\begin{center}
-\font[size=24pt]{11.1}
-\end{center}
-"""
-]
+content_list = []
+
+with open('etc/templates/cover.sil') as f:
+    content_list.append(f.read())
+
 for page_index in range(project.constants.PAGE_COUNT):
     content_list.append(page_index_to_spread.convert(page_index))
 
