@@ -79,8 +79,8 @@ class PageIndexToText(core_converters.abc.Converter):
         # return "\n\n".join(word_list)
         result = _table(word_list)
         ragged = "raggedright" if page_index % 2 == 0 else "raggedleft"
-        # return rf"""\font[filename=etc/fonts/schwabacher/alte-schwabacher/AlteSchwabacher.ttf]
-        return rf"""\font[filename=etc/fonts/Space_Mono/SpaceMono-Regular.ttf]
+        # return rf"""\font[filename=etc/fonts/Space_Mono/SpaceMono-Regular.ttf]
+        return rf"""\font[filename=etc/fonts/schwabacher/alte-schwabacher/AlteSchwabacher.ttf,size=6pt]
 \begin{{{ragged}}}
 {result}
 \end{{{ragged}}}
@@ -92,7 +92,7 @@ def _table(word_list):
     for word in word_list:
         row = r"\tr{" "\n"
         for c in word:
-            row += r"\td{" + c + r"\glue[width=0.1cm]" + "}\n"
+            row += r"\td{" + c + r"\glue[width=0.65cm]" + "}\n"
         row += "}\n"
         t += row
     t += "}"
