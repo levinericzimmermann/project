@@ -1,0 +1,6 @@
+[submodule "mutwo.mmml"]
+	path = mutwo.mmml
+	url = https://github.com/mutwo-org/mutwo.mmml
+[submodule "mutwo.kepathian"]
+	path = mutwo.kepathian
+	url = https://github.com/levinericzimmermann/mutwo.kepathian
