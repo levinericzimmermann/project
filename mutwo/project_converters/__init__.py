@@ -1,11 +1,6 @@
 from mutwo import breath_converters
-from mutwo import breath_events
-from mutwo import breath_parameters
 from mutwo import core_converters
-from mutwo import core_events
 from mutwo import core_utilities
-from mutwo import music_events
-from mutwo import music_parameters
 from mutwo import kepathian_converters
 from mutwo import kepathian_events
 
