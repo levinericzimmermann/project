@@ -1,14 +1,60 @@
 \use[module=packages.grid]
+\use[module=packages.image]
+\use[module=packages.svg]
 
 \grid[spacing=6pt]
 
 \nofolios
 
-\font[filename=etc/fonts/jetb/ttf/JetBrainsMonoNL-Regular.ttf] 
+\font[filename=etc/fonts/Space_Mono/SpaceMono-Regular.ttf] 
 {
+
+\begin{center}
 \font[size=24pt]{11.1}
 
-\skip[height=1cm]
+\skip[height=0.3cm]
 
 \font[size=18pt]{levin eric zimmermann}
+\end{center}
+
+\font[size=10pt]{
+
+\skip[height=4cm]
+
+\begin{center}
+martin heidegger (1889-1976):
+
+deutscher philosoph & mitglied der NSDAP;
+
+berühmt für seine kritik an abendländischer metaphysik;
+
+breite rezension in frankreich & japan.
+
+% im kurzen band feldweg (1949)
+\end{center}
+
+
+\skip[height=2cm]
+
+\begin{center}
+alte schwabacher:
+
+schrift aus der gruppe der gebrochenen schrift;
+
+im 15 jhr. in deutschland enstanden;
+
+zuerst zur propaganda von nazis missbraucht
+
+wurde sie 1941 von diesen verboten
+
+(als „schwabacher judenlettern“).
+
+\end{center}
+
+
+
 }
+}
+
+
+
