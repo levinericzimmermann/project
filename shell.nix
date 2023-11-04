@@ -5,6 +5,7 @@ with pkgs.python310Packages;
 
 let
 
+  mutwo-diary   = import (sources.mutwo-nix.outPath + "/mutwo.diary/default.nix") {};
   mutwo-music   = import (sources.mutwo-nix.outPath + "/mutwo.music/default.nix") {};
   mutwo-midi    = import (sources.mutwo-nix.outPath + "/mutwo.midi/default.nix") {};
 
@@ -17,6 +18,7 @@ let
       mutwo-midi
       mutwo-kepathian
       mutwo-mmml
+      mutwo-diary
     ];
   };
 
