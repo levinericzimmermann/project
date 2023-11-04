@@ -19,6 +19,10 @@ let
       mutwo-kepathian
       mutwo-mmml
       mutwo-diary
+
+      # Strange bug: mido needs it, but for some reason mutwo.midi
+      # doesn't deliver it.
+      packaging
     ];
   };
 
