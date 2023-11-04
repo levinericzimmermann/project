@@ -38,3 +38,13 @@ def exh(speed="s"):
             breath_parameters.BreathDirection.EXHALE, parse_speed(speed)
         )
     )
+
+
+@mmml_converters.register_encoder(core_events.SimpleEvent)
+def simple_event(s: core_events.SimpleEvent):
+    breath = s.breath
+    name = (
+        "inh" if breath.direction == breath_parameters.BreathDirection.INHALE else "exh"
+    )
+    speed = "s" if breath.speed == breath_parameters.BreathSpeed.SLOW else "f"
+    return f"{name} {speed}"
