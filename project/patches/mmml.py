@@ -22,7 +22,7 @@ def b_event(breath):
     )
 
 
-@mmml_converters.register_solver
+@mmml_converters.register_decoder
 def inh(speed="s"):
     return b_event(
         breath_parameters.Breath(
@@ -31,7 +31,7 @@ def inh(speed="s"):
     )
 
 
-@mmml_converters.register_solver
+@mmml_converters.register_decoder
 def exh(speed="s"):
     return b_event(
         breath_parameters.Breath(
