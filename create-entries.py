@@ -1,3 +1,5 @@
+import argparse
+
 from mutwo import core_events
 from mutwo import diary_interfaces
 from mutwo import mmml_converters
@@ -9,9 +11,11 @@ import project
 e2mml = mmml_converters.EventToMMMLExpression()
 
 
-def main():
-    context_tuple = (project_interfaces.PContext(0),)
-    for context in context_tuple:
+def main(page_count):
+    for i in range(page_count or project.constants.PAGE_COUNT):
+        sentence = project.constants.SENTENCE_TUPLE[i]
+        m, next_m = project.u.page_index_to_current_melody_and_next_melody(i)
+        context = project_interfaces.PContext(i, sentence, m, next_m)
         entry_tuple = tuple(
             diary_interfaces.fetch_wrapped_entry_tree().rquery(
                 context_identifier=str(context.identifier),
@@ -25,5 +29,12 @@ def main():
             f.write(mmml)
 
 
+parser = argparse.ArgumentParser(prog="project")
+parser.add_argument("-c", "--pagecount")
+
+args = parser.parse_args()
+
+page_count = int(args.pagecount) if args.pagecount else None
+
 with diary_interfaces.open():
-    main()
+    main(page_count)

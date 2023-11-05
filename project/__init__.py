@@ -4,5 +4,6 @@ from . import configurations
 from . import entries
 from . import mmml
 from . import render
+from . import utilities as u
 
 del patches

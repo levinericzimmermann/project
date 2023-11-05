@@ -1,6 +1,7 @@
 from mutwo import breath_parameters
 from mutwo import core_events
 from mutwo import music_events
+from mutwo import project_converters
 
 import project
 
@@ -10,17 +11,34 @@ def is_supported(context, **kwargs):
 
 
 def main(context, **kwargs):
-    inh = core_events.SimpleEvent(project.constants.INTERNAL_BREATH_DURATION).set(
-        "breath", breath_parameters.Breath(breath_parameters.BreathDirection.INHALE)
-    )
-    exh = core_events.SimpleEvent(project.constants.INTERNAL_BREATH_DURATION).set(
-        "breath", breath_parameters.Breath(breath_parameters.BreathDirection.EXHALE)
-    )
-    n = music_events.NoteLike("7", 1)
-    return core_events.SimultaneousEvent(
-        [
-            core_events.TaggedSequentialEvent([inh, exh, inh, exh] * 3, tag="b"),
-            core_events.TaggedSequentialEvent([n] * 12, tag="v"),
-            core_events.TaggedSequentialEvent([n] * 12, tag="i"),
-        ]
-    )
+    b = project.u.m(b0)
+
+    v = mb2v.convert(context.melody, b)
+
+    i = v.copy().set("tag", "i")
+    i[0].duration -= 0.5
+    i[-1].duration += 0.5
+
+    return core_events.SimultaneousEvent([b, v, i])
+
+
+mb2v = project_converters.MelodyAndBreathSequenceToVoice()
+
+
+b0 = r"""
+seq b
+    inh s
+    exh s
+    inh s
+    exh s
+
+    inh s
+    exh s
+    inh s
+    exh s
+
+    inh s
+    exh s
+    inh s
+    exh s
+"""
