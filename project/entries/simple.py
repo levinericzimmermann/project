@@ -16,7 +16,12 @@ def main(context, **kwargs):
     v = mb2v.convert(context.melody, b)
 
     i = v.copy().set("tag", "i")
-    i[0].duration -= 0.5
+    for split in range(int(i.duration)):
+        i.split_child_at(split + 0.5)
+    for index, n in enumerate(i):
+        if index % 2 == 1:
+            n.pitch_list = []
+    del i[0]
     i[-1].duration += 0.5
 
     return core_events.SimultaneousEvent([b, v, i])
