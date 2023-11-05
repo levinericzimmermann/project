@@ -29,22 +29,31 @@ mp2sp = MelodyPitchToScalePitch()
 
 
 class MelodyAndBreathSequenceToVoice(core_converters.abc.Converter):
+    # data_to_wait_count: With this function we can set how
+    # long the rests are between two notes: are they as short as possible?
+    # In this case just return 0. But for any number higher than 0 the
+    # algorithm must wait X times until it finds a suitable solution again.
     def convert(
         self,
         melody: core_events.SequentialEvent,
         breath_sequence: core_events.SequentialEvent,
+        data_to_wait_count=lambda is_first_note, trial_counter, missed_change_counter: 0,
     ):
         melody = melody.copy().set_parameter(
             "pitch_list", lambda pitch_list: [mp2sp(p) for p in pitch_list]
         )
-        # print(melody.get_parameter('pitch_list'))
         position_tuple = MelodyToPositionTuple()(melody)
 
-        voice = core_events.TaggedSequentialEvent([], tag='v')
+        voice = core_events.TaggedSequentialEvent([], tag="v")
         b_iter = iter(breath_sequence)
+        is_first_note = True
         for note, position in zip(melody, position_tuple):
-            stop = False
+            trial_counter = 0
+            missed_change_counter = 0
             while 1:
+                wait_count = data_to_wait_count(
+                    is_first_note, trial_counter, missed_change_counter
+                )
                 try:
                     b = next(b_iter)
                 except StopIteration:
@@ -59,11 +68,14 @@ class MelodyAndBreathSequenceToVoice(core_converters.abc.Converter):
                     add_tone = not position
 
                 if add_tone:
-                    vnote.pitch_list = note.pitch_list
-                    break
+                    if wait_count > missed_change_counter:
+                        missed_change_counter += 1
+                    else:
+                        vnote.pitch_list = note.pitch_list
+                        break
+                trial_counter += 1
 
-            if stop:
-                break
+            is_first_note = False
 
         # If our melody is shorter than the breath duration
         while 1:
@@ -71,7 +83,7 @@ class MelodyAndBreathSequenceToVoice(core_converters.abc.Converter):
                 b = next(b_iter)
             except StopIteration:
                 return voice
-            voice.append(music_events.NoteLike([], '1/1'))
+            voice.append(music_events.NoteLike([], "1/1"))
 
 
 class MelodyToPositionTuple(core_converters.abc.Converter):

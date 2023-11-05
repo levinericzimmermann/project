@@ -13,7 +13,14 @@ def is_supported(context, **kwargs):
 def main(context, **kwargs):
     b = project.u.m(b0)
 
-    v = mb2v.convert(context.melody, b)
+    def data_to_wait_count(is_first_note, trial_counter, missed_change_counter):
+        if is_first_note:
+            return 0
+        if trial_counter == 0:
+            return 0
+        return 1
+
+    v = mb2v.convert(context.melody, b, data_to_wait_count)
 
     i = v.copy().set("tag", "i")
     for split in range(int(i.duration)):
