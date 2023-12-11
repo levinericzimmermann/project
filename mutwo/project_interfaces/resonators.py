@@ -21,7 +21,9 @@ class Resonator(object):
     delay: core_parameters.abc.Duration = core_parameters.DirectDuration(0)
 
     # Harmonizer parameters
-    pitch_factor_tuple: tuple[float, ...] = (1,)
+    pitch_transposition_tuple: tuple[music_parameters.abc.PitchInterval, ...] = (
+        music_parameters.JustIntonationPitch("1/1"),
+    )
 
     # Resonator parameters
     #   Which pitches when played create resonances
