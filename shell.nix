@@ -8,7 +8,7 @@ let
   mutwo-diary   = import (sources.mutwo-nix.outPath + "/mutwo.diary/default.nix") {};
   mutwo-abjad   = import (sources.mutwo-nix.outPath + "/mutwo.abjad/default.nix") {};
   mutwo-midi    = import (sources.mutwo-nix.outPath + "/mutwo.midi/default.nix") {};
-  mutwo-mmml    = import ./mutwo.mmml/default.nix {};
+  mutwo-mmml    = import ./mutwo.mmml/default.nix;
 
   mypython = python310.buildEnv.override {
     extraLibs = [
