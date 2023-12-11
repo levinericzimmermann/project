@@ -1,32 +1,29 @@
-from mutwo import breath_parameters
 from mutwo import core_events
 from mutwo import mmml_converters
-
-import project
+from mutwo import project_events
+from mutwo import project_parameters
 
 
 def parse_speed(speed):
     match speed:
         case "s":
-            s = breath_parameters.BreathSpeed.SLOW
+            s = project_parameters.BreathSpeed.SLOW
         case "f":
-            s = breath_parameters.BreathSpeed.FAST
+            s = project_parameters.BreathSpeed.FAST
         case _:
             raise NotImplementedError(speed)
     return s
 
 
 def b_event(breath):
-    return core_events.SimpleEvent(project.constants.INTERNAL_BREATH_DURATION).set(
-        "breath", breath
-    )
+    return project_events.BreathEvent(breath)
 
 
 @mmml_converters.register_decoder
 def inh(speed="s"):
     return b_event(
-        breath_parameters.Breath(
-            breath_parameters.BreathDirection.INHALE, parse_speed(speed)
+        project_parameters.Breath(
+            project_parameters.BreathDirection.INHALE, parse_speed(speed)
         )
     )
 
@@ -34,8 +31,8 @@ def inh(speed="s"):
 @mmml_converters.register_decoder
 def exh(speed="s"):
     return b_event(
-        breath_parameters.Breath(
-            breath_parameters.BreathDirection.EXHALE, parse_speed(speed)
+        project_parameters.Breath(
+            project_parameters.BreathDirection.EXHALE, parse_speed(speed)
         )
     )
 
@@ -44,7 +41,7 @@ def exh(speed="s"):
 def simple_event(s: core_events.SimpleEvent):
     breath = s.breath
     name = (
-        "inh" if breath.direction == breath_parameters.BreathDirection.INHALE else "exh"
+        "inh" if breath.direction == project_parameters.BreathDirection.INHALE else "exh"
     )
-    speed = "s" if breath.speed == breath_parameters.BreathSpeed.SLOW else "f"
+    speed = "s" if breath.speed == project_parameters.BreathSpeed.SLOW else "f"
     return f"{name} {speed}"
