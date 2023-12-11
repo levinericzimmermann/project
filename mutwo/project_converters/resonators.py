@@ -57,7 +57,7 @@ def proceed_note_like(t, n, resonator, seq, b):
         while delay > 0:
             b0 = b[0]
             d = b0.breath_or_hold_breath.duration * b0.duration
-            if delay > d:
+            if delay >= d:
                 delay -= d
                 t += b0.duration
             else:
