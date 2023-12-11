@@ -4,7 +4,7 @@ import enum
 from mutwo import core_parameters
 from mutwo import project_parameters
 
-__all__ = ("BreathDirection", "BreathSpeed", "Breath", "HoldBreath")
+__all__ = ("BreathDirection", "BreathSpeed", "Breath", "HoldBreath", "BreathOrHoldBreath")
 
 
 class BreathDirection(enum.Enum):
