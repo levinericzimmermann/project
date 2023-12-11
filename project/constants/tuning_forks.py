@@ -2,6 +2,7 @@ from mutwo import music_parameters
 
 j = music_parameters.JustIntonationPitch
 
+# Tuner concert pitch
 A = music_parameters.DirectPitch(442)
 
 # We use g' as the concert pitch, because with magnets it's only possible to
