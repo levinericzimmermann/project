@@ -1,6 +1,6 @@
 # Structure
 
-## Movement
+## Form
 
 - a sequence of slowly unfolding events, sounds
     - each breath matters
@@ -28,6 +28,20 @@
 - how to order parts? how do parts decide for pitches?
 
 
+## Representation of musical material / breath
+
+Each musical part is a ``SimultaneousEvent`` that contains N voices.
+The first voice must be the breath voice.
+This is a SequentialEvent[BreathEvent], where each breath event has
+a duration of 1 and has a value which tells what type of breath is done:
+
+    - inhale (slow or fast)
+    - exahle (slow or fast)
+    - holding breath
+
+All other voices assume that the duration of 1 equals one breath part.
+So the duration inside the voices doesn't reflect the 'real' duration,
+but the duration according to the breath sequence.
 
 ## Harmony
 
