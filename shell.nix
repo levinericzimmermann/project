@@ -13,6 +13,7 @@ let
   mypython = python310.buildEnv.override {
     extraLibs = [
       ipython
+      mutwo-abjad
       mutwo-midi
       mutwo-mmml
       mutwo-diary
