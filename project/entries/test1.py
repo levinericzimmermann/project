@@ -7,8 +7,11 @@ from mutwo import project_converters
 from mutwo import project_interfaces
 
 j = music_parameters.JustIntonationPitch
-
 R = project_interfaces.Resonator
+
+
+def is_supported(context, *args, **kwargs):
+    return True
 
 
 def main(context, *args, **kwargs) -> project_interfaces.PEntryReturnType:
