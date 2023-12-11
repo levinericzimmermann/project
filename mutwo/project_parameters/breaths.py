@@ -1,9 +1,10 @@
+import abc
 import enum
 
 from mutwo import core_parameters
 from mutwo import project_parameters
 
-__all__ = ("BreathDirection", "BreathSpeed", "Breath")
+__all__ = ("BreathDirection", "BreathSpeed", "Breath", "HoldBreath")
 
 
 class BreathDirection(enum.Enum):
@@ -16,7 +17,14 @@ class BreathSpeed(enum.Enum):
     FAST = 1
 
 
-class Breath(object):
+class BreathOrHoldBreath(abc.ABC):
+    @property
+    @abc.abstractmethod
+    def duration(self) -> core_parameters.abc.Duration:
+        ...
+
+
+class Breath(BreathOrHoldBreath):
     def __init__(
         self,
         direction: BreathDirection = BreathDirection.INHALE,
@@ -54,3 +62,8 @@ class Breath(object):
                 )
             case _:
                 raise NotImplementedError(self.speed)
+
+
+class HoldBreath(BreathOrHoldBreath):
+    def duration(self) -> core_parameters.abc.Duration:
+        return 5
