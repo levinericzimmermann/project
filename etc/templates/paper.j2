@@ -1,0 +1,28 @@
+oddHeaderMarkup = \markup \fill-line { " " }
+evenHeaderMarkup = \markup \fill-line { " " }
+oddFooterMarkup = \markup {
+  \fill-line {
+    \typewriter \fontsize #+1
+    \fromproperty #'page:page-number-string
+  }
+}
+evenFooterMarkup = \markup {
+  \fill-line {
+    \typewriter \fontsize #-1
+    \fromproperty #'page:page-number-string
+  }
+}
+
+print-first-page-number = ##t
+
+% #(define fonts
+%     (make-pango-font-tree "{{ font }}" "{{ font }}" "{{ font }}"
+%     (/ staff-height pt {{ staff_height }}))
+% )
+
+% #(define fonts
+%   (set-global-fonts
+%     #:music "beethoven"
+%     #:brace "beethoven"
+%   )
+% )

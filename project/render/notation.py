@@ -18,9 +18,19 @@ def notate(event: core_events.SimultaneousEvent[core_events.TaggedSequentialEven
     scoreblock = abjad.Block("score")
     scoreblock.items.append(score)
 
+    layoutblock = abjad.Block('layout')
+    with open('etc/templates/layout.j2', 'r') as f:
+        layoutblock.items.append(f.read())
+
+    paperblock = abjad.Block('paper')
+    with open('etc/templates/paper.j2', 'r') as f:
+        paperblock.items.append(f.read())
+
     lilypond_file = abjad.LilyPondFile()
 
     lilypond_file.items.append(r'\include "etc/lilypond/ekme-heji.ily"')
+    lilypond_file.items.append(layoutblock)
+    lilypond_file.items.append(paperblock)
     lilypond_file.items.append(scoreblock)
 
     abjad.persist.as_pdf(lilypond_file, f"builds/notations/{project.constants.TITLE}")
@@ -46,8 +56,6 @@ class SequentialEventToAbjadVoice(abjad_converters.SequentialEventToAbjadVoice):
 
 
 _voice_preperation = r"""
-\omit Staff.BarLine
-\omit Staff.TimeSignature
 """
 
 

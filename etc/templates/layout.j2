@@ -1,0 +1,46 @@
+indent = 0
+
+\context {
+  \Score
+  \omit BarLine
+  % Avoid bar lines from time signatures of other staff groups
+  % (move them to Staff context).
+  % Allow breaks between bar lines
+  % (this is important because we have)
+  % (only very few bar lines).
+  forbidBreakBetweenBarLines = ##f
+  % Arpeggi across staves
+  \consists "Span_arpeggio_engraver"
+  % PROPORTIONAL NOTATION!!
+  proportionalNotationDuration = #(ly:make-moment 1/2)
+  \override SpacingSpanner.uniform-stretching = ##t
+
+  \override BarNumber.break-visibility = #all-invisible
+}
+
+\context {
+  \StaffGroup
+  \omit BarLine
+
+  \override StaffGrouper.staff-staff-spacing.basic-distance = #1
+  \override StaffGrouper.staff-staff-spacing.minimum-distance = #1
+  \override StaffGrouper.staff-staff-spacing.padding = #1
+  \override StaffGrouper.staff-staff-spacing.stretchability = #0
+
+}
+
+\context {
+  \Staff
+  \omit BarLine
+  \omit TimeSignature
+  \remove "Separating_line_group_engraver"
+  \override BarLine.allow-span-bar = ##f
+  \override Clef.break-visibility = #all-invisible
+}
+
+\context {
+  \Voice
+  % Allow line breaks with tied notes
+  \remove Forbid_line_break_engraver
+}
+
