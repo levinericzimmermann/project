@@ -27,7 +27,6 @@
 
 - how to order parts? how do parts decide for pitches?
 
-
 ## Representation of musical material / breath
 
 Each musical part is a ``SimultaneousEvent`` that contains N voices.
@@ -45,6 +44,64 @@ but the duration according to the breath sequence.
 
 ## Harmony
 
-harmony is based on a set of tuning forks.
-each tuning fork represents a valid tonic, between these
-tonics the music switching.
+Harmony is based on a set of tuning forks.
+Each tuning fork represents a valid tonic, between these
+tonics the music is switching.
+
+## Sections
+
+Maybe various sections could be beautiful.
+So that's really more like a collection, a song-book,
+than a composition. More a list of possibilities than
+a master-work. More options than settlements.
+
+## Order and freedom
+
+Does the form really needs to be fixed e.g. does the linear order
+really has to be in the way how it is?
+
+In fact we have entries and they are sorted.
+
+They are repeated and varied.
+
+Couldn't it be enough to provide the various entries and the
+player can go through them ad. libitum (or according to allowed
+path)?
+
+So the page is more a sequence of allowed entries, the player
+can go through.
+
+Think of Feldmans Intersection.
+Think of a real meditative exercise.
+Think about the fact that music is not exactly linear.
+
+How should they be sorted on the page?
+
+How should the modulations happens?
+
+    The linearity indeed has a lot of connections to
+    modulations. Modulations need linearity, because
+    we need to prepare and anticipate them and
+    after-reflect on them.
+
+How should the patch work?
+
+    Because here we also really have the problem
+    that in walkman cues are sorted linearly, it's
+    not a grid or a landscape. So for this we would
+    perhaps really need wm2 or something completely
+    different.
+
+Imagine a page for each tuning fork, for each tonic.
+
+    Maybe therefore the pages need to hang?
+    Or yes, it's maybe more a sculpture than a book.
+
+
+A strong argument for linearity is the fact
+that breathing is linear. It doesn't stop.
+Never. Therefore there is no 'space' between
+entries. Not like Feldmans intersection. No
+space. Just continuity. *Continuous breathing*.
+
+
