@@ -27,6 +27,8 @@ class Resonator(object):
 
     # Resonator parameters
     #   Which pitches when played create resonances
+    #   NOTE: It's the responsibility of the user to ensure that the resonance
+    #   filter tuple fits to the expected resonance behaviour.
     resonating_pitch_tuple: tuple[music_parameters.abc.Pitch, ...] = (
         music_parameters.DirectPitch(440),
     )
