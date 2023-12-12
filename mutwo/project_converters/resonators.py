@@ -66,3 +66,26 @@ def proceed_note_like(t, n, resonator, seq, b):
                 t += b0.duration * percentage
 
     seq.squash_in(t, n)
+
+
+# Serialize resonator tuple information into a dict, so
+# that it can be written to disk as a json file.
+class ResonatorTupleToSerializable(core_converters.abc.Converter):
+    def convert(self, resonator_tuple: project_interfaces.ResonatorTuple) -> dict:
+        d = {}
+        for i, r in enumerate(resonator_tuple):
+            d[i] = {
+                "delay": float(r.delay),
+                "pitch_transposition_list": [
+                    i.interval / 1200 for i in r.pitch_transposition_tuple
+                ],
+                "resonance_filter_list": [
+                    {
+                        "frequency": f.frequency,
+                        "amplitude": f.amplitude,
+                        "decay": f.decay,
+                    }
+                    for f in r.resonance_filter_tuple
+                ],
+            }
+        return d

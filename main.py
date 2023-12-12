@@ -17,6 +17,7 @@ data_tuple = (data,)
 parser = argparse.ArgumentParser(prog="project")
 parser.add_argument("-n", "--notation", action="store_true")
 parser.add_argument("-m", "--midi", action="store_true")
+parser.add_argument("-w", "--walkman", action="store_true")
 
 args = parser.parse_args()
 
@@ -25,3 +26,6 @@ if args.notation:
 
 if args.midi:
     project.render.midi(data_tuple)
+
+if args.walkman:
+    project.render.walkman(data_tuple)
