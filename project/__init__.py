@@ -3,4 +3,5 @@ del patches  # only for side effects
 
 from . import constants
 from . import entries
+from . import render
 

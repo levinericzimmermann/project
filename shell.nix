@@ -30,6 +30,10 @@ in
       buildInputs = with pkgs; [
           mypython
 
+          # To render notation
+          # (shouldn't this be included in mutwo.abjad..?)
+          lilypond-with-fonts
+
           # To render documents
           sile
       ];
