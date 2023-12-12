@@ -15,6 +15,9 @@ def notate(event: core_events.SimultaneousEvent[core_events.TaggedSequentialEven
 
     score = abjad.Score([whistle, resonance])
 
+    headerblock = abjad.Block('header')
+    headerblock.items.append(header)
+
     scoreblock = abjad.Block("score")
     scoreblock.items.append(score)
 
@@ -29,11 +32,19 @@ def notate(event: core_events.SimultaneousEvent[core_events.TaggedSequentialEven
     lilypond_file = abjad.LilyPondFile()
 
     lilypond_file.items.append(r'\include "etc/lilypond/ekme-heji.ily"')
+    lilypond_file.items.append(headerblock)
     lilypond_file.items.append(layoutblock)
     lilypond_file.items.append(paperblock)
     lilypond_file.items.append(scoreblock)
 
     abjad.persist.as_pdf(lilypond_file, f"builds/notations/{project.constants.TITLE}")
+
+
+header = rf'''
+title = "11.1"
+composer = "levin eric zimmermann"
+tagline = ""
+'''
 
 
 class SequentialEventToAbjadVoice(abjad_converters.SequentialEventToAbjadVoice):
