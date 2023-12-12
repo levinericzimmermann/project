@@ -6,7 +6,9 @@ import abjad
 import project
 
 
-def notate(event: core_events.SimultaneousEvent[core_events.TaggedSequentialEvent]):
+def notate(data_tuple):
+    event = _data_tuple_to_event(data_tuple)
+
     w2s = WhistleToStaff()
     r2s = ResonanceToStaff()
 
@@ -38,6 +40,33 @@ def notate(event: core_events.SimultaneousEvent[core_events.TaggedSequentialEven
     lilypond_file.items.append(scoreblock)
 
     abjad.persist.as_pdf(lilypond_file, f"builds/notations/{project.constants.TITLE}")
+
+
+def _data_tuple_to_event(data_tuple):
+    event = core_events.SimultaneousEvent(
+        [
+            core_events.TaggedSequentialEvent([], tag="v"),
+            core_events.TaggedSequentialEvent([], tag="r"),
+        ]
+    )
+
+    for i, d in enumerate(data_tuple):
+        e, *_ = d
+        # Add electronic cue to notation
+        pic = e["v"][0].playing_indicator_collection
+        pic.cue.index = i + 1
+
+        # Add breath symbols to notation
+        for i, breath in enumerate(e["b"]):
+            e["v"].get_event_at(
+                i
+            ).playing_indicator_collection.breath_indicator.breath = breath.breath_or_hold_breath
+
+        # Extend to previous structure
+        event["v"].extend(e["v"])
+        event["r"].extend(e["r"].chordify())
+
+    return event
 
 
 header = rf'''
