@@ -14,7 +14,16 @@ def notate(event: core_events.SimultaneousEvent[core_events.TaggedSequentialEven
     resonance = r2s(event["r"])
 
     score = abjad.Score([whistle, resonance])
-    abjad.persist.as_pdf(score, f"builds/notations/{project.constants.TITLE}")
+
+    scoreblock = abjad.Block("score")
+    scoreblock.items.append(score)
+
+    lilypond_file = abjad.LilyPondFile()
+
+    lilypond_file.items.append(r'\include "etc/lilypond/ekme-heji.ily"')
+    lilypond_file.items.append(scoreblock)
+
+    abjad.persist.as_pdf(lilypond_file, f"builds/notations/{project.constants.TITLE}")
 
 
 class SequentialEventToAbjadVoice(abjad_converters.SequentialEventToAbjadVoice):
@@ -60,6 +69,7 @@ class ResonanceToStaff(SequentialEventToAbjadVoice):
         leaf = abjad.get.leaf(voice, 0)
         abjad.attach(abjad.LilyPondLiteral(_resonance_preperation), leaf)
         return abjad.Staff([voice])
+
 
 _resonance_preperation = r"""
 \magnifyStaff #5/7
